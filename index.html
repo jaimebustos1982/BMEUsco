@@ -1,0 +1,1372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<title>BMEUsco — Balances de Materia y Energía</title>
+<meta name="theme-color" content="#F6F3EC">
+<link rel="manifest" href="manifest.json">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="BMEUsco">
+<meta name="mobile-web-app-capable" content="yes">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --vino:#6D1B2B;
+    --vino-dark:#4E121E;
+    --vino-soft:rgba(109,27,43,0.08);
+    --ocre:#B9862E;
+    --ocre-dark:#8F6620;
+    --ocre-soft:rgba(185,134,46,0.12);
+    --paper:#F6F3EC;
+    --paper2:#EFE9DC;
+    --card:#FFFFFF;
+    --ink:#2A2521;
+    --ink-dim:#71695E;
+    --ink-faint:#A69C8C;
+    --line:#DCD3BF;
+    --error:#A6332B;
+    --error-soft:rgba(166,51,43,0.08);
+    --radius:10px;
+    --font-display:'Source Serif 4',Georgia,serif;
+    --font-body:'Inter',system-ui,-apple-system,sans-serif;
+    --font-mono:'JetBrains Mono','SF Mono',Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:var(--font-body);
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:50px;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding:0 16px;}
+
+  /* ---------- MEMBRETE INSTITUCIONAL ---------- */
+  .letterhead{ background:var(--card); border-bottom:3px solid var(--vino); box-shadow:0 2px 0 var(--ocre); }
+  .letterhead-top{ display:flex; align-items:center; gap:12px; padding:16px 0 12px; border-bottom:1px solid var(--line); }
+  .seal{
+    width:48px;height:48px;flex:0 0 auto;
+    object-fit:contain;
+  }
+  .inst-name{font-family:var(--font-display);font-weight:600;font-size:14.5px;letter-spacing:.01em;color:var(--vino);line-height:1.25;}
+  .inst-sub{font-size:11.5px;color:var(--ink-dim);margin-top:1px;line-height:1.3;}
+  .letterhead-course{padding:13px 0 14px;}
+  .course-eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ocre-dark); margin-bottom:3px;}
+  .course-title{ font-family:var(--font-display);font-weight:700;font-size:22px;color:var(--ink); margin:0 0 6px; line-height:1.15; border-bottom:2px solid var(--ocre); display:inline-block; padding-bottom:4px; }
+  .docente-line{font-size:12.5px;color:var(--ink-dim);}
+  .docente-line b{color:var(--ink);font-weight:600;}
+  .app-badge{ display:inline-flex;align-items:center;gap:6px;margin-top:9px; font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;color:var(--vino); background:var(--vino-soft); border:1px solid var(--vino); border-radius:20px; padding:3px 10px; }
+  .app-badge b{font-weight:700;}
+
+  .userbar{ display:flex;justify-content:space-between;align-items:center; padding:9px 0; font-size:11.5px; color:var(--ink-dim); }
+  .userbar b{color:var(--ink);}
+  .userbar button{ background:none;border:none;color:var(--vino);font-size:11px;text-decoration:underline; cursor:pointer; font-family:var(--font-body); padding:0; }
+
+  /* ---------- SELECTOR ---------- */
+  .cat-row{display:flex;gap:16px;margin:16px 0 8px;flex-wrap:wrap;}
+  .cat-tag{ font-family:var(--font-mono);font-size:10px;letter-spacing:.1em; display:flex;align-items:center;gap:5px;color:var(--ink-dim); }
+  .cat-dot{width:8px;height:8px;border-radius:2px;}
+  .cat-dot.materia{background:var(--ocre);}
+  .cat-dot.energia{background:var(--vino);}
+
+  .op-scroll{ display:flex; gap:8px; overflow-x:auto; padding:2px 0 4px; margin:0 -16px; padding-left:16px; padding-right:16px; scrollbar-width:none; }
+  .op-scroll::-webkit-scrollbar{display:none;}
+  .chip{ flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:9px 13px 8px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--ocre); border-radius:7px; cursor:pointer; user-select:none; transition:background .15s, transform .1s; min-width:132px; }
+  .chip.cat-energia{border-left-color:var(--vino);}
+  .chip:active{transform:scale(0.97);}
+  .chip .n{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-faint);letter-spacing:.08em;}
+  .chip .t{font-family:var(--font-display);font-size:13px;font-weight:600;color:var(--ink);line-height:1.2;}
+  .chip.active{background:var(--vino);border-color:var(--vino);}
+  .chip.active.cat-materia{background:var(--ocre);border-color:var(--ocre-dark);}
+  .chip.active .n{color:rgba(255,255,255,0.75);}
+  .chip.active .t{color:#fff;}
+
+  /* ---------- FICHA (card) ---------- */
+  main{padding-top:14px;}
+  .card{ background:var(--card); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:16px; overflow:hidden; }
+  .card-head{ background:var(--paper2); border-bottom:1px solid var(--line); padding:10px 16px; display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap; }
+  .ficha-n{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-dim);letter-spacing:.06em;}
+  .pill-group{display:flex;gap:6px;}
+  .pill{ font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em; padding:2px 8px;border-radius:20px;color:#fff; }
+  .pill.materia{background:var(--ocre);}
+  .pill.energia{background:var(--vino);}
+  .pill.sector{background:transparent;color:var(--ink-dim);border:1px solid var(--ink-faint);}
+  .card-body{padding:16px;}
+  .op-title{font-family:var(--font-display);font-weight:700;font-size:17px;margin:0 0 10px;}
+
+  .case-block{
+    background:var(--paper2); border-left:3px solid var(--ocre); border-radius:0 8px 8px 0;
+    padding:11px 13px; margin-bottom:16px;
+  }
+  .case-context{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.06em;color:var(--ocre-dark);text-transform:uppercase;margin-bottom:5px;}
+  .case-text{font-size:13px;color:var(--ink);line-height:1.55;}
+
+  /* ---------- DIAGRAMA ---------- */
+  .schem-box{ background:var(--paper2); border:1px solid var(--line); border-radius:8px; margin-bottom:16px; }
+  .schem-box svg{display:block;width:100%;height:auto;}
+  .pipe{fill:none;stroke:var(--ink-faint);stroke-width:3;stroke-linecap:round;}
+  .flow-overlay{fill:none;stroke:var(--vino);stroke-width:3;stroke-linecap:round;stroke-dasharray:7 7;opacity:0;transition:opacity .35s;}
+  .schem.active .flow-overlay{opacity:1;animation:dashmove 0.9s linear infinite;}
+  @keyframes dashmove{to{stroke-dashoffset:-14;}}
+  @media (prefers-reduced-motion: reduce){.flow-overlay{animation:none !important;}}
+  .box-unit{fill:#fff;stroke:var(--ocre-dark);stroke-width:1.5;}
+  .arrowhead{fill:var(--ink-faint);}
+  .d-label{font-family:var(--font-mono);font-size:9.5px;fill:var(--ink-faint);}
+  .d-val{font-family:var(--font-mono);font-size:11px;fill:var(--ink-dim);font-weight:700;}
+  .d-val.computed{fill:var(--vino);}
+  .unit-label{font-family:var(--font-display);font-size:11px;fill:var(--ink);font-weight:600;}
+
+  /* ---------- INPUTS ---------- */
+  .sec-label{ font-family:var(--font-mono);font-size:10.5px;color:var(--ocre-dark);letter-spacing:.1em; text-transform:uppercase;margin:0 0 10px; }
+  .inputs-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;}
+  .field{display:flex;flex-direction:column;gap:5px;}
+  .field label{font-size:11.5px;color:var(--ink-dim);line-height:1.3;}
+  .field .unit-hint{color:var(--ink-faint);font-size:10px;}
+  .field input{ background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:9px 10px; color:var(--ink); font-family:var(--font-mono); font-size:14px; width:100%; }
+  .field input:focus{outline:none;border-color:var(--vino);}
+
+  /* ---------- PISTAS ---------- */
+  .hint-box{ background:var(--card); border:1px dashed var(--ocre); border-radius:8px; padding:12px 13px; margin-bottom:16px; }
+  .hint-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
+  .hint-head .sec-label{margin:0;}
+  .hint-item{ font-size:12.5px;color:var(--ink); line-height:1.5; padding:8px 0; border-top:1px solid var(--line); }
+  .hint-item:first-child{border-top:none;}
+  .hint-item b{color:var(--ocre-dark);font-family:var(--font-mono);font-size:10.5px;}
+  .hint-btn{ margin-top:6px; background:var(--ocre-soft); border:1px solid var(--ocre); color:var(--ocre-dark); font-family:var(--font-body); font-weight:600; font-size:12px; border-radius:20px; padding:7px 13px; cursor:pointer; }
+  .hint-empty{font-size:12px;color:var(--ink-faint);}
+
+  /* ---------- TU RESPUESTA ---------- */
+  .answer-box{ background:var(--vino-soft); border:1px solid var(--vino); border-radius:8px; padding:13px; margin-bottom:16px; }
+  .answer-box .sec-label{color:var(--vino);}
+  .answer-box p.hint-empty{margin:0 0 10px;color:var(--ink-dim);}
+  .answer-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .answer-grid .field input{background:var(--card);}
+
+  /* ---------- COMPARACIÓN ---------- */
+  :root{ --correct:#4B7A52; --correct-soft:rgba(75,122,82,0.1); }
+  .compare-box{margin-bottom:14px;}
+  .compare-item{ display:flex;justify-content:space-between;align-items:center;gap:10px; padding:9px 12px;border-radius:7px;margin-bottom:6px;font-size:12px; border:1px solid var(--line); }
+  .compare-item.ok{background:var(--correct-soft);border-color:var(--correct);}
+  .compare-item.no{background:var(--error-soft);border-color:var(--error);}
+  .compare-item.na{background:var(--paper2);color:var(--ink-faint);}
+  .compare-item .cl{color:var(--ink-dim);}
+  .compare-item .cv{font-family:var(--font-mono);font-weight:700;}
+  .compare-item.ok .cv{color:var(--correct);}
+  .compare-item.no .cv{color:var(--error);}
+  .compare-tag{font-family:var(--font-mono);font-size:9.5px;letter-spacing:.05em;padding:2px 7px;border-radius:20px;white-space:nowrap;}
+  .compare-tag.ok{background:var(--correct);color:#fff;}
+  .compare-tag.no{background:var(--error);color:#fff;}
+  .compare-tag.na{background:var(--ink-faint);color:#fff;}
+
+  .calc-btn{ width:100%; background:var(--vino); color:#fff; border:none; border-radius:7px; padding:13px; font-family:var(--font-display); font-weight:700; font-size:14px; letter-spacing:.02em; cursor:pointer; transition:transform .08s, filter .15s; }
+  .calc-btn:active{transform:scale(0.98);filter:brightness(1.1);}
+
+  .err-box{ margin-top:10px; background:var(--error-soft); border:1px solid var(--error); color:var(--error); font-size:12.5px; padding:10px 12px; border-radius:7px; }
+
+  /* ---------- RESULTADOS ---------- */
+  .results{margin-top:16px;padding-top:14px;border-top:1px dashed var(--line);}
+  .results-head{display:flex;align-items:center;gap:9px;margin-bottom:12px;}
+  .stamp{ width:40px;height:40px;flex:0 0 auto;border-radius:50%; border:2px dashed var(--vino); color:var(--vino); display:flex;align-items:center;justify-content:center; transform:rotate(-8deg); font-family:var(--font-mono);font-size:7px;font-weight:700;letter-spacing:.02em; text-align:center;line-height:1.1; }
+  .readout{ background:var(--paper2); border:1px solid var(--line); border-radius:7px; padding:11px 13px; display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; }
+  .readout .rl{font-size:12px;color:var(--ink-dim);}
+  .readout .rv{font-family:var(--font-mono);font-size:16px;font-weight:700;color:var(--vino);}
+  .readout .ru{font-family:var(--font-mono);font-size:10.5px;color:var(--ink-faint);margin-left:4px;}
+
+  details{margin-top:10px;}
+  summary{ cursor:pointer; font-size:12.5px; color:var(--ocre-dark); font-weight:600; list-style:none; display:flex;align-items:center;gap:6px; }
+  summary::-webkit-details-marker{display:none;}
+  summary::before{content:'›';font-family:var(--font-mono);transition:transform .15s;}
+  details[open] summary::before{transform:rotate(90deg);}
+  .steps{margin-top:10px;}
+  .step{font-size:12.5px;color:var(--ink-dim);line-height:1.55;padding:8px 0;border-top:1px solid var(--line);}
+  .step:first-child{border-top:none;}
+  .step code{ display:block;margin-top:4px;font-family:var(--font-mono);font-size:12px;color:var(--ink); background:var(--paper); padding:6px 8px; border-radius:6px; border:1px solid var(--line); overflow-x:auto; white-space:pre; }
+  .note{ margin-top:10px;font-size:11.5px;color:var(--ink-dim); background:var(--ocre-soft);border:1px solid var(--ocre); padding:8px 10px;border-radius:7px;line-height:1.4; }
+
+  /* ---------- PANEL DOCENTE ---------- */
+  .docente-link{ display:block;text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em; color:var(--ink-dim); background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; margin:6px 0 16px; cursor:pointer; }
+  .overlay{ position:fixed;inset:0;background:rgba(42,37,33,0.55); display:flex;align-items:center;justify-content:center;padding:20px;z-index:50; }
+  .modal{ background:var(--card);border-radius:12px;max-width:400px;width:100%; padding:22px 20px;border-top:4px solid var(--vino); max-height:88vh;overflow-y:auto; }
+  .modal h3{font-family:var(--font-display);font-size:18px;margin:0 0 8px;color:var(--vino);}
+  .modal p{font-size:12.5px;color:var(--ink-dim);line-height:1.5;margin:0 0 14px;}
+  .modal .field{margin-bottom:12px;}
+  .modal-actions{display:flex;gap:8px;margin-top:6px;}
+  .btn-secondary{ flex:1;background:var(--paper2);color:var(--ink-dim);border:1px solid var(--line); border-radius:7px;padding:11px;font-family:var(--font-body);font-size:13px;cursor:pointer; }
+  .btn-primary{ flex:1;background:var(--vino);color:#fff;border:none;border-radius:7px;padding:11px; font-family:var(--font-display);font-weight:700;font-size:13px;cursor:pointer; }
+
+  .panel-full{background:var(--paper);min-height:100vh;}
+  .panel-head{background:var(--vino);color:#fff;padding:16px;}
+  .panel-head .eyebrow{font-family:var(--font-mono);font-size:10px;letter-spacing:.1em;opacity:.8;}
+  .panel-head h2{font-family:var(--font-display);font-size:20px;margin:4px 0 2px;}
+  .panel-head p{font-size:12px;opacity:.85;margin:0;}
+  .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:16px 0;}
+  .stat-card{ background:var(--card);border:1px solid var(--line);border-radius:9px;padding:12px 14px; }
+  .stat-card .sv{font-family:var(--font-mono);font-size:22px;font-weight:700;color:var(--vino);}
+  .stat-card .sl{font-size:11px;color:var(--ink-dim);margin-top:2px;}
+  table.logtable{width:100%;border-collapse:collapse;font-size:11.5px;}
+  table.logtable th{ text-align:left;font-family:var(--font-mono);font-size:9.5px;color:var(--ink-dim); text-transform:uppercase;letter-spacing:.04em;padding:6px 6px;border-bottom:2px solid var(--line); }
+  table.logtable td{padding:7px 6px;border-bottom:1px solid var(--line);color:var(--ink);}
+  .table-wrap{background:var(--card);border:1px solid var(--line);border-radius:9px;overflow:auto;max-height:340px;}
+  .panel-actions{display:flex;gap:8px;margin:16px 0;}
+  .loading{font-size:12.5px;color:var(--ink-dim);padding:20px 0;text-align:center;}
+
+  footer{margin-top:6px;padding:14px 4px 0;border-top:1px solid var(--line);}
+  footer p{font-size:10.5px;color:var(--ink-faint);line-height:1.7;margin:3px 0;text-align:center;}
+
+  @media (min-width:540px){ .inputs-grid{grid-template-columns:1fr 1fr 1fr;} }
+  @media (min-width:700px){ .op-scroll{ flex-wrap:wrap; overflow-x:visible; } .chip{min-width:150px;} }
+</style>
+</head>
+<body>
+
+<div class="letterhead">
+  <div class="wrap">
+    <div class="letterhead-top">
+      <img class="seal" src="data:image/png;base64,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" alt="Escudo Universidad Surcolombiana">
+      <div>
+        <div class="inst-name">UNIVERSIDAD SURCOLOMBIANA</div>
+        <div class="inst-sub">Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</div>
+      </div>
+    </div>
+    <div class="letterhead-course">
+      <div class="course-eyebrow">Herramienta de apoyo académico</div>
+      <h1 class="course-title">Balance de Materia y Energía</h1>
+      <div class="docente-line">Docente: <b>D. Sc. Jaime Daniel Bustos Vanegas</b></div>
+      <div class="app-badge"><b>BMEUsco</b> · Operaciones unitarias en procesos agroindustriales</div>
+    </div>
+    <div class="userbar" id="userbar"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="cat-row">
+    <span class="cat-tag"><span class="cat-dot materia"></span>Balance de materia</span>
+    <span class="cat-tag"><span class="cat-dot energia"></span>Balance de energía</span>
+  </div>
+  <nav class="op-scroll" id="opScroll"></nav>
+
+  <main>
+    <div class="card">
+      <div class="card-head">
+        <span class="ficha-n" id="fichaN">FICHA N.º 01</span>
+        <div class="pill-group">
+          <span class="pill" id="fichaPill">MATERIA</span>
+          <span class="pill sector" id="fichaSector">Alimentaria</span>
+        </div>
+      </div>
+      <div class="card-body">
+        <h2 class="op-title" id="opTitle"></h2>
+
+        <div class="case-block">
+          <div class="case-context" id="caseContext"></div>
+          <div class="case-text" id="caseText"></div>
+        </div>
+
+        <div class="schem-box"><div id="schemContainer"></div></div>
+
+        <p class="sec-label">Datos conocidos del problema</p>
+        <div class="inputs-grid" id="inputsGrid"></div>
+
+        <div class="hint-box">
+          <div class="hint-head">
+            <span class="sec-label">¿Cómo lo planteo? Pistas guiadas</span>
+          </div>
+          <div id="hintList"></div>
+          <button class="hint-btn" id="hintBtn"></button>
+        </div>
+
+        <div class="answer-box">
+          <p class="sec-label">Tu respuesta</p>
+          <p class="hint-empty">Resuelve el balance en tu cuaderno e ingresa aquí tus resultados. Es opcional: si los dejas en blanco, igual podrás ver la solución.</p>
+          <div class="answer-grid" id="answerGrid"></div>
+        </div>
+
+        <button class="calc-btn" id="calcBtn">Verificar mi resultado</button>
+        <div id="errBox"></div>
+        <div id="resultsBox"></div>
+      </div>
+    </div>
+
+    <div class="docente-link" id="openDocente">Panel docente — seguimiento de uso</div>
+
+    <footer>
+      <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
+      <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-03-b · 13 fichas</p>
+    </footer>
+  </main>
+</div>
+
+<div id="modalRoot"></div>
+<div id="panelRoot"></div>
+
+<script>
+/* ============================= CONFIGURACIÓN ============================= */
+const DOCENTE_CODE = 'BUSTOS-2026'; // el docente puede cambiar este código antes de compartir el archivo con los estudiantes
+const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwOUTpf095cEqXVQZnzVO_5b6HCw-GGag5gkKQ1asJBQrzKaLjVCYmvvv8qBtsnNRBj/exec'; // pega aquí la URL /exec de tu Google Apps Script Web App (ver instrucciones del docente)
+
+/* ============================= UTILIDADES ============================= */
+function fmt(n, d=3){
+  if(n===null||n===undefined||!isFinite(n)) return '—';
+  let s = Number(n).toFixed(d);
+  if(s.indexOf('.')>-1){ s=s.replace(/0+$/,''); s=s.replace(/\.$/,''); }
+  if(s==='-0') s='0';
+  return s;
+}
+function num(v){ const n=parseFloat(v); return isNaN(n)?null:n; }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+/* ============================= DIAGRAMAS SVG ============================= */
+const ARROW_DEFS = `<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>`;
+
+const DIAGRAMS = {
+mixer: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L120,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L120,45"/>
+  <path class="pipe" d="M10,125 L120,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,125 L120,125"/>
+  <path class="pipe" d="M120,45 L150,45 L150,85" />
+  <path class="pipe" d="M120,125 L150,125 L150,85" />
+  <circle cx="150" cy="85" r="5" fill="var(--ocre)"/>
+  <path class="pipe" d="M150,85 L300,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M150,85 L300,85"/>
+  <text x="14" y="36" class="d-label">F1</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="116" class="d-label">F2</text><text x="14" y="140" class="d-val" id="d-in-2">—</text>
+  <text x="205" y="76" class="d-label">F3 (mezcla)</text><text x="205" y="100" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+recycle: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,90 L70,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,90 L70,90"/>
+  <rect x="70" y="55" width="90" height="70" rx="6" class="box-unit"/>
+  <text x="115" y="94" text-anchor="middle" class="unit-label">PROCESO</text>
+  <path class="pipe" d="M160,90 L230,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M160,90 L230,90"/>
+  <circle cx="230" cy="90" r="5" fill="var(--ocre)"/>
+  <path class="pipe" d="M230,90 L300,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M230,90 L300,90"/>
+  <path class="pipe" d="M230,90 L230,160 L40,160 L40,90 L70,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M230,90 L230,160 L40,160 L40,90 L70,90"/>
+  <text x="14" y="80" class="d-label">F0 fresca</text><text x="14" y="105" class="d-val" id="d-in-1">—</text>
+  <text x="235" y="70" class="d-label">P producto</text><text x="235" y="60" class="d-val computed" id="d-out-1">—</text>
+  <text x="60" y="178" class="d-label">R reciclo</text><text x="60" y="150" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+evaporator: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,120 L90,120" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,120 L90,120"/>
+  <path class="box-unit" d="M90,60 L170,60 L170,150 L90,150 Z"/>
+  <text x="130" y="108" text-anchor="middle" class="unit-label">EVAPORADOR</text>
+  <path class="pipe" d="M140,60 L140,20 L300,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M140,60 L140,20 L300,20"/>
+  <path class="pipe" d="M120,150 L120,175 L300,175" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M120,150 L120,175 L300,175"/>
+  <text x="14" y="110" class="d-label">F, xF</text><text x="14" y="135" class="d-val" id="d-in-1">—</text>
+  <text x="205" y="14" class="d-label">V (vapor)</text><text x="205" y="35" class="d-val computed" id="d-out-1">—</text>
+  <text x="180" y="168" class="d-label">P, xP</text><text x="180" y="189" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+reactor: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,85 L100,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,85 L100,85"/>
+  <rect x="100" y="45" width="110" height="80" rx="8" class="box-unit"/>
+  <text x="155" y="80" text-anchor="middle" class="unit-label">REACTOR</text>
+  <text x="155" y="98" text-anchor="middle" class="d-label">A → B</text>
+  <path class="pipe" d="M210,85 L300,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M210,85 L300,85"/>
+  <text x="14" y="76" class="d-label">FA0</text><text x="14" y="100" class="d-val" id="d-in-1">—</text>
+  <text x="215" y="60" class="d-label">FA sin reaccionar</text><text x="215" y="45" class="d-val computed" id="d-out-1">—</text>
+  <text x="215" y="150" class="d-label">FB generado</text><text x="215" y="165" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+sensible: `<svg viewBox="0 0 320 150" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,75 L110,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,75 L110,75"/>
+  <rect x="110" y="40" width="100" height="70" rx="6" class="box-unit"/>
+  <text x="160" y="80" text-anchor="middle" class="unit-label">CALOR</text>
+  <path class="pipe" d="M160,40 L160,12" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M160,40 L160,12"/>
+  <path class="pipe" d="M210,75 L300,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M210,75 L300,75"/>
+  <text x="14" y="65" class="d-label">m, T1</text><text x="14" y="94" class="d-val" id="d-in-1">—</text>
+  <text x="120" y="8" class="d-label">Q</text><text x="120" y="30" class="d-val computed" id="d-out-1">—</text>
+  <text x="215" y="65" class="d-label">T2</text><text x="215" y="94" class="d-val" id="d-in-2">—</text>
+</svg>`,
+exchanger: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L300,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L300,45"/>
+  <path class="pipe" d="M300,125 L10,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M300,125 L10,125"/>
+  <rect x="120" y="30" width="80" height="110" rx="8" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="14" y="36" class="d-label">CALIENTE T1e</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="230" y="36" class="d-label">T1s</text><text x="230" y="60" class="d-val" id="d-in-2">—</text>
+  <text x="14" y="150" class="d-label">FRÍA T2e</text><text x="14" y="115" class="d-val" id="d-in-3">—</text>
+  <text x="230" y="150" class="d-label">T2s (calculada)</text><text x="230" y="115" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+adiabatic: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L120,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L120,45"/>
+  <path class="pipe" d="M10,125 L120,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,125 L120,125"/>
+  <path class="pipe" d="M120,45 L150,45 L150,85" />
+  <path class="pipe" d="M120,125 L150,125 L150,85" />
+  <circle cx="150" cy="85" r="5" fill="var(--vino)"/>
+  <path class="pipe" d="M150,85 L300,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M150,85 L300,85"/>
+  <text x="14" y="36" class="d-label">m1, T1</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="116" class="d-label">m2, T2</text><text x="14" y="140" class="d-val" id="d-in-2">—</text>
+  <text x="205" y="76" class="d-label">Tf (mezcla adiabática)</text><text x="205" y="100" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+secadorCacao: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,120 L90,120" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,120 L90,120"/>
+  <path class="box-unit" d="M90,60 L170,60 L170,150 L90,150 Z"/>
+  <text x="130" y="108" text-anchor="middle" class="unit-label">SECADOR</text>
+  <path class="pipe" d="M140,60 L140,20 L300,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M140,60 L140,20 L300,20"/>
+  <path class="pipe" d="M120,150 L120,175 L300,175" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M120,150 L120,175 L300,175"/>
+  <text x="14" y="110" class="d-label">F, Hi</text><text x="14" y="135" class="d-val" id="d-in-1">—</text>
+  <text x="200" y="14" class="d-label">A (agua removida)</text><text x="205" y="35" class="d-val computed" id="d-out-1">—</text>
+  <text x="180" y="168" class="d-label">P, Hf</text><text x="180" y="189" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+centrifuga: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,85 L120,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,85 L120,85"/>
+  <path class="box-unit" d="M120,45 L195,45 L195,125 L120,125 Z"/>
+  <text x="157" y="80" text-anchor="middle" class="unit-label">CENTRÍ-</text>
+  <text x="157" y="94" text-anchor="middle" class="unit-label">FUGA</text>
+  <path class="pipe" d="M195,60 L300,60" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M195,60 L300,60"/>
+  <path class="pipe" d="M195,110 L300,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M195,110 L300,110"/>
+  <text x="14" y="76" class="d-label">L, xL</text><text x="14" y="100" class="d-val" id="d-in-1">—</text>
+  <text x="205" y="48" class="d-label">M (crema)</text><text x="205" y="70" class="d-val computed" id="d-out-1">—</text>
+  <text x="205" y="122" class="d-label">D (descremada)</text><text x="205" y="144" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+dilucionEnergia: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L120,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L120,45"/>
+  <path class="pipe" d="M10,125 L120,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,125 L120,125"/>
+  <path class="pipe" d="M120,45 L150,45 L150,85" />
+  <path class="pipe" d="M120,125 L150,125 L150,85" />
+  <circle cx="150" cy="85" r="5" fill="var(--vino)"/>
+  <path class="pipe" d="M150,85 L300,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M150,85 L300,85"/>
+  <text x="14" y="36" class="d-label">L, xL, TL</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="116" class="d-label">H (agua), TH</text><text x="14" y="140" class="d-val" id="d-in-2">—</text>
+  <text x="200" y="76" class="d-label">P, TP (calculados)</text><text x="205" y="100" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+mezclaObjetivo: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L120,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L120,45"/>
+  <path class="pipe" d="M10,125 L120,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,125 L120,125"/>
+  <path class="pipe" d="M120,45 L150,45 L150,85" />
+  <path class="pipe" d="M120,125 L150,125 L150,85" />
+  <circle cx="150" cy="85" r="5" fill="var(--vino)"/>
+  <path class="pipe" d="M150,85 L300,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M150,85 L300,85"/>
+  <text x="14" y="36" class="d-label">A (caliente), TA</text><text x="14" y="60" class="d-val computed" id="d-out-1">—</text>
+  <text x="14" y="116" class="d-label">B (fría), TB</text><text x="14" y="140" class="d-val computed" id="d-out-2">—</text>
+  <text x="200" y="76" class="d-label">P (objetivo), TP</text><text x="205" y="100" class="d-val" id="d-in-1">—</text>
+</svg>`,
+intercambiadorFlujo: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L300,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L300,45"/>
+  <path class="pipe" d="M300,125 L10,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M300,125 L10,125"/>
+  <rect x="120" y="30" width="80" height="110" rx="8" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="14" y="36" class="d-label">AGUA: mA (calcular)</text><text x="14" y="60" class="d-val computed" id="d-out-1">—</text>
+  <text x="225" y="36" class="d-label">90°C → 65°C</text>
+  <text x="14" y="150" class="d-label">LECHE: mL</text><text x="14" y="115" class="d-val" id="d-in-1">—</text>
+  <text x="225" y="150" class="d-label">4°C → 75°C</text>
+</svg>`,
+bombeo: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <rect x="15" y="130" width="60" height="45" rx="4" class="box-unit"/>
+  <text x="45" y="149" text-anchor="middle" class="unit-label" style="font-size:9px;">TANQUE</text>
+  <text x="45" y="161" text-anchor="middle" class="unit-label" style="font-size:9px;">INFERIOR</text>
+  <path class="pipe" d="M75,150 L140,150 L140,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M75,150 L140,150 L140,110"/>
+  <circle cx="140" cy="95" r="15" class="box-unit"/>
+  <text x="140" y="99" text-anchor="middle" class="d-label">BOMBA</text>
+  <path class="pipe" d="M140,80 L140,35 L245,35" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M140,80 L140,35 L245,35"/>
+  <rect x="245" y="12" width="60" height="45" rx="4" class="box-unit"/>
+  <text x="275" y="31" text-anchor="middle" class="unit-label" style="font-size:9px;">TANQUE</text>
+  <text x="275" y="43" text-anchor="middle" class="unit-label" style="font-size:9px;">SUPERIOR</text>
+  <path d="M185,150 L185,35" stroke="var(--ink-faint)" stroke-width="1" stroke-dasharray="3 3"/>
+  <text x="190" y="95" class="d-label">Δz</text>
+  <text x="14" y="122" class="d-label">Q̇, ρ</text><text x="14" y="185" class="d-val" id="d-in-1">—</text>
+  <text x="150" y="185" class="d-label">wA (trabajo específico)</text><text x="150" y="170" class="d-val computed" id="d-out-1">—</text>
+</svg>`
+};
+
+/* ============================= OPERACIONES ============================= */
+const OPS = [
+{ id:'mixer', num:'01', cat:'materia', sector:'Alimentaria', name:'Mezclador',
+  title:'Mezclador de dos corrientes',
+  context:'Planta de lácteos — estandarización de grasa',
+  story:'Una planta de lácteos del Huila recibe leche descremada y crema de leche provenientes del proceso de descremado, y debe estandarizar el contenido de grasa antes de enviar la leche a pasteurización. Actualmente mezcla 1200 kg/h de leche descremada (0.5% de grasa) con 80 kg/h de crema de leche (40% de grasa). Determine el flujo total y el porcentaje de grasa de la leche estandarizada que sale hacia pasteurización.',
+  inputs:[
+    {key:'F1', label:'F1 — flujo leche descremada', unit:'kg/h', dtag:'d-in-1', def:'1200'},
+    {key:'x1', label:'x1 — fracción de grasa en F1', unit:'0–1', def:'0.005'},
+    {key:'F2', label:'F2 — flujo crema de leche', unit:'kg/h', dtag:'d-in-2', def:'80'},
+    {key:'x2', label:'x2 — fracción de grasa en F2', unit:'0–1', def:'0.40'},
+  ],
+  hints:[
+    'Define el sistema: dos corrientes de entrada (descremada y crema) y una de salida (leche estandarizada). Sin reacción ni acumulación, ¿qué principio de conservación aplica?',
+    'Plantea primero el balance global de masa para hallar el flujo total de salida (F3). Luego plantea el balance del componente grasa entre las tres corrientes.',
+    'Con el balance global y el balance de grasa tienes dos ecuaciones para las dos incógnitas (F3 y x3). Verifica que x3 quede entre x1 y x2: es una regla de mezcla.'
+  ],
+  answerFields:[
+    {key:'F3', label:'F3 — leche estandarizada', unit:'kg/h'},
+    {key:'x3', label:'x3 — % de grasa resultante', unit:'%'}
+  ],
+  calc(v){
+    if(v.F1<0||v.F2<0) return {error:'Los flujos F1 y F2 no pueden ser negativos.'};
+    if(v.x1<0||v.x1>1||v.x2<0||v.x2>1) return {error:'x1 y x2 deben estar entre 0 y 1.'};
+    const F3=v.F1+v.F2, x3=F3>0?(v.F1*v.x1+v.F2*v.x2)/F3:0;
+    return {
+      outputs:[
+        {key:'F3',label:'F3 — leche estandarizada',value:fmt(F3),unit:'kg/h',raw:F3},
+        {key:'x3',label:'x3 — % de grasa resultante',value:fmt(x3*100,2),unit:'%',raw:x3*100}
+      ],
+      diagram:{'d-out-1':fmt(F3)+' kg/h · x='+fmt(x3,3)}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance global de masa (entrada = salida, estado estable, sin reacción)', f:`F3 = F1 + F2\nF3 = ${v.F1} + ${v.F2} = ${fmt(F3)} kg/h`},
+        {t:'Balance por componente (grasa)', f:`F1·x1 + F2·x2 = F3·x3`},
+        {t:'Se despeja x3', f:`x3 = (F1·x1 + F2·x2) / F3\nx3 = (${v.F1}×${v.x1} + ${v.F2}×${v.x2}) / ${fmt(F3)}\nx3 = ${fmt(x3,4)} → ${fmt(x3*100,2)} %`}
+      ]
+    };
+  }
+},
+{ id:'recycle', num:'02', cat:'materia', sector:'No alimentaria', name:'Reciclo',
+  title:'Balance con corriente de reciclo',
+  context:'Planta de beneficio de fique — recirculación de agua de lavado',
+  story:'En una planta de beneficio de fique del Huila, la fibra extraída se lava con agua para eliminar el mucílago. Para reducir el consumo de agua fresca, parte del agua de lavado se recircula al proceso. La planta capta 500 kg/h de agua fresca de la fuente cercana, y por cada 100 kg de agua fresca recircula el equivalente al 60% adicional. Determine el caudal de reciclo y el caudal real que entra a la etapa de lavado.',
+  inputs:[
+    {key:'F0', label:'F0 — agua fresca captada', unit:'kg/h', dtag:'d-in-1', def:'500'},
+    {key:'RR', label:'Relación de reciclo (R/F0)', unit:'adim.', def:'0.60'},
+  ],
+  hints:[
+    'Dibuja la frontera del sistema completo (todo el proceso de lavado, incluyendo el punto donde se separa el reciclo). ¿Qué corrientes cruzan esa frontera y cuáles quedan dentro?',
+    'En estado estable, sin generación ni consumo de masa, ¿qué relación existe entre el agua fresca F0 que entra al sistema completo y el producto neto P que sale de él?',
+    'Con P conocido, usa la relación de reciclo dada (R/F0) para hallar R, y súmalo a F0 para obtener el caudal real que entra a la etapa de lavado.'
+  ],
+  answerFields:[
+    {key:'P', label:'P — agua neta que sale del sistema', unit:'kg/h'},
+    {key:'R', label:'R — corriente de reciclo', unit:'kg/h'},
+    {key:'Ftotal', label:'Caudal combinado a lavado', unit:'kg/h'}
+  ],
+  calc(v){
+    if(v.F0<0) return {error:'F0 no puede ser negativo.'};
+    if(v.RR<0) return {error:'La relación de reciclo no puede ser negativa.'};
+    const P=v.F0, R=v.RR*v.F0, Ftotal=v.F0+R;
+    return {
+      outputs:[
+        {key:'P',label:'P — agua neta que sale del sistema',value:fmt(P),unit:'kg/h',raw:P},
+        {key:'R',label:'R — corriente de reciclo',value:fmt(R),unit:'kg/h',raw:R},
+        {key:'Ftotal',label:'Caudal combinado a la etapa de lavado',value:fmt(Ftotal),unit:'kg/h',raw:Ftotal}
+      ],
+      diagram:{'d-out-1':fmt(P)+' kg/h','d-out-2':fmt(R)+' kg/h'}, flows:['fo1','fo2','fo3','fo4'],
+      steps:[
+        {t:'Balance global (envolvente externa: el reciclo no la cruza, sin reacción)', f:`Entrada = Salida neta\nF0 = P\nP = ${fmt(P)} kg/h`},
+        {t:'Corriente de reciclo, a partir de la relación dada', f:`R = (R/F0) × F0\nR = ${v.RR} × ${v.F0} = ${fmt(R)} kg/h`},
+        {t:'Caudal combinado que entra realmente a la etapa de lavado', f:`F_combinado = F0 + R = ${v.F0} + ${fmt(R)} = ${fmt(Ftotal)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'evaporator', num:'03', cat:'materia', sector:'Alimentaria', name:'Evaporador',
+  title:'Evaporador de un efecto',
+  context:'Trapiche panelero — concentración de jugo de caña',
+  story:'Un trapiche panelero del Huila procesa 1000 kg/h de jugo de caña (guarapo) con 18% de sólidos solubles. El jugo se calienta en las pailas hasta evaporar el agua necesaria y alcanzar el punto de panela, con 90% de sólidos en el producto final. Determine el flujo de panela obtenido y la cantidad de agua evaporada por hora.',
+  inputs:[
+    {key:'F', label:'F — jugo de caña alimentado', unit:'kg/h', dtag:'d-in-1', def:'1000'},
+    {key:'xF', label:'xF — fracción de sólidos en el jugo', unit:'0–1', def:'0.18'},
+    {key:'xP', label:'xP — fracción de sólidos en la panela', unit:'0–1', def:'0.90'},
+  ],
+  hints:[
+    'El agua es el componente que se evapora; los sólidos disueltos (azúcares) prácticamente no salen en el vapor. ¿Conviene plantear primero el balance de sólidos o el balance global?',
+    'Plantea el balance de sólidos solubles entre la alimentación y el producto concentrado para hallar el flujo de panela (P).',
+    'Con P conocido, usa el balance global de masa (F = P + V) para hallar el vapor de agua evaporado.'
+  ],
+  answerFields:[
+    {key:'P', label:'P — panela obtenida', unit:'kg/h'},
+    {key:'V', label:'V — agua evaporada', unit:'kg/h'}
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.xF<0||v.xF>1||v.xP<0||v.xP>1) return {error:'xF y xP deben estar entre 0 y 1.'};
+    if(v.xP<=v.xF) return {error:'xP debe ser mayor que xF para que exista concentración por evaporación.'};
+    const P=v.F*v.xF/v.xP, V=v.F-P;
+    return {
+      outputs:[
+        {key:'P',label:'P — panela obtenida',value:fmt(P),unit:'kg/h',raw:P},
+        {key:'V',label:'V — agua evaporada',value:fmt(V),unit:'kg/h',raw:V}
+      ],
+      diagram:{'d-out-1':fmt(V)+' kg/h','d-out-2':fmt(P)+' kg/h · x='+fmt(v.xP,3)}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de sólidos solubles no volátiles (permanecen en el líquido)', f:`F·xF = P·xP\nP = F·xF / xP = ${v.F}×${v.xF} / ${v.xP} = ${fmt(P)} kg/h`},
+        {t:'Balance global de masa', f:`F = P + V\nV = F − P = ${v.F} − ${fmt(P)} = ${fmt(V)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'reactor', num:'04', cat:'materia', sector:'No alimentaria', name:'Reactor',
+  title:'Reactor con conversión',
+  context:'Planta de biodiésel — transesterificación de aceite de palma',
+  story:'Una planta agroindustrial produce biodiésel a partir de aceite de palma mediante la reacción de transesterificación (aceite + metanol → biodiésel + glicerina, simplificada como A → B). Al reactor se alimentan 150 mol/h de triglicéridos (A), y el proceso opera con una conversión del 75%. Determine cuánto aceite sale sin reaccionar y cuánto biodiésel (B) se genera.',
+  inputs:[
+    {key:'FA0', label:'FA0 — alimentación de aceite (A)', unit:'mol/h', dtag:'d-in-1', def:'150'},
+    {key:'X', label:'X — conversión de la reacción', unit:'0–1', def:'0.75'},
+  ],
+  hints:[
+    'La conversión X indica qué fracción del aceite alimentado reacciona. ¿Cómo se relaciona X con la cantidad de A que NO reaccionó?',
+    'Calcula primero cuánto A (aceite) queda sin reaccionar (FA), y luego cuánto A reaccionó (la diferencia con la alimentación inicial FA0).',
+    'Con estequiometría 1:1 entre A y B, la cantidad de biodiésel (B) generado es igual a la cantidad de A que reaccionó.'
+  ],
+  answerFields:[
+    {key:'FA', label:'FA — aceite sin reaccionar', unit:'mol/h'},
+    {key:'reacc', label:'A reaccionado', unit:'mol/h'},
+    {key:'FB', label:'FB — biodiésel generado', unit:'mol/h'}
+  ],
+  calc(v){
+    if(v.FA0<0) return {error:'FA0 no puede ser negativo.'};
+    if(v.X<0||v.X>1) return {error:'La conversión X debe estar entre 0 y 1.'};
+    const FA=v.FA0*(1-v.X), reacc=v.FA0*v.X, FB=v.FA0*v.X;
+    return {
+      outputs:[
+        {key:'FA',label:'FA — aceite sin reaccionar',value:fmt(FA),unit:'mol/h',raw:FA},
+        {key:'reacc',label:'A reaccionado',value:fmt(reacc),unit:'mol/h',raw:reacc},
+        {key:'FB',label:'FB — biodiésel generado',value:fmt(FB),unit:'mol/h',raw:FB}
+      ],
+      diagram:{'d-out-1':fmt(FA)+' mol/h','d-out-2':fmt(FB)+' mol/h'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Definición de conversión de A', f:`X = (FA0 − FA) / FA0  →  FA = FA0·(1 − X)\nFA = ${v.FA0}×(1 − ${v.X}) = ${fmt(FA)} mol/h`},
+        {t:'Cantidad de A que reacciona', f:`A reaccionado = FA0·X = ${v.FA0}×${v.X} = ${fmt(reacc)} mol/h`},
+        {t:'Balance de B (estequiometría 1:1, A → B)', f:`FB = FA0·X = ${fmt(FB)} mol/h`}
+      ],
+      note:'Se asume estequiometría simple 1:1 (1 mol de A produce 1 mol de B). Para otras relaciones estequiométricas, escale FB por el coeficiente correspondiente.'
+    };
+  }
+},
+{ id:'sensible', num:'05', cat:'energia', sector:'Alimentaria', name:'Calor sensible',
+  title:'Calentamiento o enfriamiento sensible',
+  context:'Planta procesadora de pulpa de fruta — pasteurización',
+  story:'Una planta procesadora de pulpa de lulo del Huila pasteuriza 800 kg/h de pulpa antes de envasarla asépticamente, calentándola de 25 °C a 85 °C. El calor específico de la pulpa se estima en 3.9 kJ/kg·°C. Determine la potencia calórica que debe suministrar el pasteurizador.',
+  inputs:[
+    {key:'m', label:'m — flujo de pulpa', unit:'kg/h', dtag:'d-in-1', def:'800'},
+    {key:'Cp', label:'Cp — calor específico de la pulpa', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'T1', label:'T1 — temperatura de entrada', unit:'°C', def:'25'},
+    {key:'T2', label:'T2 — temperatura de pasteurización', unit:'°C', dtag:'d-in-2', def:'85'},
+  ],
+  hints:[
+    'No hay cambio de fase ni reacción: la energía solo cambia la temperatura de la pulpa. ¿Qué ecuación relaciona calor, masa, calor específico y cambio de temperatura?',
+    'Identifica claramente T1 (entrada) y T2 (salida, temperatura de pasteurización) antes de sustituir en la ecuación.',
+    'Calcula Q y fíjate en su signo: ¿el proceso requiere suministrar o remover calor?'
+  ],
+  answerFields:[
+    {key:'Q', label:'Q — calor requerido', unit:'kJ/h'},
+    {key:'Qkw', label:'Q en kW', unit:'kW'}
+  ],
+  calc(v){
+    if(v.m<0) return {error:'El flujo másico no puede ser negativo.'};
+    if(v.Cp<=0) return {error:'Cp debe ser mayor que cero.'};
+    const Q=v.m*v.Cp*(v.T2-v.T1), Qkw=Q/3600;
+    const sentido = Q>=0 ? 'Se debe SUMINISTRAR calor (calentamiento).' : 'Se debe REMOVER calor (enfriamiento).';
+    return {
+      outputs:[
+        {key:'Q',label:'Q — calor requerido',value:fmt(Q),unit:'kJ/h',raw:Q},
+        {key:'Qkw',label:'Q en kW',value:fmt(Qkw),unit:'kW',raw:Qkw}
+      ],
+      diagram:{'d-out-1':fmt(Qkw)+' kW'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de energía (sin cambio de fase, estado estable)', f:`Q = m·Cp·(T2 − T1)`},
+        {t:'Sustitución de valores', f:`Q = ${v.m}×${v.Cp}×(${v.T2} − ${v.T1})\nQ = ${fmt(Q)} kJ/h = ${fmt(Qkw)} kW`},
+        {t:'Interpretación del signo', f:sentido}
+      ]
+    };
+  }
+},
+{ id:'exchanger', num:'06', cat:'energia', sector:'No alimentaria', name:'Intercambiador',
+  title:'Intercambiador de calor',
+  context:'Destilería de alcohol carburante — enfriamiento del mosto',
+  story:'En una destilería de alcohol carburante a partir de caña, el mosto sale de la cocción a 95 °C y debe enfriarse a 30 °C antes de entrar a los tanques de fermentación, para no afectar la levadura. El enfriamiento se realiza con 1200 kg/h de agua a 18 °C en un intercambiador de calor. Si el flujo de mosto es de 1000 kg/h, determine la temperatura de salida del agua de enfriamiento.',
+  inputs:[
+    {key:'m1', label:'m1 — flujo de mosto (caliente)', unit:'kg/h', def:'1000'},
+    {key:'Cp1', label:'Cp1 — calor esp. del mosto', unit:'kJ/kg·°C', def:'3.8'},
+    {key:'T1in', label:'T1 entrada del mosto', unit:'°C', dtag:'d-in-1', def:'95'},
+    {key:'T1out', label:'T1 salida del mosto', unit:'°C', dtag:'d-in-2', def:'30'},
+    {key:'m2', label:'m2 — flujo de agua (fría)', unit:'kg/h', def:'1200'},
+    {key:'Cp2', label:'Cp2 — calor esp. del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'T2in', label:'T2 entrada del agua', unit:'°C', dtag:'d-in-3', def:'18'},
+  ],
+  hints:[
+    'Sin pérdidas de calor al ambiente, ¿qué relación existe entre el calor que cede el mosto (corriente caliente) y el que gana el agua (corriente fría)?',
+    'Calcula primero el calor cedido por el mosto, usando su cambio de temperatura conocido (T1 entrada y salida).',
+    'Con ese calor, despeja la temperatura de salida del agua usando su propio flujo y calor específico.'
+  ],
+  answerFields:[
+    {key:'Q', label:'Q — calor intercambiado', unit:'kJ/h'},
+    {key:'T2out', label:'T2 salida del agua', unit:'°C'}
+  ],
+  calc(v){
+    if(v.m1<0||v.m2<0) return {error:'Los flujos no pueden ser negativos.'};
+    if(v.Cp1<=0||v.Cp2<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    if(v.m2*v.Cp2===0) return {error:'m2·Cp2 no puede ser cero.'};
+    const Q=v.m1*v.Cp1*(v.T1in-v.T1out), T2out=v.T2in+Q/(v.m2*v.Cp2);
+    return {
+      outputs:[
+        {key:'Q',label:'Q — calor intercambiado',value:fmt(Q),unit:'kJ/h',raw:Q},
+        {key:'T2out',label:'T2 salida (agua de enfriamiento)',value:fmt(T2out),unit:'°C',raw:T2out}
+      ],
+      diagram:{'d-out-1':fmt(T2out)+' °C'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Balance de energía (calor cedido = calor ganado, sin pérdidas)', f:`Q_mosto = Q_agua`},
+        {t:'Calor cedido por el mosto', f:`Q = m1·Cp1·(T1e − T1s)\nQ = ${v.m1}×${v.Cp1}×(${v.T1in} − ${v.T1out}) = ${fmt(Q)} kJ/h`},
+        {t:'Temperatura de salida del agua de enfriamiento', f:`T2s = T2e + Q / (m2·Cp2)\nT2s = ${v.T2in} + ${fmt(Q)} / (${v.m2}×${v.Cp2})\nT2s = ${fmt(T2out)} °C`}
+      ]
+    };
+  }
+},
+{ id:'adiabatic', num:'07', cat:'energia', sector:'Alimentaria', name:'Mezcla + energía',
+  title:'Mezcla adiabática de dos corrientes',
+  context:'Planta de lácteos — recepción de leche',
+  story:'En el tanque de recepción de una planta de lácteos, llega una corriente de leche recién ordeñada a 35 °C (300 kg/h) que se mezcla con leche fría proveniente del silo de almacenamiento a 4 °C (700 kg/h), antes de continuar al proceso de estandarización. Suponiendo que el tanque no intercambia calor con el ambiente, determine la temperatura de la mezcla resultante.',
+  inputs:[
+    {key:'m1', label:'m1 — leche recién ordeñada', unit:'kg/h', dtag:'d-in-1', def:'300'},
+    {key:'Cp1', label:'Cp1 — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.93'},
+    {key:'T1', label:'T1 — temperatura leche tibia', unit:'°C', def:'35'},
+    {key:'m2', label:'m2 — leche fría del silo', unit:'kg/h', dtag:'d-in-2', def:'700'},
+    {key:'Cp2', label:'Cp2 — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.93'},
+    {key:'T2', label:'T2 — temperatura leche fría', unit:'°C', def:'4'},
+  ],
+  hints:[
+    'Al mezclarse sin intercambio de calor con el entorno, toda la energía que pierde la corriente tibia la gana la corriente fría. ¿Qué balance de energía plantea esa igualdad?',
+    'Antes de resolver la temperatura final, plantea también el balance de masa: ¿cuál es el flujo total de la mezcla?',
+    'Despeja Tf de la igualdad de calores: es un promedio de temperaturas ponderado por el producto flujo × calor específico de cada corriente.'
+  ],
+  answerFields:[
+    {key:'F3', label:'F3 — flujo total de la mezcla', unit:'kg/h'},
+    {key:'Tf', label:'Tf — temperatura final', unit:'°C'}
+  ],
+  calc(v){
+    if(v.m1<0||v.m2<0) return {error:'Los flujos no pueden ser negativos.'};
+    if(v.Cp1<=0||v.Cp2<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    const denom=v.m1*v.Cp1+v.m2*v.Cp2;
+    if(denom===0) return {error:'m1·Cp1 + m2·Cp2 no puede ser cero.'};
+    const Tf=(v.m1*v.Cp1*v.T1+v.m2*v.Cp2*v.T2)/denom, F3=v.m1+v.m2;
+    return {
+      outputs:[
+        {key:'F3',label:'F3 — flujo total de la mezcla',value:fmt(F3),unit:'kg/h',raw:F3},
+        {key:'Tf',label:'Tf — temperatura final de mezcla',value:fmt(Tf),unit:'°C',raw:Tf}
+      ],
+      diagram:{'d-out-1':fmt(Tf)+' °C'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de materia', f:`F3 = m1 + m2 = ${v.m1} + ${v.m2} = ${fmt(F3)} kg/h`},
+        {t:'Balance de energía (proceso adiabático, sin cambio de fase)', f:`m1·Cp1·(T1 − Tf) = m2·Cp2·(Tf − T2)`},
+        {t:'Se despeja la temperatura final Tf', f:`Tf = (m1·Cp1·T1 + m2·Cp2·T2) / (m1·Cp1 + m2·Cp2)\nTf = (${v.m1}×${v.Cp1}×${v.T1} + ${v.m2}×${v.Cp2}×${v.T2}) / (${fmt(denom)})\nTf = ${fmt(Tf)} °C`}
+      ],
+      note:'Se asume proceso adiabático (sin pérdidas de calor al entorno) y sin cambio de fase.'
+    };
+  }
+},
+{ id:'secadorCacao', num:'08', cat:'materia', sector:'Alimentaria', name:'Secado (cacao)',
+  title:'Secado de cacao — balance en base húmeda',
+  context:'Planta de beneficio de cacao — Ejercicio 1 del libro del curso',
+  story:'Una planta de beneficio de cacao del Huila seca 200 kg de cacao húmedo con una humedad inicial del 48% en base húmeda. Después del proceso de secado se obtienen 120 kg de producto seco. Determine la cantidad de agua eliminada durante el secado y la humedad final del cacao, expresada en base húmeda.',
+  inputs:[
+    {key:'F', label:'F — masa de cacao húmedo', unit:'kg', dtag:'d-in-1', def:'200'},
+    {key:'Hi', label:'Hi — humedad inicial (base húmeda)', unit:'0–1', def:'0.48'},
+    {key:'P', label:'P — masa de cacao seco obtenida', unit:'kg', def:'120'},
+  ],
+  hints:[
+    'El agua es el único componente que sale del sistema como corriente adicional; el sólido seco permanece en el producto. ¿Qué balance total de masa te permite hallar el agua eliminada (A) conociendo la masa inicial y la final?',
+    'Plantea el balance parcial de agua: el agua que entra con el cacao húmedo debe ser igual al agua que queda en el producto seco más el agua eliminada (A).',
+    'Con A ya conocido, despeja la humedad final Hf del balance parcial de agua, como fracción del producto seco final (P).'
+  ],
+  answerFields:[
+    {key:'A', label:'A — agua eliminada', unit:'kg'},
+    {key:'Hf', label:'Hf — humedad final (base húmeda)', unit:'%'}
+  ],
+  calc(v){
+    if(v.F<0||v.P<0) return {error:'Las masas no pueden ser negativas.'};
+    if(v.P>v.F) return {error:'La masa final no puede ser mayor que la masa inicial.'};
+    if(v.Hi<0||v.Hi>1) return {error:'Hi debe estar entre 0 y 1.'};
+    const A=v.F-v.P, Hf=(v.F*v.Hi-A)/v.P;
+    return {
+      outputs:[
+        {key:'A',label:'A — agua eliminada',value:fmt(A),unit:'kg',raw:A},
+        {key:'Hf',label:'Hf — humedad final (base húmeda)',value:fmt(Hf*100,2),unit:'%',raw:Hf*100}
+      ],
+      diagram:{'d-out-1':fmt(A)+' kg','d-out-2':fmt(v.P)+' kg · Hf='+fmt(Hf,3)}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance total de masa', f:`F = P + A\n${v.F} = ${v.P} + A\nA = ${fmt(A)} kg de agua`},
+        {t:'Balance parcial de agua', f:`F·Hi = P·Hf + A`},
+        {t:'Se despeja Hf', f:`Hf = (F·Hi − A) / P\nHf = (${v.F}×${v.Hi} − ${fmt(A)}) / ${v.P}\nHf = ${fmt(Hf,4)} → ${fmt(Hf*100,2)} %`}
+      ]
+    };
+  }
+},
+{ id:'centrifuga', num:'09', cat:'materia', sector:'Alimentaria', name:'Separador centrífugo',
+  title:'Separación centrífuga de grasa',
+  context:'Planta láctea — Ejercicio 5 del libro del curso',
+  story:'En una planta láctea se procesan 100 kg de leche entera con 4% de grasa en una centrífuga, que la separa en una corriente de crema con 40% de grasa y una corriente de leche descremada con 0.5% de grasa. No hay pérdidas de materia en el proceso. Determine la cantidad de leche descremada y de crema obtenidas.',
+  inputs:[
+    {key:'L', label:'L — leche entera alimentada', unit:'kg', dtag:'d-in-1', def:'100'},
+    {key:'xL', label:'xL — fracción de grasa en L', unit:'0–1', def:'0.04'},
+    {key:'xM', label:'xM — fracción de grasa en la crema', unit:'0–1', def:'0.40'},
+    {key:'xD', label:'xD — fracción de grasa en la descremada', unit:'0–1', def:'0.005'},
+  ],
+  hints:[
+    'Hay dos corrientes de salida (crema y descremada) y ninguna reacción: plantea primero el balance total de masa entre L, D y M.',
+    'Plantea el balance parcial de grasa entre las tres corrientes. Tendrás dos ecuaciones (total y grasa) para las dos incógnitas D y M.',
+    'Sustituye M = L − D en el balance de grasa y despeja D directamente; luego usa M = L − D para hallar la crema.'
+  ],
+  answerFields:[
+    {key:'D', label:'D — leche descremada', unit:'kg'},
+    {key:'M', label:'M — crema', unit:'kg'}
+  ],
+  calc(v){
+    if(v.L<0) return {error:'L no puede ser negativo.'};
+    if([v.xL,v.xM,v.xD].some(x=>x<0||x>1)) return {error:'Las fracciones de grasa deben estar entre 0 y 1.'};
+    if(!(v.xD<v.xL && v.xL<v.xM)) return {error:'La composición de la leche entera debe estar entre la de la descremada y la de la crema.'};
+    const D=v.L*(v.xM-v.xL)/(v.xM-v.xD), M=v.L-D;
+    return {
+      outputs:[
+        {key:'D',label:'D — leche descremada',value:fmt(D),unit:'kg',raw:D},
+        {key:'M',label:'M — crema',value:fmt(M),unit:'kg',raw:M}
+      ],
+      diagram:{'d-out-1':fmt(M)+' kg','d-out-2':fmt(D)+' kg'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance total de masa', f:`L = M + D\n${v.L} = M + D  →  M = ${v.L} − D  (Ec.1)`},
+        {t:'Balance parcial de grasa', f:`L·xL = M·xM + D·xD`},
+        {t:'Se sustituye (Ec.1) y se despeja D', f:`${v.L}×${v.xL} = (${v.L} − D)×${v.xM} + D×${v.xD}\nD = ${fmt(D)} kg\nM = ${v.L} − ${fmt(D)} = ${fmt(M)} kg`}
+      ]
+    };
+  }
+},
+{ id:'dilucionEnergia', num:'10', cat:'energia', sector:'Alimentaria', name:'Dilución + energía',
+  title:'Dilución con balance de energía',
+  context:'Planta de concentrados alimenticios — Ejercicio 4 del libro del curso',
+  story:'En una planta de concentrados alimenticios se diluye una corriente concentrada con 60% de sólidos solubles, que ingresa al mezclador con un flujo de 20 kg/h a 81.13 °C, usando agua pura a 25 °C. El producto final debe tener 15% de sólidos. Determine el flujo del producto final y su temperatura de salida.',
+  inputs:[
+    {key:'L', label:'L — flujo concentrado', unit:'kg/h', dtag:'d-in-1', def:'20'},
+    {key:'xL', label:'xL — fracción de sólidos en L', unit:'0–1', def:'0.60'},
+    {key:'TL', label:'TL — temperatura de L', unit:'°C', def:'81.13'},
+    {key:'CL', label:'CL — calor esp. de L', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'TH', label:'TH — temperatura del agua', unit:'°C', dtag:'d-in-2', def:'25'},
+    {key:'CH', label:'CH — calor esp. del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'xP', label:'xP — fracción de sólidos deseada en P', unit:'0–1', def:'0.15'},
+    {key:'CP', label:'CP — calor esp. del producto final', unit:'kJ/kg·°C', def:'4.18'},
+  ],
+  hints:[
+    'Antes de pensar en la temperatura, resuelve primero el balance de materia: ¿qué balance de sólidos te permite hallar el flujo del producto final P?',
+    'Con P conocido, halla el flujo de agua H por diferencia (balance total). Luego plantea el balance de energía entre las tres corrientes, usando una temperatura de referencia de 0°C.',
+    'Despeja TP de la igualdad de energía: es un promedio ponderado de las temperaturas de entrada por su flujo y calor específico, dividido por el flujo y calor específico del producto final.'
+  ],
+  answerFields:[
+    {key:'P', label:'P — flujo del producto final', unit:'kg/h'},
+    {key:'TP', label:'TP — temperatura del producto final', unit:'°C'}
+  ],
+  calc(v){
+    if(v.L<0) return {error:'L no puede ser negativo.'};
+    if(v.xL<0||v.xL>1||v.xP<0||v.xP>1) return {error:'xL y xP deben estar entre 0 y 1.'};
+    if(v.xP>=v.xL) return {error:'xP debe ser menor que xL para que exista dilución.'};
+    if(v.CL<=0||v.CH<=0||v.CP<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    const P=v.L*v.xL/v.xP, H=P-v.L, TP=(v.L*v.CL*v.TL+H*v.CH*v.TH)/(P*v.CP);
+    return {
+      outputs:[
+        {key:'P',label:'P — flujo del producto final',value:fmt(P),unit:'kg/h',raw:P},
+        {key:'TP',label:'TP — temperatura del producto final',value:fmt(TP,2),unit:'°C',raw:TP}
+      ],
+      diagram:{'d-out-1':fmt(P)+' kg/h · '+fmt(TP,2)+' °C'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de sólidos solubles (no se evaporan ni se pierden)', f:`L·xL = P·xP\nP = L·xL / xP = ${v.L}×${v.xL} / ${v.xP} = ${fmt(P)} kg/h`},
+        {t:'Balance total de masa', f:`H = P − L = ${fmt(P)} − ${v.L} = ${fmt(H)} kg/h de agua`},
+        {t:'Balance de energía (referencia TR = 0 °C)', f:`L·CL·TL + H·CH·TH = P·CP·TP`},
+        {t:'Se despeja TP', f:`TP = (L·CL·TL + H·CH·TH) / (P·CP)\nTP = (${v.L}×${v.CL}×${v.TL} + ${fmt(H)}×${v.CH}×${v.TH}) / (${fmt(P)}×${v.CP})\nTP = ${fmt(TP,2)} °C`}
+      ]
+    };
+  }
+},
+{ id:'mezclaObjetivo', num:'11', cat:'energia', sector:'No alimentaria', name:'Mezcla a T objetivo',
+  title:'Mezcla de dos corrientes para una temperatura objetivo',
+  context:'Servicios industriales — balance de energía del libro del curso',
+  story:'Antes de distribuir agua de proceso a distintas líneas, una planta agroindustrial debe preparar 30 kg de agua a 38 °C, mezclando agua caliente de la caldera (90 °C) con agua fría de la red (22 °C). Determine cuánta agua caliente y cuánta agua fría deben mezclarse para lograr la temperatura deseada.',
+  inputs:[
+    {key:'Ptotal', label:'P — masa total deseada', unit:'kg', dtag:'d-in-1', def:'30'},
+    {key:'TA', label:'TA — temperatura del agua caliente', unit:'°C', def:'90'},
+    {key:'TB', label:'TB — temperatura del agua fría', unit:'°C', def:'22'},
+    {key:'TP', label:'TP — temperatura objetivo', unit:'°C', def:'38'},
+    {key:'Cp', label:'Cp — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+  ],
+  hints:[
+    'Aquí no conoces los flujos de las dos corrientes, sino la temperatura final deseada. Plantea el balance total de masa entre A, B y el total P: te dará una ecuación con dos incógnitas.',
+    'Plantea el balance de energía entre las tres corrientes (A, B y P) usando el mismo calor específico. Sustituye B = P − A para dejar la ecuación en función de una sola incógnita.',
+    'Despeja A de la ecuación de energía, y luego usa B = P − A para hallar la segunda corriente.'
+  ],
+  answerFields:[
+    {key:'A', label:'A — agua caliente necesaria', unit:'kg'},
+    {key:'B', label:'B — agua fría necesaria', unit:'kg'}
+  ],
+  calc(v){
+    if(v.Ptotal<0) return {error:'La masa total no puede ser negativa.'};
+    if(v.Cp<=0) return {error:'Cp debe ser mayor que cero.'};
+    const lo=Math.min(v.TA,v.TB), hi=Math.max(v.TA,v.TB);
+    if(v.TP<=lo||v.TP>=hi) return {error:'La temperatura objetivo debe estar entre TA y TB.'};
+    if(v.TA===v.TB) return {error:'TA y TB no pueden ser iguales.'};
+    const A=v.Ptotal*(v.TP-v.TB)/(v.TA-v.TB), B=v.Ptotal-A;
+    return {
+      outputs:[
+        {key:'A',label:'A — agua caliente necesaria',value:fmt(A),unit:'kg',raw:A},
+        {key:'B',label:'B — agua fría necesaria',value:fmt(B),unit:'kg',raw:B}
+      ],
+      diagram:{'d-out-1':fmt(A)+' kg','d-out-2':fmt(B)+' kg'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance total de masa', f:`A + B = P\nA + B = ${v.Ptotal}  →  B = ${v.Ptotal} − A  (Ec.1)`},
+        {t:'Balance de energía (mismo Cp en las tres corrientes)', f:`A·Cp·TA + B·Cp·TB = P·Cp·TP`},
+        {t:'Se sustituye (Ec.1) y se despeja A', f:`A·${v.TA} + (${v.Ptotal} − A)×${v.TB} = ${v.Ptotal}×${v.TP}\nA = ${fmt(A)} kg\nB = ${v.Ptotal} − ${fmt(A)} = ${fmt(B)} kg`}
+      ]
+    };
+  }
+},
+{ id:'intercambiadorFlujo', num:'12', cat:'energia', sector:'Alimentaria', name:'Intercambiador (flujo)',
+  title:'Intercambiador de calor — flujo de agua para pasteurizar',
+  context:'Planta láctea — balance de energía del libro del curso',
+  story:'En una planta láctea, la leche fría a 4 °C debe calentarse hasta 75 °C para su pasteurización, usando agua caliente que entra a 90 °C y sale a 65 °C en un intercambiador de calor. Se procesan 500 kg/h de leche. Determine el flujo de agua caliente requerido y la potencia térmica del intercambiador.',
+  inputs:[
+    {key:'mL', label:'mL — flujo de leche', unit:'kg/h', dtag:'d-in-1', def:'500'},
+    {key:'CL', label:'CL — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'TLin', label:'TL entrada (leche)', unit:'°C', def:'4'},
+    {key:'TLout', label:'TL salida (leche)', unit:'°C', def:'75'},
+    {key:'CA', label:'CA — calor esp. del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'TAin', label:'TA entrada (agua)', unit:'°C', def:'90'},
+    {key:'TAout', label:'TA salida (agua)', unit:'°C', def:'65'},
+  ],
+  hints:[
+    'Aquí no falta una temperatura (ya las tienes todas), sino un flujo. ¿Qué balance de energía iguala el calor que cede el agua con el que gana la leche?',
+    'Calcula primero el calor que debe ganar la leche, usando su propio flujo, calor específico y cambio de temperatura.',
+    'Iguala ese calor al que cede el agua (mA·CA·ΔT_agua) y despeja el flujo de agua mA.'
+  ],
+  answerFields:[
+    {key:'mA', label:'mA — flujo de agua caliente', unit:'kg/h'},
+    {key:'Q', label:'Q — potencia térmica', unit:'kW'}
+  ],
+  calc(v){
+    if(v.mL<0) return {error:'El flujo de leche no puede ser negativo.'};
+    if(v.CL<=0||v.CA<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    if(v.TLout<=v.TLin) return {error:'La leche debe calentarse (T de salida mayor que la de entrada).'};
+    if(v.TAin<=v.TAout) return {error:'El agua debe enfriarse (entra más caliente de lo que sale) para ceder calor a la leche.'};
+    const Qleche=v.mL*v.CL*(v.TLout-v.TLin), mA=Qleche/(v.CA*(v.TAin-v.TAout)), Q=Qleche/3600;
+    return {
+      outputs:[
+        {key:'mA',label:'mA — flujo de agua caliente',value:fmt(mA),unit:'kg/h',raw:mA},
+        {key:'Q',label:'Q — potencia térmica',value:fmt(Q,2),unit:'kW',raw:Q}
+      ],
+      diagram:{'d-out-1':fmt(mA)+' kg/h'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Calor que debe ganar la leche', f:`Q = mL·CL·(TLs − TLe)\nQ = ${v.mL}×${v.CL}×(${v.TLout} − ${v.TLin}) = ${fmt(Qleche)} kJ/h = ${fmt(Q,2)} kW`},
+        {t:'Balance de energía (calor cedido por el agua = calor ganado por la leche)', f:`mA·CA·(TAe − TAs) = Q`},
+        {t:'Se despeja el flujo de agua mA', f:`mA = Q / (CA·(TAe − TAs))\nmA = ${fmt(Qleche)} / (${v.CA}×(${v.TAin} − ${v.TAout}))\nmA = ${fmt(mA)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'bombeo', num:'13', cat:'energia', sector:'No alimentaria', name:'Bombeo de fluidos',
+  title:'Balance de energía mecánica en bombeo',
+  context:'Planta de subproductos agroindustriales — balance de energía del libro del curso',
+  story:'En una planta de subproductos agroindustriales se bombea un líquido de proceso con densidad de 1.028 kg/L desde un tanque inferior hasta un tanque superior, elevándolo 3 metros, a un flujo volumétrico de 50 L/min. Ambos tanques están a la misma presión y la tubería tiene el mismo diámetro en todo su recorrido, por lo que solo se considera el cambio de energía potencial. Las pérdidas por fricción equivalen al 20% de la energía potencial requerida. Determine el trabajo específico que debe entregar la bomba y la potencia hidráulica requerida.',
+  inputs:[
+    {key:'rho', label:'ρ — densidad del líquido', unit:'kg/L', dtag:'d-in-1', def:'1.028'},
+    {key:'Qvol', label:'Q̇ — flujo volumétrico', unit:'L/min', def:'50'},
+    {key:'dz', label:'Δz — elevación', unit:'m', def:'3'},
+    {key:'fric', label:'Pérdidas por fricción (fracción de Ep)', unit:'0–1', def:'0.20'},
+  ],
+  hints:[
+    'Como ambos tanques están a la misma presión y la tubería tiene el mismo diámetro en todo el recorrido, dos términos de la ecuación general de energía se cancelan. ¿Cuáles?',
+    'Con esos términos cancelados, la ecuación se reduce a la energía potencial más las pérdidas por fricción. Calcula primero la energía potencial específica (por unidad de masa) necesaria para elevar el fluido.',
+    'Súmale las pérdidas por fricción (dadas como fracción de la energía potencial) para obtener el trabajo específico de la bomba; multiplica por el flujo másico para obtener la potencia.'
+  ],
+  answerFields:[
+    {key:'wA', label:'wA — trabajo específico de la bomba', unit:'J/kg'},
+    {key:'Power', label:'Potencia hidráulica', unit:'W'}
+  ],
+  calc(v){
+    if(v.rho<=0) return {error:'La densidad debe ser mayor que cero.'};
+    if(v.Qvol<0||v.dz<0) return {error:'El flujo y la elevación no pueden ser negativos.'};
+    if(v.fric<0) return {error:'La fracción de pérdidas no puede ser negativa.'};
+    const g=9.81, ep=g*v.dz, wL=v.fric*ep, wA=ep+wL, mdot=v.rho*v.Qvol/60, Power=wA*mdot;
+    return {
+      outputs:[
+        {key:'wA',label:'wA — trabajo específico de la bomba',value:fmt(wA,3),unit:'J/kg',raw:wA},
+        {key:'Power',label:'Potencia hidráulica',value:fmt(Power,2),unit:'W',raw:Power}
+      ],
+      diagram:{'d-out-1':fmt(wA,2)+' J/kg · '+fmt(Power,2)+' W'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Simplificación de la ecuación general de energía (misma presión y diámetro en ambos tanques)', f:`gz1 + wA − wL = gz2  →  wA = g·(z2−z1) + wL`},
+        {t:'Energía potencial específica requerida', f:`ep = g·Δz = 9.81×${v.dz} = ${fmt(ep)} J/kg`},
+        {t:'Pérdidas por fricción y trabajo específico de la bomba', f:`wL = ${v.fric}×${fmt(ep)} = ${fmt(wL)} J/kg\nwA = ${fmt(ep)} + ${fmt(wL)} = ${fmt(wA)} J/kg`},
+        {t:'Flujo másico y potencia hidráulica', f:`ṁ = ρ·Q̇ = ${v.rho}×${v.Qvol}/60 = ${fmt(mdot)} kg/s\nPotencia = wA·ṁ = ${fmt(wA)}×${fmt(mdot)} = ${fmt(Power,2)} W`}
+      ],
+      note:'Se desprecian los cambios de energía cinética y de presión porque ambos tanques están a la misma presión y la tubería mantiene el mismo diámetro en todo el recorrido.'
+    };
+  }
+}
+];
+const CAT_LABEL = {materia:'MATERIA', energia:'ENERGÍA'};
+
+/* ============================= PERFIL DE ESTUDIANTE ============================= */
+let perfil = null;
+
+async function cargarPerfil(){
+  try{
+    const raw = localStorage.getItem('perfil-estudiante');
+    if(raw){ perfil = JSON.parse(raw); }
+  }catch(e){ perfil = null; }
+  if(!perfil){ mostrarModalPerfil(); } else { renderUserbar(); }
+}
+
+function mostrarModalPerfil(editar){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="overlay">
+    <div class="modal">
+      <h3>Identificación del estudiante</h3>
+      <p>Ingresa tu nombre y código estudiantil para usar el simulador. Tu docente podrá ver tu nombre, código, el módulo usado y la fecha en el panel de seguimiento del curso.</p>
+      <div class="field"><label>Nombre completo</label><input id="pf-nombre" type="text" value="${editar&&perfil?esc(perfil.nombre):''}"></div>
+      <div class="field"><label>Código estudiantil</label><input id="pf-codigo" type="text" value="${editar&&perfil?esc(perfil.codigo):''}"></div>
+      <div id="pf-err"></div>
+      <div class="modal-actions">
+        <button class="btn-primary" id="pf-guardar" style="width:100%;">Guardar y continuar</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('pf-guardar').addEventListener('click', ()=>{
+    const nombre = document.getElementById('pf-nombre').value.trim();
+    const codigo = document.getElementById('pf-codigo').value.trim();
+    if(!nombre || !codigo){
+      document.getElementById('pf-err').innerHTML = '<div class="err-box">Completa ambos campos.</div>';
+      return;
+    }
+    perfil = {nombre, codigo};
+    try{ localStorage.setItem('perfil-estudiante', JSON.stringify(perfil)); }catch(e){}
+    root.innerHTML='';
+    renderUserbar();
+  });
+}
+
+function renderUserbar(){
+  const bar = document.getElementById('userbar');
+  if(!perfil){ bar.innerHTML=''; return; }
+  bar.innerHTML = `<span>Estudiante: <b>${esc(perfil.nombre)}</b> · Código <b>${esc(perfil.codigo)}</b></span><button id="chgProfile">Cambiar</button>`;
+  document.getElementById('chgProfile').addEventListener('click', ()=>mostrarModalPerfil(true));
+}
+
+/* ============================= REGISTRO DE USO (para el docente, vía Google Sheets) ============================= */
+async function registrarUso(op, pistasUsadas, verdicto){
+  if(!perfil) return;
+  if(!SHEET_WEBAPP_URL) return; // el docente aún no configuró la URL de Google Sheets
+  const entry = { nombre:perfil.nombre, codigo:perfil.codigo, modulo:op.name, categoria:op.cat, pistas:pistasUsadas, correcta:verdicto, fecha:new Date().toISOString() };
+  try{
+    await fetch(SHEET_WEBAPP_URL, {
+      method:'POST',
+      mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(entry)
+    });
+  }catch(e){ /* si el registro falla, no se interrumpe el uso del simulador */ }
+}
+
+/* ============================= RENDER SIMULADOR ============================= */
+let currentOp = OPS[0].id;
+let hintsShown = 0;
+
+function renderChips(){
+  const box = document.getElementById('opScroll');
+  box.innerHTML = OPS.map(op => `<div class="chip cat-${op.cat}${op.id===currentOp?' active':''}" data-op="${op.id}">
+      <span class="n">${op.num} · ${CAT_LABEL[op.cat]}</span><span class="t">${op.name}</span>
+    </div>`).join('');
+  box.querySelectorAll('.chip').forEach(el=>{
+    el.addEventListener('click', ()=>{ currentOp = el.dataset.op; renderOp(); });
+  });
+}
+
+function renderHints(op){
+  const listBox = document.getElementById('hintList');
+  const btn = document.getElementById('hintBtn');
+  if(hintsShown===0){
+    listBox.innerHTML = '<div class="hint-empty">Intenta plantear el balance en tu cuaderno antes de calcular. Si te quedas atascado, pide una pista.</div>';
+  } else {
+    listBox.innerHTML = op.hints.slice(0,hintsShown).map((h,i)=>`<div class="hint-item"><b>PISTA ${i+1}</b><br>${h}</div>`).join('');
+  }
+  if(hintsShown >= op.hints.length){
+    btn.style.display='none';
+  } else {
+    btn.style.display='inline-block';
+    btn.textContent = hintsShown===0 ? 'Mostrar primera pista' : `Mostrar siguiente pista (${hintsShown+1}/${op.hints.length})`;
+  }
+}
+
+function renderOp(){
+  renderChips();
+  const op = OPS.find(o=>o.id===currentOp);
+  hintsShown = 0;
+  document.getElementById('fichaN').textContent = 'FICHA N.º ' + op.num;
+  const pill = document.getElementById('fichaPill');
+  pill.textContent = CAT_LABEL[op.cat]; pill.className = 'pill ' + op.cat;
+  document.getElementById('fichaSector').textContent = op.sector;
+  document.getElementById('opTitle').textContent = op.title;
+  document.getElementById('caseContext').textContent = op.context;
+  document.getElementById('caseText').textContent = op.story;
+  document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.id];
+  document.getElementById('resultsBox').innerHTML = '';
+  document.getElementById('errBox').innerHTML = '';
+
+  const grid = document.getElementById('inputsGrid');
+  grid.innerHTML = op.inputs.map(inp => `
+    <div class="field">
+      <label>${inp.label} <span class="unit-hint">(${inp.unit})</span></label>
+      <input type="number" step="any" inputmode="decimal" id="in-${inp.key}" value="${inp.def}">
+    </div>`).join('');
+
+  op.inputs.forEach(inp=>{
+    if(inp.dtag){ const el=document.getElementById(inp.dtag); if(el) el.textContent=inp.def; }
+    document.getElementById('in-'+inp.key).addEventListener('input', (e)=>{
+      if(inp.dtag){ const el=document.getElementById(inp.dtag); if(el) el.textContent = e.target.value===''?'—':e.target.value; }
+    });
+  });
+
+  const ansGrid = document.getElementById('answerGrid');
+  ansGrid.innerHTML = op.answerFields.map(af => `
+    <div class="field">
+      <label>${af.label} <span class="unit-hint">(${af.unit})</span></label>
+      <input type="number" step="any" inputmode="decimal" id="ans-${af.key}" placeholder="—">
+    </div>`).join('');
+
+  renderHints(op);
+  document.getElementById('hintBtn').onclick = ()=>{ hintsShown++; renderHints(op); };
+}
+
+function evaluarRespuesta(studentVal, correctVal){
+  if(studentVal===null || studentVal===undefined) return 'na';
+  const tol = Math.max(Math.abs(correctVal)*0.03, 0.05);
+  return Math.abs(studentVal-correctVal) <= tol ? 'ok' : 'no';
+}
+
+function verdictoGlobal(res, studentAnswers){
+  let anyNo=false, anyOk=false, anyNa=false;
+  res.outputs.forEach(o=>{
+    const estado = evaluarRespuesta(studentAnswers ? studentAnswers[o.key] : null, o.raw);
+    if(estado==='no') anyNo=true; else if(estado==='ok') anyOk=true; else anyNa=true;
+  });
+  if(!anyOk && !anyNo) return 'Sin respuesta';
+  if(anyNo) return 'Incorrecta';
+  if(anyNa) return 'Parcial';
+  return 'Correcta';
+}
+
+function renderResults(res, studentAnswers){
+  const box = document.getElementById('resultsBox');
+  if(res.error){
+    document.getElementById('errBox').innerHTML = `<div class="err-box">${res.error}</div>`;
+    box.innerHTML=''; return;
+  }
+  document.getElementById('errBox').innerHTML='';
+
+  const huboRespuesta = studentAnswers && Object.values(studentAnswers).some(v=>v!==null);
+  let compareHtml = '';
+  if(huboRespuesta){
+    const items = res.outputs.map(o=>{
+      const sv = studentAnswers[o.key];
+      const estado = evaluarRespuesta(sv, o.raw);
+      const tagTxt = estado==='ok' ? '✓ Correcto' : estado==='no' ? '✗ Revisa' : 'Sin respuesta';
+      const tuTxt = (sv===null||sv===undefined) ? 'No ingresada' : `Tu respuesta: ${fmt(sv,3)} ${o.unit}`;
+      return `<div class="compare-item ${estado}"><span class="cl">${o.label}<br><span class="cv">${tuTxt}</span></span><span class="compare-tag ${estado}">${tagTxt}</span></div>`;
+    }).join('');
+    compareHtml = `<div class="compare-box"><p class="sec-label">Comparación con tu respuesta</p>${items}</div>`;
+  } else {
+    compareHtml = `<div class="note">No ingresaste una respuesta antes de calcular. Inténtalo la próxima vez para autoevaluarte antes de ver la solución.</div>`;
+  }
+
+  const readouts = res.outputs.map(o=>`
+    <div class="readout"><span class="rl">${o.label}</span><span><span class="rv">${o.value}</span><span class="ru">${o.unit}</span></span></div>`).join('');
+  const steps = res.steps.map(s=>`<div class="step">${s.t}<code>${s.f}</code></div>`).join('');
+  const noteHtml = res.note ? `<div class="note">${res.note}</div>` : '';
+  box.innerHTML = `
+    <div class="results">
+      <div class="results-head">
+        <div class="stamp">VERIFI-<br>CADO</div>
+        <span class="sec-label" style="margin:0;">Resultado verificado</span>
+      </div>
+      ${compareHtml}
+      <details open><summary>Ver valores correctos</summary>${readouts}${noteHtml}</details>
+      <details><summary>Ver procedimiento paso a paso</summary><div class="steps">${steps}</div></details>
+    </div>`;
+  if(res.diagram){ Object.keys(res.diagram).forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=res.diagram[id]; }); }
+  const schem = document.querySelector('.schem');
+  if(schem && res.flows) schem.classList.add('active');
+}
+
+function collectValues(op){
+  const v={};
+  for(const inp of op.inputs){
+    const raw = document.getElementById('in-'+inp.key).value;
+    const n = num(raw);
+    if(n===null) return {error:`Falta un valor válido para "${inp.label}".`};
+    v[inp.key]=n;
+  }
+  return {values:v};
+}
+
+function collectAnswers(op){
+  const a={};
+  for(const af of op.answerFields){
+    a[af.key] = num(document.getElementById('ans-'+af.key).value);
+  }
+  return a;
+}
+
+async function runCalc(){
+  const op = OPS.find(o=>o.id===currentOp);
+  const collected = collectValues(op);
+  if(collected.error){
+    document.getElementById('errBox').innerHTML = `<div class="err-box">${collected.error}</div>`;
+    document.getElementById('resultsBox').innerHTML=''; return;
+  }
+  const studentAnswers = collectAnswers(op);
+  const res = op.calc(collected.values);
+  renderResults(res, studentAnswers);
+  if(!res.error){
+    const verdicto = verdictoGlobal(res, studentAnswers);
+    registrarUso(op, hintsShown, verdicto);
+  }
+}
+
+document.getElementById('calcBtn').addEventListener('click', runCalc);
+
+/* ============================= PANEL DOCENTE ============================= */
+document.getElementById('openDocente').addEventListener('click', ()=>{
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="overlay">
+    <div class="modal">
+      <h3>Acceso docente</h3>
+      <p>Ingresa el código de acceso proporcionado por el docente para ver el seguimiento de uso del curso.</p>
+      <div class="field"><input id="doc-code" type="password" placeholder="Código de acceso"></div>
+      <div id="doc-err"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="doc-cancel">Cancelar</button>
+        <button class="btn-primary" id="doc-entrar">Entrar</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('doc-cancel').addEventListener('click', ()=>root.innerHTML='');
+  document.getElementById('doc-entrar').addEventListener('click', ()=>{
+    const code = document.getElementById('doc-code').value.trim();
+    if(code === DOCENTE_CODE){ root.innerHTML=''; abrirPanelDocente(); }
+    else{ document.getElementById('doc-err').innerHTML = '<div class="err-box">Código incorrecto.</div>'; }
+  });
+});
+
+async function abrirPanelDocente(){
+  const root = document.getElementById('panelRoot');
+  root.innerHTML = `
+  <div class="panel-full">
+    <div class="panel-head">
+      <div class="eyebrow">UNIVERSIDAD SURCOLOMBIANA · FACULTAD DE INGENIERÍA</div>
+      <h2>Panel docente — Seguimiento de uso</h2>
+      <p>Programa de Ingeniería Agroindustrial · Balance de Materia y Energía · D. Sc. Jaime Daniel Bustos Vanegas</p>
+    </div>
+    <div class="wrap">
+      <div id="docContent" class="loading">Cargando registro de uso…</div>
+      <div class="panel-actions">
+        <button class="btn-secondary" id="doc-exportar" style="display:none;">Exportar CSV</button>
+        <button class="btn-primary" id="doc-cerrar">Cerrar panel</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('doc-cerrar').addEventListener('click', ()=>{ root.innerHTML=''; });
+
+  const content = document.getElementById('docContent');
+
+  if(!SHEET_WEBAPP_URL){
+    content.innerHTML = `<div class="note">Aún no está configurada la hoja de registro. Pega la URL de tu Google Apps Script Web App en la constante <code style="background:var(--paper);padding:2px 5px;border-radius:4px;">SHEET_WEBAPP_URL</code>, dentro del archivo, y vuelve a compartirlo con los estudiantes.</div>`;
+    return;
+  }
+
+  let logs = [];
+  try{
+    const r = await fetch(SHEET_WEBAPP_URL);
+    logs = await r.json();
+    if(!Array.isArray(logs)) logs = [];
+  }catch(e){
+    content.innerHTML = '<div class="err-box">No se pudo cargar el registro. Verifica tu conexión y que la hoja de Google esté publicada como "Cualquier usuario con el enlace".</div>';
+    return;
+  }
+
+  if(logs.length===0){
+    content.innerHTML = '<div class="loading">Todavía no hay registros de uso del simulador.</div>';
+    return;
+  }
+
+  try{
+    logs.sort((a,b)=> new Date(b.fecha) - new Date(a.fecha));
+
+    const contadores = {};
+    logs.forEach(l=>{
+      const op = OPS.find(o=>o.name===l.modulo);
+      if(op) contadores[op.id] = (contadores[op.id]||0)+1;
+    });
+
+    const statsCards = OPS.map(op => `
+      <div class="stat-card"><div class="sv">${contadores[op.id]||0}</div><div class="sl">${op.name}</div></div>`).join('');
+
+    const recientes = logs.slice(0,1000);
+    const rows = recientes.map(l => `
+      <tr><td>${esc(l.nombre)}</td><td>${esc(l.codigo)}</td><td>${esc(l.modulo)}</td><td>${esc(l.pistas!==undefined&&l.pistas!==''?l.pistas:'—')}</td><td>${esc(l.correcta||'—')}</td><td>${new Date(l.fecha).toLocaleString('es-CO')}</td></tr>`).join('');
+
+    content.innerHTML = `
+      <div class="stats-grid">
+        <div class="stat-card"><div class="sv">${logs.length}</div><div class="sl">Cálculos totales registrados</div></div>
+        <div class="stat-card"><div class="sv">${new Set(logs.map(l=>l.codigo)).size}</div><div class="sl">Estudiantes distintos</div></div>
+      </div>
+      <p class="sec-label" style="margin-top:4px;">Uso por módulo</p>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">${statsCards}</div>
+      <p class="sec-label" style="margin-top:16px;">Actividad reciente (máx. 1000 de ${logs.length})</p>
+      <div class="table-wrap">
+        <table class="logtable">
+          <thead><tr><th>Estudiante</th><th>Código</th><th>Módulo</th><th>Pistas</th><th>Correcta</th><th>Fecha y hora</th></tr></thead>
+          <tbody>${rows || '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);">Sin registros individuales aún</td></tr>'}</tbody>
+        </table>
+      </div>`;
+
+    const exportBtn = document.getElementById('doc-exportar');
+    exportBtn.style.display='inline-block';
+    exportBtn.onclick = ()=>{
+      let csv = 'Estudiante,Codigo,Modulo,Pistas,Correcta,Fecha\n';
+      logs.forEach(l=>{
+        csv += `"${String(l.nombre||'').replace(/"/g,'""')}","${String(l.codigo||'').replace(/"/g,'""')}","${String(l.modulo||'').replace(/"/g,'""')}","${String(l.pistas!==undefined&&l.pistas!==null?l.pistas:'')}","${String(l.correcta||'')}","${String(l.fecha||'')}"\n`;
+      });
+      mostrarModalExportar(csv);
+    };
+  }catch(err){
+    content.innerHTML = `<div class="err-box">Ocurrió un error al construir el panel: ${esc(err.message)}. Envía este mensaje a tu desarrollador para diagnosticarlo.</div>`;
+  }
+}
+
+function mostrarModalExportar(csv){
+  const root = document.getElementById('modalRoot');
+  const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  root.innerHTML = `
+  <div class="overlay">
+    <div class="modal">
+      <h3>Exportar registro CSV</h3>
+      <p>Si el botón de descarga no funciona en tu navegador (frecuente al abrir el archivo directamente desde el computador), copia el texto de abajo — ya está seleccionado — y pégalo en Excel, Google Sheets o un archivo nuevo con extensión .csv.</p>
+      <textarea id="csv-text" readonly style="width:100%;height:150px;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);box-sizing:border-box;">${esc(csv)}</textarea>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="csv-copiar">Copiar al portapapeles</button>
+        <a class="btn-primary" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;" href="${dataUri}" download="seguimiento_balance_materia_energia.csv">Intentar descargar</a>
+      </div>
+      <div class="modal-actions"><button class="btn-secondary" id="csv-cerrar" style="width:100%;">Cerrar</button></div>
+    </div>
+  </div>`;
+  const ta = document.getElementById('csv-text');
+  ta.focus(); ta.select();
+  document.getElementById('csv-copiar').addEventListener('click', async ()=>{
+    const btn = document.getElementById('csv-copiar');
+    try{
+      await navigator.clipboard.writeText(csv);
+      btn.textContent = '¡Copiado!';
+    }catch(e){
+      ta.focus(); ta.select();
+      try{ document.execCommand('copy'); btn.textContent = '¡Copiado!'; }
+      catch(e2){ btn.textContent = 'Selecciona el texto y usa Ctrl+C'; }
+    }
+  });
+  document.getElementById('csv-cerrar').addEventListener('click', ()=>{ root.innerHTML=''; });
+}
+
+/* ============================= INICIO ============================= */
+renderOp();
+cargarPerfil();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
