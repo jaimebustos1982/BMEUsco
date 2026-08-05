@@ -324,7 +324,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-a · 28 fichas · Cap. 3 y 4 completos</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-b · 32 fichas · Cap. 3, 4 y 6 completos</p>
     </footer>
   </main>
 </div>
@@ -601,6 +601,40 @@ fermentadorVinagre: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
   <text x="14" y="150" class="d-label">Aire: O2+N2</text><text x="14" y="128" class="d-val" id="d-in-2">—</text>
   <text x="215" y="65" class="d-label">Líquido: ácido+agua</text><text x="215" y="88" class="d-val computed" id="d-out-1">—</text>
   <text x="215" y="140" class="d-label">Gas de salida</text><text x="215" y="160" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+evapVaporDiag: `<svg viewBox="0 0 320 200" class="schem">${ARROW_DEFS}
+  <rect x="80" y="55" width="110" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="84" y="50" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,130 L95,130" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,130 L95,130"/>
+  <path class="box-unit" d="M95,70 L175,70 L175,160 L95,160 Z"/>
+  <text x="135" y="118" text-anchor="middle" class="unit-label" style="font-size:9.5px;">EVAPORADOR</text>
+  <path class="pipe" d="M145,70 L145,30 L300,30" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M145,70 L145,30 L300,30"/>
+  <path class="pipe" d="M125,160 L125,190 L300,190" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M125,160 L125,190 L300,190"/>
+  <path class="pipe" d="M10,80 L95,80" marker-end="url(#arrow)" stroke-dasharray="2 2"/><path class="flow-overlay" id="fo4" d="M10,80 L95,80"/>
+  <text x="14" y="120" class="d-label">F, xF, TF</text><text x="14" y="145" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="70" class="d-label">Vapor calent. (mv)</text>
+  <text x="205" y="24" class="d-label">A (vapor evap.)</text><text x="205" y="45" class="d-val computed" id="d-out-1">—</text>
+  <text x="180" y="184" class="d-label">L, xL</text>
+  <text x="200" y="105" class="d-label">mv necesario</text><text x="200" y="128" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+evapCalderaDiag: `<svg viewBox="0 0 320 200" class="schem">${ARROW_DEFS}
+  <rect x="15" y="50" width="130" height="130" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="19" y="45" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C. EVAPORADOR</text>
+  <path class="pipe" d="M20,140 L100,140" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M20,140 L100,140"/>
+  <path class="box-unit" d="M100,80 L175,80 L175,170 L100,170 Z"/>
+  <text x="137" y="128" text-anchor="middle" class="unit-label" style="font-size:8.5px;">EVAP.</text>
+  <path class="pipe" d="M140,80 L140,40 L200,40" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M140,80 L140,40 L200,40"/>
+  <path class="pipe" d="M120,170 L120,190 L200,190" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M120,170 L120,190 L200,190"/>
+  <rect x="230" y="80" width="75" height="90" rx="6" fill="none" stroke="var(--vino)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="234" y="75" style="font-size:8px;font-family:var(--font-mono);fill:var(--vino);letter-spacing:.05em;">V.C. CALDERA</text>
+  <rect x="240" y="95" width="55" height="60" rx="4" class="box-unit"/>
+  <text x="267" y="128" text-anchor="middle" class="unit-label" style="font-size:8px;">CALDERA</text>
+  <path class="pipe" d="M267,95 L267,80 L200,80" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M267,95 L267,80 L200,80"/>
+  <path class="pipe" d="M267,155 L267,175" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M267,155 L267,175"/>
+  <text x="14" y="130" class="d-label">F, xF, TF</text><text x="14" y="155" class="d-val" id="d-in-1">—</text>
+  <text x="205" y="34" class="d-label">V evaporado</text>
+  <text x="205" y="184" class="d-label">L concentrado</text>
+  <text x="230" y="188" class="d-label">Diésel:</text><text x="230" y="198" class="d-val computed" id="d-out-1">—</text>
 </svg>`
 };
 
@@ -1803,6 +1837,207 @@ const OPS = [
         {t:'Almidón sin reaccionar', f:`Sin reaccionar = F×(1−X) = ${fmt(sinReaccionar)} kg/h`}
       ],
       note:'Verificación: almidón reaccionado + agua consumida = glucosa producida (conservación de masa).'
+    };
+  }
+},
+{ id:'intercambiadorLecheAgua', num:'29', cat:'energia', chapter:6, sector:'Alimentaria', name:'Intercambiador leche/agua', diagramKey:'exchanger',
+  title:'Intercambiador de calor — enfriamiento de leche',
+  context:'Planta láctea — ejemplo del libro del curso',
+  story:'En un intercambiador de calor se enfría leche desde 38°C hasta 3°C, con un flujo másico de 2 kg/s y calor específico de 3.8 kJ/(kg·°C). El calor cedido por la leche se transfiere a una corriente de agua que entra a 1°C, con flujo másico de 1.5 kg/s y calor específico de 4.1 kJ/(kg·°C). Determine la temperatura de salida del agua y la potencia térmica transferida.',
+  inputs:[
+    {key:'mL', label:'mL — flujo de leche', unit:'kg/s', dtag:'d-in-1', def:'2'},
+    {key:'CL', label:'CL — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.8'},
+    {key:'TLin', label:'TL entrada (leche)', unit:'°C', def:'38'},
+    {key:'TLout', label:'TL salida (leche)', unit:'°C', def:'3'},
+    {key:'mA', label:'mA — flujo de agua', unit:'kg/s', dtag:'d-in-2', def:'1.5'},
+    {key:'CA', label:'CA — calor esp. del agua', unit:'kJ/kg·°C', def:'4.1'},
+    {key:'TAin', label:'TA entrada (agua)', unit:'°C', def:'1'},
+  ],
+  hints:[
+    'Sin pérdidas de calor al ambiente, el calor que cede la leche al enfriarse es igual al que gana el agua al calentarse. Calcula primero ese calor usando los datos completos de la leche (flujo, Cp, y sus dos temperaturas).',
+    'Con ese calor y los datos del agua (flujo y Cp), despeja cuánto debe subir su temperatura.',
+    'Súmale esa subida a la temperatura de entrada del agua para obtener su temperatura de salida.'
+  ],
+  answerFields:[
+    {key:'TAout', label:'TA salida (agua)', unit:'°C'},
+    {key:'Q', label:'Potencia térmica transferida', unit:'kW'}
+  ],
+  calc(v){
+    if(v.mL<0||v.mA<0) return {error:'Los flujos no pueden ser negativos.'};
+    if(v.CL<=0||v.CA<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    if(v.TLout>=v.TLin) return {error:'La leche debe enfriarse (T de salida menor que la de entrada).'};
+    const Q = v.mL*v.CL*(v.TLin-v.TLout);
+    const TAout = v.TAin + Q/(v.mA*v.CA);
+    return {
+      outputs:[
+        {key:'TAout',label:'TA salida (agua)',value:fmt(TAout,2),unit:'°C',raw:TAout},
+        {key:'Q',label:'Potencia térmica transferida',value:fmt(Q,1),unit:'kW',raw:Q}
+      ],
+      diagram:{'d-out-1':fmt(TAout,2)+' °C'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Calor cedido por la leche', f:`Q = mL·CL·(TLe − TLs)\nQ = ${v.mL}×${v.CL}×(${v.TLin} − ${v.TLout}) = ${fmt(Q,1)} kW`},
+        {t:'Balance de energía (calor cedido = calor ganado)', f:`Q = mA·CA·(TAs − TAe)`},
+        {t:'Se despeja la temperatura de salida del agua', f:`TAs = TAe + Q/(mA·CA) = ${v.TAin} + ${fmt(Q,1)}/(${v.mA}×${v.CA})\nTAs = ${fmt(TAout,2)} °C`}
+      ]
+    };
+  }
+},
+{ id:'gasesCombustion', num:'30', cat:'energia', chapter:6, sector:'No alimentaria', name:'Gases de combustión', diagramKey:'exchanger',
+  title:'Recuperación de calor de gases de combustión',
+  context:'Planta de tueste de café — precalentamiento de aire con gases de escape',
+  story:'En el proceso de tueste de café, los gases de escape del sistema de quema (a 200°C) se usan para precalentar aire fresco en un intercambiador, antes de liberarlos a la atmósfera a 120°C. El aire fresco entra a 25°C y sale a 80°C. La mezcla de gases de combustión se compone de N2 (75%), CO2 (12%), H2O (10%) y O2 (3%) en masa. Determine el calor recuperado por kg de gases y la masa de aire precalentada por cada kg de gas.',
+  inputs:[
+    {key:'Tgin', label:'T gas entrada (al intercambiador)', unit:'°C', dtag:'d-in-1', def:'200'},
+    {key:'Tgout', label:'T gas salida', unit:'°C', def:'120'},
+    {key:'TAin', label:'T aire entrada', unit:'°C', def:'25'},
+    {key:'TAout', label:'T aire salida', unit:'°C', dtag:'d-in-2', def:'80'},
+    {key:'yN2', label:'Fracción másica N2 en el gas', unit:'0–1', def:'0.75'},
+    {key:'yCO2', label:'Fracción másica CO2 en el gas', unit:'0–1', def:'0.12'},
+    {key:'yH2O', label:'Fracción másica H2O en el gas', unit:'0–1', def:'0.10'},
+    {key:'yO2', label:'Fracción másica O2 en el gas', unit:'0–1', def:'0.03'},
+  ],
+  hints:[
+    'El gas es una mezcla de varios componentes: su calor específico efectivo es el promedio ponderado de los Cp de cada componente (N2=1.04, CO2=0.88, H2O=1.93, O2=1.04 kJ/kg·°C), usando las fracciones másicas como peso.',
+    'Toma como base de cálculo 1 kg de gas. El calor cedido por ese kilogramo al enfriarse de la temperatura de entrada a la de salida es el "calor recuperado por kg de gas".',
+    'Ese mismo calor lo gana el aire. Con el Cp del aire (1.0085 kJ/kg·°C) y su cambio de temperatura, despeja cuántos kg de aire se precalientan por cada kg de gas.'
+  ],
+  answerFields:[
+    {key:'Cgas', label:'Cp efectivo del gas', unit:'kJ/kg·°C'},
+    {key:'Qgas', label:'Calor recuperado por kg de gas', unit:'kJ/kg'},
+    {key:'mA', label:'Aire precalentado por kg de gas', unit:'kg aire/kg gas'}
+  ],
+  calc(v){
+    const suma = v.yN2+v.yCO2+v.yH2O+v.yO2;
+    if(Math.abs(suma-1)>0.02) return {error:'Las fracciones másicas del gas deben sumar 1 (100%).'};
+    if(v.Tgout>=v.Tgin) return {error:'El gas debe enfriarse (T de salida menor que la de entrada).'};
+    if(v.TAout<=v.TAin) return {error:'El aire debe calentarse (T de salida mayor que la de entrada).'};
+    const CN2=1.04,CCO2=0.88,CH2O=1.93,CO2c=1.04,CAire=1.0085;
+    const Cgas = v.yN2*CN2+v.yCO2*CCO2+v.yH2O*CH2O+v.yO2*CO2c;
+    const Qgas = Cgas*(v.Tgout-v.Tgin);
+    const mA = (Cgas*(v.Tgout-v.Tgin))/(CAire*(v.TAin-v.TAout));
+    return {
+      outputs:[
+        {key:'Cgas',label:'Cp efectivo del gas',value:fmt(Cgas,4),unit:'kJ/kg·°C',raw:Cgas},
+        {key:'Qgas',label:'Calor recuperado por kg de gas',value:fmt(Qgas,2),unit:'kJ/kg',raw:Qgas},
+        {key:'mA',label:'Aire precalentado por kg de gas',value:fmt(mA,3),unit:'kg aire/kg gas',raw:mA}
+      ],
+      diagram:{'d-out-1':fmt(mA,2)+' kg aire/kg gas'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Calor específico efectivo del gas (promedio ponderado)', f:`Cgas = yN2·CN2 + yCO2·CCO2 + yH2O·CH2O + yO2·CO2\nCgas = ${v.yN2}×1,04 + ${v.yCO2}×0,88 + ${v.yH2O}×1,93 + ${v.yO2}×1,04 = ${fmt(Cgas,4)} kJ/kg·°C`},
+        {t:'Calor recuperado por kg de gas (base de cálculo = 1 kg de gas)', f:`Q/kg gas = Cgas·(Tgs − Tge) = ${fmt(Cgas,4)}×(${v.Tgout} − ${v.Tgin}) = ${fmt(Qgas,2)} kJ/kg`},
+        {t:'Masa de aire precalentada por kg de gas', f:`mA = [Cgas·(Tgs−Tge)] / [CAire·(TAe−TAs)]\nmA = ${fmt(Qgas,2)} / (${CAire}×(${v.TAin} − ${v.TAout})) = ${fmt(mA,3)} kg aire/kg gas`}
+      ]
+    };
+  }
+},
+{ id:'evapVaporCalentamiento', num:'31', cat:'energia', chapter:6, sector:'Alimentaria', name:'Evaporador con vapor', diagramKey:'evapVaporDiag',
+  title:'Evaporador con vapor de calentamiento',
+  context:'Planta de alimentos — evaporador con cambio de fase, ejercicio del libro del curso',
+  story:'A un evaporador que opera a 50 kPa absolutos se alimentan 150 kg/h de una solución con 8% de sólidos a 25°C, calor específico 3.9 kJ/(kg·°C). El producto concentrado sale con 60% de sólidos. El calentamiento se realiza con vapor de agua saturado a 125 kPa, que se condensa cediendo su calor latente. Determine el agua evaporada, el producto concentrado, y el vapor de calentamiento necesario.',
+  inputs:[
+    {key:'F', label:'F — alimentación', unit:'kg/h', dtag:'d-in-1', def:'150'},
+    {key:'xF', label:'xF — fracción de sólidos en F', unit:'0–1', def:'0.08'},
+    {key:'TF', label:'TF — temperatura de alimentación', unit:'°C', def:'25'},
+    {key:'Cp', label:'Cp — calor específico de la solución', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'xL', label:'xL — fracción de sólidos en el concentrado', unit:'0–1', def:'0.60'},
+    {key:'TL', label:'TL — temp. de ebullición en el evaporador (dato de tabla, Tsat a 50 kPa)', unit:'°C', def:'81.32'},
+    {key:'hg', label:'hg del vapor de calentamiento a 125 kPa (dato de tabla)', unit:'kJ/kg', def:'2684.9'},
+    {key:'hf', label:'hf del vapor de calentamiento a 125 kPa (dato de tabla)', unit:'kJ/kg', def:'444.36'},
+    {key:'hfg', label:'hfg del agua evaporada a 50 kPa (dato de tabla)', unit:'kJ/kg', def:'2304.7'},
+  ],
+  hints:[
+    'Empieza por el balance de masa, igual que en cualquier evaporador: balance de sólidos para hallar el producto concentrado L, y balance global para hallar el agua evaporada A.',
+    'El balance de energía compara la entalpía que entra (alimentación + vapor de calentamiento como gas saturado) con la que sale (vapor evaporado + concentrado + vapor de calentamiento ya condensado como líquido saturado).',
+    'El vapor de calentamiento solo cede su calor latente de condensación (hg−hf a su propia presión). Ese calor debe cubrir la evaporación del agua (A·hfg a la presión del evaporador) más el calentamiento sensible de la alimentación hasta la temperatura de ebullición.'
+  ],
+  answerFields:[
+    {key:'A', label:'A — agua evaporada', unit:'kg/h'},
+    {key:'L', label:'L — producto concentrado', unit:'kg/h'},
+    {key:'mv', label:'Vapor de calentamiento necesario', unit:'kg/h'}
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.xF<0||v.xF>1||v.xL<0||v.xL>1) return {error:'xF y xL deben estar entre 0 y 1.'};
+    if(v.xL<=v.xF) return {error:'xL debe ser mayor que xF.'};
+    if(v.hg<=v.hf) return {error:'hg debe ser mayor que hf.'};
+    const L = v.F*v.xF/v.xL, A = v.F-L;
+    const mv = (A*v.hfg + L*v.Cp*v.TL - v.F*v.Cp*v.TF)/(v.hg-v.hf);
+    if(mv<0) return {error:'Con estos datos el vapor de calentamiento resulta negativo — revisa los valores de tabla ingresados.'};
+    return {
+      outputs:[
+        {key:'A',label:'A — agua evaporada',value:fmt(A),unit:'kg/h',raw:A},
+        {key:'L',label:'L — producto concentrado',value:fmt(L),unit:'kg/h',raw:L},
+        {key:'mv',label:'Vapor de calentamiento necesario',value:fmt(mv,2),unit:'kg/h',raw:mv}
+      ],
+      diagram:{'d-out-1':fmt(A)+' kg/h vapor evap.','d-out-2':fmt(mv,1)+' kg/h vapor calent.'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de sólidos y balance global de masa', f:`L = F·xF/xL = ${v.F}×${v.xF}/${v.xL} = ${fmt(L)} kg/h\nA = F − L = ${fmt(A)} kg/h`},
+        {t:'Balance de energía (el vapor de calentamiento solo cede calor latente)', f:`mv·(hg−hf) = A·hfg + L·Cp·TL − F·Cp·TF`},
+        {t:'Se despeja el vapor de calentamiento necesario', f:`mv = [${fmt(A)}×${v.hfg} + ${fmt(L)}×${v.Cp}×${v.TL} − ${v.F}×${v.Cp}×${v.TF}] / (${v.hg} − ${v.hf})\nmv = ${fmt(mv,2)} kg/h = ${fmt(mv/3600,4)} kg/s`}
+      ],
+      note:'Los valores de hg, hf y hfg se obtienen de tablas de agua saturada (por ejemplo, Çengel y Boles) según la presión de cada corriente de vapor.'
+    };
+  }
+},
+{ id:'evapCalderaDiesel', num:'32', cat:'energia', chapter:6, sector:'Alimentaria', name:'Evaporador + caldera', diagramKey:'evapCalderaDiag',
+  title:'Evaporador con caldera y consumo de combustible',
+  context:'Planta de concentración de jugos — evaporador con caldera a diésel, ejercicio del libro del curso',
+  story:'Una planta de concentración de jugos alimenta 10 000 kg/h de jugo con 12% de sólidos a 30°C (Cp=3.9 kJ/kg·°C) a un evaporador que opera a 30 kPa absolutos, concentrando hasta 60% de sólidos. El calentamiento se realiza con vapor saturado a 1000 kPa generado en una caldera que quema diésel (poder calorífico 43 000 kJ/kg, eficiencia de combustión 75%), con agua de alimentación a la caldera a 25°C. Determine el vapor de calentamiento necesario y el consumo de diésel de la caldera.',
+  inputs:[
+    {key:'F', label:'F — alimentación de jugo', unit:'kg/h', dtag:'d-in-1', def:'10000'},
+    {key:'xF', label:'xF — fracción de sólidos en F', unit:'0–1', def:'0.12'},
+    {key:'TF', label:'TF — temperatura de alimentación', unit:'°C', def:'30'},
+    {key:'Cp', label:'Cp — calor específico del jugo', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'xL', label:'xL — fracción de sólidos en el concentrado', unit:'0–1', def:'0.60'},
+    {key:'TL', label:'TL — temp. de ebullición en el evaporador (Tsat a 30 kPa)', unit:'°C', def:'69.09'},
+    {key:'hg', label:'hg del vapor de calentamiento a 1000 kPa', unit:'kJ/kg', def:'2777.1'},
+    {key:'hf', label:'hf del vapor de calentamiento a 1000 kPa', unit:'kJ/kg', def:'762.51'},
+    {key:'hfg', label:'hfg del agua evaporada a 30 kPa', unit:'kJ/kg', def:'2335.3'},
+    {key:'TsatCaldera', label:'Tsat del vapor a la salida de la caldera (a 1000 kPa)', unit:'°C', def:'179.88'},
+    {key:'Tagua', label:'Temperatura del agua de alimentación a la caldera', unit:'°C', def:'25'},
+    {key:'PC', label:'Poder calorífico del diésel', unit:'kJ/kg', def:'43000'},
+    {key:'eficiencia', label:'Eficiencia de combustión', unit:'0–1', def:'0.75'},
+  ],
+  hints:[
+    'El evaporador se resuelve igual que cualquier otro: balance de sólidos para el concentrado L, balance global para el vapor evaporado V, y luego el balance de energía te da el vapor de calentamiento mv (igual que en el ejercicio anterior).',
+    'La caldera es un sistema aparte: recibe agua líquida a Tagua y debe entregarla como vapor saturado a la temperatura de saturación de la presión de trabajo. Eso implica dos calores: uno para calentar el agua líquida (sensible) y otro para evaporarla (latente, hfg a esa misma presión).',
+    'El calor que debe entregar la caldera (Q) se cubre quemando diésel: divide Q entre el poder calorífico del diésel y entre la eficiencia de combustión (porque no toda la energía del combustible se aprovecha).'
+  ],
+  answerFields:[
+    {key:'L', label:'L — jugo concentrado', unit:'kg/h'},
+    {key:'V', label:'V — agua evaporada', unit:'kg/h'},
+    {key:'mv', label:'Vapor de calentamiento', unit:'kg/h'},
+    {key:'Q', label:'Calor entregado por la caldera', unit:'kJ/h'},
+    {key:'mdiesel', label:'Consumo de diésel', unit:'kg/h'}
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.xF<0||v.xF>1||v.xL<0||v.xL>1) return {error:'xF y xL deben estar entre 0 y 1.'};
+    if(v.xL<=v.xF) return {error:'xL debe ser mayor que xF.'};
+    if(v.hg<=v.hf) return {error:'hg debe ser mayor que hf.'};
+    if(v.PC<=0||v.eficiencia<=0||v.eficiencia>1) return {error:'El poder calorífico debe ser mayor que cero y la eficiencia debe estar entre 0 y 1.'};
+    const L = v.F*v.xF/v.xL, V = v.F-L;
+    const mv = (V*v.hfg + L*v.Cp*v.TL - v.F*v.Cp*v.TF)/(v.hg-v.hf);
+    if(mv<0) return {error:'Con estos datos el vapor de calentamiento resulta negativo — revisa los valores de tabla ingresados.'};
+    const hfgCaldera = v.hg-v.hf;
+    const Q = mv*(4.18*(v.TsatCaldera-v.Tagua)+hfgCaldera);
+    const mdiesel = Q/(v.PC*v.eficiencia);
+    return {
+      outputs:[
+        {key:'L',label:'L — jugo concentrado',value:fmt(L),unit:'kg/h',raw:L},
+        {key:'V',label:'V — agua evaporada',value:fmt(V),unit:'kg/h',raw:V},
+        {key:'mv',label:'Vapor de calentamiento',value:fmt(mv,2),unit:'kg/h',raw:mv},
+        {key:'Q',label:'Calor entregado por la caldera',value:fmt(Q,0),unit:'kJ/h',raw:Q},
+        {key:'mdiesel',label:'Consumo de diésel',value:fmt(mdiesel,2),unit:'kg/h',raw:mdiesel}
+      ],
+      diagram:{'d-out-1':fmt(mv,1)+' kg/h vapor','d-out-2':fmt(mdiesel,1)+' kg/h diésel'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de masa en el evaporador', f:`L = F·xF/xL = ${fmt(L)} kg/h\nV = F − L = ${fmt(V)} kg/h`},
+        {t:'Balance de energía en el evaporador (vapor de calentamiento cede calor latente)', f:`mv = [V·hfg + L·Cp·TL − F·Cp·TF] / (hg−hf)\nmv = ${fmt(mv,2)} kg/h`},
+        {t:'Balance de energía en la caldera (calentar el agua + evaporarla)', f:`Q = mv·[4,18·(Tsat_caldera − Tagua) + hfg_caldera]\nQ = ${fmt(mv,2)}×[4,18×(${v.TsatCaldera}−${v.Tagua}) + ${fmt(hfgCaldera,2)}] = ${fmt(Q,0)} kJ/h`},
+        {t:'Consumo de diésel (considerando la eficiencia de combustión)', f:`mdiesel = Q / (PC×eficiencia) = ${fmt(Q,0)} / (${v.PC}×${v.eficiencia}) = ${fmt(mdiesel,2)} kg/h`}
+      ],
+      note:'Los valores de hg, hf y hfg se obtienen de tablas de agua saturada según la presión de cada corriente de vapor.'
     };
   }
 }
