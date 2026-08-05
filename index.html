@@ -188,6 +188,8 @@
   .compare-tag.no{background:var(--error);color:#fff;}
   .compare-tag.na{background:var(--ink-faint);color:#fff;}
 
+  .chart-box{margin-top:8px;}
+
   .calc-btn{ width:100%; background:var(--vino); color:#fff; border:none; border-radius:7px; padding:13px; font-family:var(--font-display); font-weight:700; font-size:14px; letter-spacing:.02em; cursor:pointer; transition:transform .08s, filter .15s; }
   .calc-btn:active{transform:scale(0.98);filter:brightness(1.1);}
 
@@ -324,7 +326,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-d · 32 fichas · condensado hacia la derecha</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-e · 33 fichas · Cap. 5 (transitorios) iniciado</p>
     </footer>
   </main>
 </div>
@@ -347,6 +349,37 @@ function fmt(n, d=3){
 }
 function num(v){ const n=parseFloat(v); return isNaN(n)?null:n; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+function buildLineChart(points, series, opts){
+  opts = opts || {};
+  const W=300,H=175,padL=42,padB=24,padT=12,padR=12;
+  const plotW=W-padL-padR, plotH=H-padT-padB;
+  const tMin=points[0].t, tMax=points[points.length-1].t;
+  let yMax=0;
+  points.forEach(p=>series.forEach(s=>{ if(p[s.key]>yMax) yMax=p[s.key]; }));
+  yMax = yMax*1.15 || 1;
+  const X = t => padL + (tMax>tMin ? (t-tMin)/(tMax-tMin) : 0)*plotW;
+  const Y = val => padT + plotH - (val/yMax)*plotH;
+  let svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">`;
+  svg += `<rect x="0" y="0" width="${W}" height="${H}" fill="var(--paper2)" stroke="var(--line)" rx="6"/>`;
+  for(let i=0;i<=4;i++){
+    const gy = padT + plotH*i/4;
+    svg += `<line x1="${padL}" y1="${gy}" x2="${padL+plotW}" y2="${gy}" stroke="var(--line)" stroke-width="0.5"/>`;
+    svg += `<text x="${padL-4}" y="${gy+3}" text-anchor="end" font-size="7" fill="var(--ink-faint)" font-family="monospace">${fmt(yMax*(4-i)/4, opts.yDec!==undefined?opts.yDec:4)}</text>`;
+  }
+  svg += `<line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="var(--ink-faint)" stroke-width="1"/>`;
+  svg += `<line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="var(--ink-faint)" stroke-width="1"/>`;
+  svg += `<text x="${padL}" y="${H-6}" font-size="7" fill="var(--ink-faint)" font-family="monospace">${fmt(tMin,1)}</text>`;
+  svg += `<text x="${padL+plotW-16}" y="${H-6}" font-size="7" fill="var(--ink-faint)" font-family="monospace">${fmt(tMax,1)}</text>`;
+  if(opts.xLabel) svg += `<text x="${padL+plotW/2-10}" y="${H-6}" font-size="7" fill="var(--ink-faint)" font-family="monospace">${esc(opts.xLabel)}</text>`;
+  series.forEach(s=>{
+    const d = points.map((p,i)=> (i===0?'M':'L') + X(p.t).toFixed(1) + ',' + Y(p[s.key]).toFixed(1)).join(' ');
+    svg += `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="1.8"/>`;
+  });
+  svg += `</svg>`;
+  const legend = series.map(s=>`<span style="display:inline-flex;align-items:center;gap:4px;margin-right:14px;font-size:10.5px;color:var(--ink-dim);"><span style="width:10px;height:10px;background:${s.color};border-radius:2px;display:inline-block;"></span>${esc(s.label)}</span>`).join('');
+  return `<div class="chart-box">${svg}<div style="margin-top:7px;display:flex;flex-wrap:wrap;">${legend}</div></div>`;
+}
 
 /* ============================= DIAGRAMAS SVG ============================= */
 const ARROW_DEFS = `<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="arrowhead"/></marker></defs>`;
@@ -642,6 +675,19 @@ evapCalderaDiag: `<svg viewBox="0 0 360 220" class="schem">${ARROW_DEFS}
   <text x="260" y="189" class="d-label">L (concentrado)</text>
   <text x="200" y="139" class="d-label">Condensado sale (mv)</text>
   <text x="70" y="60" class="d-label">Diésel necesario</text><text x="70" y="45" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+tanqueTransitorio: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <rect x="88" y="25" width="90" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="92" y="20" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,45 L120,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L120,45"/>
+  <path class="pipe" d="M10,125 L120,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,125 L120,125"/>
+  <path class="box-unit" d="M120,35 L178,35 L178,135 L120,135 Z"/>
+  <text x="149" y="80" text-anchor="middle" class="unit-label" style="font-size:9px;">TANQUE</text>
+  <text x="149" y="95" text-anchor="middle" class="d-label">mT, xP(t)</text>
+  <path class="pipe" d="M178,85 L300,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M178,85 L300,85"/>
+  <text x="14" y="36" class="d-label">F (agua pura)</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="116" class="d-label">S (salmuera), xS</text><text x="14" y="140" class="d-val" id="d-in-2">—</text>
+  <text x="205" y="76" class="d-label">P, xP(t) — varía en el tiempo</text><text x="205" y="100" class="d-val computed" id="d-out-1">—</text>
 </svg>`
 };
 
@@ -2047,6 +2093,68 @@ const OPS = [
       note:'Los valores de hg, hf y hfg se obtienen de tablas de agua saturada según la presión de cada corriente de vapor.'
     };
   }
+},
+{ id:'tanqueSalino', num:'33', cat:'materia', chapter:5, sector:'No alimentaria', diagramKey:'tanqueTransitorio', name:'Tanque salino transitorio',
+  title:'Balance de materia en estado transitorio — tanque salino',
+  context:'Planta de procesamiento — ejercicio del libro del curso',
+  story:'A un tanque perfectamente agitado ingresan dos corrientes: agua pura con flujo constante de 2 kg/min, y una solución salina concentrada (100% sal) con flujo de 0.05 kg/min. La mezcla sale del tanque con un flujo constante que mantiene la masa total en 10 kg. La concentración de sal en la salida es igual a la del tanque (mezclado perfecto), y el tanque parte sin sal (xP(0)=0). Determine cómo cambia la concentración de sal en el tanque con el tiempo, y a qué concentración se estabiliza.',
+  inputs:[
+    {key:'F', label:'F — flujo de agua pura', unit:'kg/min', dtag:'d-in-1', def:'2'},
+    {key:'xF', label:'xF — fracción de sal en F', unit:'0–1', def:'0'},
+    {key:'S', label:'S — flujo de solución salina', unit:'kg/min', dtag:'d-in-2', def:'0.05'},
+    {key:'xS', label:'xS — fracción de sal en S', unit:'0–1', def:'1.0'},
+    {key:'mT', label:'mT — masa total en el tanque (constante)', unit:'kg', def:'10'},
+    {key:'x0', label:'xP(0) — concentración inicial en el tanque', unit:'0–1', def:'0'},
+    {key:'deltaT', label:'Δt — paso de tiempo para iterar', unit:'min', def:'1'},
+    {key:'tFinal', label:'Tiempo total a graficar', unit:'min', def:'60'},
+  ],
+  hints:[
+    'La masa total en el tanque es constante, pero la masa de sal dentro de él cambia con el tiempo (masa de sal = mT × xP). Plantea el balance parcial de sal incluyendo el término de acumulación d(mT·xP)/dt, y usa que mT es constante para sacarlo de la derivada.',
+    'La ecuación que obtienes tiene la forma dxP/dt + a·xP = b. Identifica a partir del balance quién es "a" (relacionado con el flujo de salida entre la masa total) y quién es "b" (relacionado con lo que entra de sal por unidad de masa total).',
+    'Para resolverla analíticamente se usa un factor integrante e^(at); la solución tiene la forma xP(t) = b/a + (xP(0) − b/a)·e^(−at). Para resolverla numéricamente, aplica diferencias finitas: xP(i+1) = xP(i) + Δt·(b − a·xP(i)), partiendo de xP(0).'
+  ],
+  answerFields:[
+    {key:'xSteady', label:'xP en estado estacionario', unit:'%'},
+  ],
+  calc(v){
+    if(v.F<0||v.S<0) return {error:'Los flujos no pueden ser negativos.'};
+    if(v.mT<=0) return {error:'La masa total del tanque debe ser mayor que cero.'};
+    if([v.xF,v.xS,v.x0].some(x=>x<0||x>1)) return {error:'Las fracciones deben estar entre 0 y 1.'};
+    if(v.deltaT<=0||v.tFinal<=0) return {error:'Δt y el tiempo total deben ser mayores que cero.'};
+    const P = v.F+v.S;
+    const a = P/v.mT;
+    const b = (v.F*v.xF+v.S*v.xS)/v.mT;
+    if(a<=0) return {error:'El flujo de salida (F+S) debe ser mayor que cero.'};
+    const xSteady = b/a;
+    const nSteps = Math.min(Math.round(v.tFinal/v.deltaT), 500);
+    if(nSteps<1) return {error:'Define un tiempo total mayor al paso Δt.'};
+    const points=[];
+    let xAprox=v.x0;
+    for(let i=0;i<=nSteps;i++){
+      const t=i*v.deltaT;
+      const xExacto = xSteady + (v.x0-xSteady)*Math.exp(-a*t);
+      points.push({t, aprox:xAprox*100, exacto:xExacto*100});
+      xAprox = xAprox + v.deltaT*(b-a*xAprox);
+    }
+    const chart = buildLineChart(points, [
+      {key:'aprox', label:'Diferencias finitas', color:'var(--ocre)'},
+      {key:'exacto', label:'Solución analítica', color:'var(--vino)'}
+    ], {xLabel:'tiempo (min)', yDec:2});
+    return {
+      outputs:[
+        {key:'xSteady',label:'xP en estado estacionario',value:fmt(xSteady*100,4),unit:'%',raw:xSteady*100}
+      ],
+      diagram:{'d-out-1':fmt(xSteady*100,3)+' % (final)'}, flows:['fo1','fo2','fo3'],
+      chart,
+      steps:[
+        {t:'Balance parcial de sal con acumulación (mT constante)', f:`mT·(dxP/dt) = F·xF + S·xS − P·xP,  con P = F+S`},
+        {t:'Ecuación diferencial lineal de primer orden', f:`dxP/dt + a·xP = b\na = P/mT = (${v.F}+${v.S})/${v.mT} = ${fmt(a,4)} min⁻¹\nb = (F·xF+S·xS)/mT = (${v.F}×${v.xF}+${v.S}×${v.xS})/${v.mT} = ${fmt(b,4)} min⁻¹`},
+        {t:'Solución analítica (factor integrante) y estado estacionario', f:`xP(t) = b/a + (xP(0) − b/a)·e^(−at)\nCuando t→∞: xP = b/a = ${fmt(xSteady,6)} = ${fmt(xSteady*100,4)} %`},
+        {t:'Diferencias finitas (verificación numérica, Δt='+v.deltaT+' min)', f:`xP(i+1) = xP(i) + Δt·(b − a·xP(i))\nAmbos métodos deben converger al mismo valor de estado estacionario.`}
+      ],
+      note:'La concentración de estado estacionario también se puede obtener directamente haciendo dxP/dt=0 en el balance (equivalente a un balance de masa en estado estable), sin resolver la ecuación diferencial.'
+    };
+  }
 }
 ];
 const CAT_LABEL = {materia:'MATERIA', energia:'ENERGÍA'};
@@ -2288,6 +2396,7 @@ function renderResults(res, studentAnswers){
     <div class="readout"><span class="rl">${o.label}</span><span><span class="rv">${o.value}</span><span class="ru">${o.unit}</span></span></div>`).join('');
   const steps = res.steps.map(s=>`<div class="step">${s.t}<code>${s.f}</code></div>`).join('');
   const noteHtml = res.note ? `<div class="note">${res.note}</div>` : '';
+  const chartHtml = res.chart ? `<p class="sec-label" style="margin-top:14px;">Evolución en el tiempo</p>${res.chart}` : '';
   box.innerHTML = `
     <div class="results">
       <div class="results-head">
@@ -2296,6 +2405,7 @@ function renderResults(res, studentAnswers){
       </div>
       ${compareHtml}
       <details open><summary>Ver valores correctos</summary>${readouts}${noteHtml}</details>
+      ${chartHtml}
       <details><summary>Ver procedimiento paso a paso</summary><div class="steps">${steps}</div></details>
     </div>`;
   if(res.diagram){ Object.keys(res.diagram).forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=res.diagram[id]; }); }
