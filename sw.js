@@ -13,7 +13,7 @@
  * Si no cambias este valor, la actualización igual llega (por la estrategia
  * de red primero), pero cambiarlo garantiza una limpieza total del caché viejo.
  */
-const CACHE_NAME = 'bmeusco-2026-08-05-b';
+const CACHE_NAME = 'bmeusco-2026-08-05-d';
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {

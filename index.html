@@ -324,7 +324,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-b · 32 fichas · Cap. 3, 4 y 6 completos</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-d · 32 fichas · condensado hacia la derecha</p>
     </footer>
   </main>
 </div>
@@ -602,39 +602,46 @@ fermentadorVinagre: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
   <text x="215" y="65" class="d-label">Líquido: ácido+agua</text><text x="215" y="88" class="d-val computed" id="d-out-1">—</text>
   <text x="215" y="140" class="d-label">Gas de salida</text><text x="215" y="160" class="d-val computed" id="d-out-2">—</text>
 </svg>`,
-evapVaporDiag: `<svg viewBox="0 0 320 200" class="schem">${ARROW_DEFS}
-  <rect x="80" y="55" width="110" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="84" y="50" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
-  <path class="pipe" d="M10,130 L95,130" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,130 L95,130"/>
-  <path class="box-unit" d="M95,70 L175,70 L175,160 L95,160 Z"/>
-  <text x="135" y="118" text-anchor="middle" class="unit-label" style="font-size:9.5px;">EVAPORADOR</text>
-  <path class="pipe" d="M145,70 L145,30 L300,30" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M145,70 L145,30 L300,30"/>
-  <path class="pipe" d="M125,160 L125,190 L300,190" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M125,160 L125,190 L300,190"/>
-  <path class="pipe" d="M10,80 L95,80" marker-end="url(#arrow)" stroke-dasharray="2 2"/><path class="flow-overlay" id="fo4" d="M10,80 L95,80"/>
-  <text x="14" y="120" class="d-label">F, xF, TF</text><text x="14" y="145" class="d-val" id="d-in-1">—</text>
-  <text x="14" y="70" class="d-label">Vapor calent. (mv)</text>
-  <text x="205" y="24" class="d-label">A (vapor evap.)</text><text x="205" y="45" class="d-val computed" id="d-out-1">—</text>
-  <text x="180" y="184" class="d-label">L, xL</text>
-  <text x="200" y="105" class="d-label">mv necesario</text><text x="200" y="128" class="d-val computed" id="d-out-2">—</text>
+evapVaporDiag: `<svg viewBox="0 0 320 210" class="schem">${ARROW_DEFS}
+  <rect x="90" y="35" width="110" height="150" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="94" y="30" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,150 L105,150" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,150 L105,150"/>
+  <path class="box-unit" d="M105,60 L185,60 L185,170 L105,170 Z"/>
+  <text x="145" y="118" text-anchor="middle" class="unit-label" style="font-size:9.5px;">EVAPORADOR</text>
+  <path class="pipe" d="M155,60 L155,20 L300,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M155,60 L155,20 L300,20"/>
+  <path class="pipe" d="M135,170 L135,200 L300,200" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M135,170 L135,200 L300,200"/>
+  <path class="pipe" d="M10,80 L105,80" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M10,80 L105,80"/>
+  <path class="pipe" d="M185,105 L300,105" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M185,105 L300,105"/>
+  <text x="14" y="140" class="d-label">F, xF, TF</text><text x="14" y="165" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="70" class="d-label">Vapor calent. entra (mv)</text>
+  <text x="205" y="14" class="d-label">A (vapor evap.)</text><text x="205" y="35" class="d-val computed" id="d-out-1">—</text>
+  <text x="180" y="194" class="d-label">L, xL</text>
+  <text x="205" y="97" class="d-label">Condensado sale (mv)</text><text x="205" y="118" class="d-val computed" id="d-out-2">—</text>
 </svg>`,
-evapCalderaDiag: `<svg viewBox="0 0 320 200" class="schem">${ARROW_DEFS}
-  <rect x="15" y="50" width="130" height="130" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="19" y="45" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C. EVAPORADOR</text>
-  <path class="pipe" d="M20,140 L100,140" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M20,140 L100,140"/>
-  <path class="box-unit" d="M100,80 L175,80 L175,170 L100,170 Z"/>
-  <text x="137" y="128" text-anchor="middle" class="unit-label" style="font-size:8.5px;">EVAP.</text>
-  <path class="pipe" d="M140,80 L140,40 L200,40" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M140,80 L140,40 L200,40"/>
-  <path class="pipe" d="M120,170 L120,190 L200,190" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M120,170 L120,190 L200,190"/>
-  <rect x="230" y="80" width="75" height="90" rx="6" fill="none" stroke="var(--vino)" stroke-width="1.5" stroke-dasharray="4 3"/>
-  <text x="234" y="75" style="font-size:8px;font-family:var(--font-mono);fill:var(--vino);letter-spacing:.05em;">V.C. CALDERA</text>
-  <rect x="240" y="95" width="55" height="60" rx="4" class="box-unit"/>
-  <text x="267" y="128" text-anchor="middle" class="unit-label" style="font-size:8px;">CALDERA</text>
-  <path class="pipe" d="M267,95 L267,80 L200,80" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M267,95 L267,80 L200,80"/>
-  <path class="pipe" d="M267,155 L267,175" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M267,155 L267,175"/>
-  <text x="14" y="130" class="d-label">F, xF, TF</text><text x="14" y="155" class="d-val" id="d-in-1">—</text>
-  <text x="205" y="34" class="d-label">V evaporado</text>
-  <text x="205" y="184" class="d-label">L concentrado</text>
-  <text x="230" y="188" class="d-label">Diésel:</text><text x="230" y="198" class="d-val computed" id="d-out-1">—</text>
+evapCalderaDiag: `<svg viewBox="0 0 360 220" class="schem">${ARROW_DEFS}
+  <rect x="215" y="30" width="130" height="160" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="219" y="25" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C. EVAPORADOR</text>
+  <rect x="15" y="55" width="110" height="110" fill="none" stroke="var(--vino)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="19" y="50" style="font-size:8px;font-family:var(--font-mono);fill:var(--vino);letter-spacing:.05em;">V.C. CALDERA</text>
+  <rect x="30" y="75" width="80" height="70" rx="6" class="box-unit"/>
+  <text x="70" y="114" text-anchor="middle" class="unit-label" style="font-size:9px;">CALDERA</text>
+  <path class="pipe" d="M0,95 L30,95" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M0,95 L30,95"/>
+  <path class="pipe" d="M70,200 L70,145" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M70,200 L70,145"/>
+  <path class="pipe" d="M110,95 L235,95" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M110,95 L235,95"/>
+  <path class="box-unit" d="M235,60 L315,60 L315,170 L235,170 Z"/>
+  <text x="275" y="118" text-anchor="middle" class="unit-label" style="font-size:9px;">EVAPORADOR</text>
+  <path class="pipe" d="M285,60 L285,20 L355,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M285,60 L285,20 L355,20"/>
+  <path class="pipe" d="M255,170 L255,195 L355,195" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M255,170 L255,195 L355,195"/>
+  <path class="pipe" d="M235,120 L200,120 L200,145 L355,145" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo6" d="M235,120 L200,120 L200,145 L355,145"/>
+  <path class="pipe" d="M180,215 L180,170" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo7" d="M180,215 L180,170"/>
+  <text x="4" y="86" class="d-label">Agua, Tagua</text>
+  <text x="10" y="215" class="d-label">Diésel (energía)</text>
+  <text x="130" y="86" class="d-label">Vapor a caldera → evap.</text>
+  <text x="140" y="215" class="d-label">F, xF, TF</text>
+  <text x="290" y="14" class="d-label">V (vapor evap.)</text><text x="290" y="35" class="d-val computed" id="d-out-1">—</text>
+  <text x="260" y="189" class="d-label">L (concentrado)</text>
+  <text x="200" y="139" class="d-label">Condensado sale (mv)</text>
+  <text x="70" y="60" class="d-label">Diésel necesario</text><text x="70" y="45" class="d-val computed" id="d-out-2">—</text>
 </svg>`
 };
 
@@ -1969,7 +1976,7 @@ const OPS = [
         {key:'L',label:'L — producto concentrado',value:fmt(L),unit:'kg/h',raw:L},
         {key:'mv',label:'Vapor de calentamiento necesario',value:fmt(mv,2),unit:'kg/h',raw:mv}
       ],
-      diagram:{'d-out-1':fmt(A)+' kg/h vapor evap.','d-out-2':fmt(mv,1)+' kg/h vapor calent.'}, flows:['fo1','fo2','fo3'],
+      diagram:{'d-out-1':fmt(A)+' kg/h vapor evap.','d-out-2':fmt(mv,1)+' kg/h condensado'}, flows:['fo1','fo2','fo3','fo4','fo5'],
       steps:[
         {t:'Balance de sólidos y balance global de masa', f:`L = F·xF/xL = ${v.F}×${v.xF}/${v.xL} = ${fmt(L)} kg/h\nA = F − L = ${fmt(A)} kg/h`},
         {t:'Balance de energía (el vapor de calentamiento solo cede calor latente)', f:`mv·(hg−hf) = A·hfg + L·Cp·TL − F·Cp·TF`},
@@ -2030,7 +2037,7 @@ const OPS = [
         {key:'Q',label:'Calor entregado por la caldera',value:fmt(Q,0),unit:'kJ/h',raw:Q},
         {key:'mdiesel',label:'Consumo de diésel',value:fmt(mdiesel,2),unit:'kg/h',raw:mdiesel}
       ],
-      diagram:{'d-out-1':fmt(mv,1)+' kg/h vapor','d-out-2':fmt(mdiesel,1)+' kg/h diésel'}, flows:['fo1','fo2','fo3'],
+      diagram:{'d-out-1':fmt(V)+' kg/h','d-out-2':fmt(mdiesel,1)+' kg/h'}, flows:['fo1','fo2','fo3','fo4','fo5','fo6','fo7'],
       steps:[
         {t:'Balance de masa en el evaporador', f:`L = F·xF/xL = ${fmt(L)} kg/h\nV = F − L = ${fmt(V)} kg/h`},
         {t:'Balance de energía en el evaporador (vapor de calentamiento cede calor latente)', f:`mv = [V·hfg + L·Cp·TL − F·Cp·TF] / (hg−hf)\nmv = ${fmt(mv,2)} kg/h`},
