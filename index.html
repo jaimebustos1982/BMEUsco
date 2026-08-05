@@ -76,6 +76,23 @@
   .cat-dot.materia{background:var(--ocre);}
   .cat-dot.energia{background:var(--vino);}
 
+  .chapter-scroll{ display:flex; gap:7px; overflow-x:auto; padding:2px 0 8px; margin:0 -16px; padding-left:16px; padding-right:16px; scrollbar-width:none; }
+  .chapter-scroll::-webkit-scrollbar{display:none;}
+  .chapter-chip{
+    flex:0 0 auto; background:var(--card); border:1px solid var(--line); border-radius:20px;
+    padding:7px 14px; cursor:pointer; user-select:none; transition:background .15s;
+  }
+  .chapter-chip .cn{font-family:var(--font-mono);font-size:9.5px;color:var(--ink-faint);}
+  .chapter-chip .ct{font-family:var(--font-body);font-size:11.5px;font-weight:600;color:var(--ink-dim);}
+  .chapter-chip.active{background:var(--ink);border-color:var(--ink);}
+  .chapter-chip.active .cn{color:rgba(255,255,255,0.6);}
+  .chapter-chip.active .ct{color:#fff;}
+  .chapter-chip.empty{opacity:.4;}
+  .chapter-title-bar{
+    font-family:var(--font-display); font-weight:600; font-size:15px; color:var(--ink);
+    margin:2px 0 12px; padding-bottom:8px; border-bottom:1px solid var(--line);
+  }
+
   .op-scroll{ display:flex; gap:8px; overflow-x:auto; padding:2px 0 4px; margin:0 -16px; padding-left:16px; padding-right:16px; scrollbar-width:none; }
   .op-scroll::-webkit-scrollbar{display:none;}
   .chip{ flex:0 0 auto; display:flex; flex-direction:column; align-items:flex-start; gap:2px; padding:9px 13px 8px; background:var(--card); border:1px solid var(--line); border-left:4px solid var(--ocre); border-radius:7px; cursor:pointer; user-select:none; transition:background .15s, transform .1s; min-width:132px; }
@@ -246,6 +263,8 @@
 </div>
 
 <div class="wrap">
+  <nav class="chapter-scroll" id="chapterScroll"></nav>
+  <div class="chapter-title-bar" id="chapterTitleBar"></div>
   <div class="cat-row">
     <span class="cat-tag"><span class="cat-dot materia"></span>Balance de materia</span>
     <span class="cat-tag"><span class="cat-dot energia"></span>Balance de energía</span>
@@ -299,7 +318,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-03-b · 13 fichas</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-04-a · 20 fichas · organizada por capítulos del libro</p>
     </footer>
   </main>
 </div>
@@ -467,12 +486,54 @@ bombeo: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
   <text x="190" y="95" class="d-label">Δz</text>
   <text x="14" y="122" class="d-label">Q̇, ρ</text><text x="14" y="185" class="d-val" id="d-in-1">—</text>
   <text x="150" y="185" class="d-label">wA (trabajo específico)</text><text x="150" y="170" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+secadoAire: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,45 L300,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L300,45"/>
+  <path class="pipe" d="M300,125 L10,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M300,125 L10,125"/>
+  <rect x="120" y="30" width="80" height="110" rx="8" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="14" y="36" class="d-label">CACAO: F, Hi</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="225" y="36" class="d-label">Producto: mF, Hf</text><text x="225" y="60" class="d-val" id="d-in-2">—</text>
+  <text x="14" y="150" class="d-label">AIRE entra: H1</text>
+  <text x="225" y="150" class="d-label">AIRE sale: H2</text>
+  <text x="130" y="20" class="d-label">mAS (calculado)</text><text x="130" y="12" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+formulacionDiag: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,25 L130,25" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,25 L130,25"/>
+  <path class="pipe" d="M10,60 L130,60" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1b" d="M10,60 L130,60"/>
+  <path class="pipe" d="M10,95 L130,95" marker-end="url(#arrow)"/>
+  <path class="pipe" d="M10,130 L130,130" marker-end="url(#arrow)"/>
+  <path class="pipe" d="M10,160 L130,160" marker-end="url(#arrow)"/>
+  <rect x="130" y="10" width="70" height="160" rx="8" class="box-unit"/>
+  <text x="165" y="95" text-anchor="middle" class="unit-label">MEZCLA</text>
+  <path class="pipe" d="M200,90 L300,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M200,90 L300,90"/>
+  <text x="10" y="18" class="d-label">A: leche en polvo</text>
+  <text x="10" y="53" class="d-label">B: grasa vegetal</text>
+  <text x="10" y="88" class="d-label">C: glucosa</text>
+  <text x="10" y="123" class="d-label">D: estabilizante</text>
+  <text x="10" y="153" class="d-label">E: agua</text>
+  <text x="205" y="76" class="d-label">P (premezcla)</text><text x="205" y="105" class="d-val computed" id="d-out-1">—</text>
+  <text x="10" y="177" class="d-val" id="d-in-1">—</text>
+</svg>`,
+evapDobleDiag: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <path class="pipe" d="M10,110 L70,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,110 L70,110"/>
+  <rect x="70" y="70" width="70" height="80" rx="6" class="box-unit"/>
+  <text x="105" y="100" text-anchor="middle" class="unit-label" style="font-size:9.5px;">EVAP. 1</text>
+  <path class="pipe" d="M105,70 L105,20 L160,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M105,70 L105,20 L160,20"/>
+  <path class="pipe" d="M140,110 L180,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M140,110 L180,110"/>
+  <rect x="180" y="70" width="70" height="80" rx="6" class="box-unit"/>
+  <text x="215" y="100" text-anchor="middle" class="unit-label" style="font-size:9.5px;">EVAP. 2</text>
+  <path class="pipe" d="M215,70 L215,20 L280,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M215,70 L215,20 L280,20"/>
+  <path class="pipe" d="M250,110 L300,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M250,110 L300,110"/>
+  <text x="14" y="100" class="d-label">F, xF</text><text x="14" y="125" class="d-val" id="d-in-1">—</text>
+  <text x="160" y="12" class="d-label">V1</text><text x="160" y="34" class="d-val computed" id="d-out-1">—</text>
+  <text x="255" y="12" class="d-label">V2</text><text x="255" y="34" class="d-val computed" id="d-out-2">—</text>
+  <text x="255" y="128" class="d-label">P, xP</text>
 </svg>`
 };
 
 /* ============================= OPERACIONES ============================= */
 const OPS = [
-{ id:'mixer', num:'01', cat:'materia', sector:'Alimentaria', name:'Mezclador',
+{ id:'mixer', num:'01', cat:'materia', chapter:3, sector:'Alimentaria', name:'Mezclador',
   title:'Mezclador de dos corrientes',
   context:'Planta de lácteos — estandarización de grasa',
   story:'Una planta de lácteos del Huila recibe leche descremada y crema de leche provenientes del proceso de descremado, y debe estandarizar el contenido de grasa antes de enviar la leche a pasteurización. Actualmente mezcla 1200 kg/h de leche descremada (0.5% de grasa) con 80 kg/h de crema de leche (40% de grasa). Determine el flujo total y el porcentaje de grasa de la leche estandarizada que sale hacia pasteurización.',
@@ -509,7 +570,7 @@ const OPS = [
     };
   }
 },
-{ id:'recycle', num:'02', cat:'materia', sector:'No alimentaria', name:'Reciclo',
+{ id:'recycle', num:'02', cat:'materia', chapter:3, sector:'No alimentaria', name:'Reciclo',
   title:'Balance con corriente de reciclo',
   context:'Planta de beneficio de fique — recirculación de agua de lavado',
   story:'En una planta de beneficio de fique del Huila, la fibra extraída se lava con agua para eliminar el mucílago. Para reducir el consumo de agua fresca, parte del agua de lavado se recircula al proceso. La planta capta 500 kg/h de agua fresca de la fuente cercana, y por cada 100 kg de agua fresca recircula el equivalente al 60% adicional. Determine el caudal de reciclo y el caudal real que entra a la etapa de lavado.',
@@ -546,7 +607,7 @@ const OPS = [
     };
   }
 },
-{ id:'evaporator', num:'03', cat:'materia', sector:'Alimentaria', name:'Evaporador',
+{ id:'evaporator', num:'03', cat:'materia', chapter:3, sector:'Alimentaria', name:'Evaporador',
   title:'Evaporador de un efecto',
   context:'Trapiche panelero — concentración de jugo de caña',
   story:'Un trapiche panelero del Huila procesa 1000 kg/h de jugo de caña (guarapo) con 18% de sólidos solubles. El jugo se calienta en las pailas hasta evaporar el agua necesaria y alcanzar el punto de panela, con 90% de sólidos en el producto final. Determine el flujo de panela obtenido y la cantidad de agua evaporada por hora.',
@@ -582,7 +643,7 @@ const OPS = [
     };
   }
 },
-{ id:'reactor', num:'04', cat:'materia', sector:'No alimentaria', name:'Reactor',
+{ id:'reactor', num:'04', cat:'materia', chapter:4, sector:'No alimentaria', name:'Reactor',
   title:'Reactor con conversión',
   context:'Planta de biodiésel — transesterificación de aceite de palma',
   story:'Una planta agroindustrial produce biodiésel a partir de aceite de palma mediante la reacción de transesterificación (aceite + metanol → biodiésel + glicerina, simplificada como A → B). Al reactor se alimentan 150 mol/h de triglicéridos (A), y el proceso opera con una conversión del 75%. Determine cuánto aceite sale sin reaccionar y cuánto biodiésel (B) se genera.',
@@ -620,7 +681,7 @@ const OPS = [
     };
   }
 },
-{ id:'sensible', num:'05', cat:'energia', sector:'Alimentaria', name:'Calor sensible',
+{ id:'sensible', num:'05', cat:'energia', chapter:6, sector:'Alimentaria', name:'Calor sensible',
   title:'Calentamiento o enfriamiento sensible',
   context:'Planta procesadora de pulpa de fruta — pasteurización',
   story:'Una planta procesadora de pulpa de lulo del Huila pasteuriza 800 kg/h de pulpa antes de envasarla asépticamente, calentándola de 25 °C a 85 °C. El calor específico de la pulpa se estima en 3.9 kJ/kg·°C. Determine la potencia calórica que debe suministrar el pasteurizador.',
@@ -658,7 +719,7 @@ const OPS = [
     };
   }
 },
-{ id:'exchanger', num:'06', cat:'energia', sector:'No alimentaria', name:'Intercambiador',
+{ id:'exchanger', num:'06', cat:'energia', chapter:6, sector:'No alimentaria', name:'Intercambiador',
   title:'Intercambiador de calor',
   context:'Destilería de alcohol carburante — enfriamiento del mosto',
   story:'En una destilería de alcohol carburante a partir de caña, el mosto sale de la cocción a 95 °C y debe enfriarse a 30 °C antes de entrar a los tanques de fermentación, para no afectar la levadura. El enfriamiento se realiza con 1200 kg/h de agua a 18 °C en un intercambiador de calor. Si el flujo de mosto es de 1000 kg/h, determine la temperatura de salida del agua de enfriamiento.',
@@ -699,7 +760,7 @@ const OPS = [
     };
   }
 },
-{ id:'adiabatic', num:'07', cat:'energia', sector:'Alimentaria', name:'Mezcla + energía',
+{ id:'adiabatic', num:'07', cat:'energia', chapter:6, sector:'Alimentaria', name:'Mezcla + energía',
   title:'Mezcla adiabática de dos corrientes',
   context:'Planta de lácteos — recepción de leche',
   story:'En el tanque de recepción de una planta de lácteos, llega una corriente de leche recién ordeñada a 35 °C (300 kg/h) que se mezcla con leche fría proveniente del silo de almacenamiento a 4 °C (700 kg/h), antes de continuar al proceso de estandarización. Suponiendo que el tanque no intercambia calor con el ambiente, determine la temperatura de la mezcla resultante.',
@@ -741,7 +802,7 @@ const OPS = [
     };
   }
 },
-{ id:'secadorCacao', num:'08', cat:'materia', sector:'Alimentaria', name:'Secado (cacao)',
+{ id:'secadorCacao', num:'08', cat:'materia', chapter:3, sector:'Alimentaria', name:'Secado (cacao)',
   title:'Secado de cacao — balance en base húmeda',
   context:'Planta de beneficio de cacao — Ejercicio 1 del libro del curso',
   story:'Una planta de beneficio de cacao del Huila seca 200 kg de cacao húmedo con una humedad inicial del 48% en base húmeda. Después del proceso de secado se obtienen 120 kg de producto seco. Determine la cantidad de agua eliminada durante el secado y la humedad final del cacao, expresada en base húmeda.',
@@ -778,7 +839,7 @@ const OPS = [
     };
   }
 },
-{ id:'centrifuga', num:'09', cat:'materia', sector:'Alimentaria', name:'Separador centrífugo',
+{ id:'centrifuga', num:'09', cat:'materia', chapter:3, sector:'Alimentaria', name:'Separador centrífugo',
   title:'Separación centrífuga de grasa',
   context:'Planta láctea — Ejercicio 5 del libro del curso',
   story:'En una planta láctea se procesan 100 kg de leche entera con 4% de grasa en una centrífuga, que la separa en una corriente de crema con 40% de grasa y una corriente de leche descremada con 0.5% de grasa. No hay pérdidas de materia en el proceso. Determine la cantidad de leche descremada y de crema obtenidas.',
@@ -816,7 +877,7 @@ const OPS = [
     };
   }
 },
-{ id:'dilucionEnergia', num:'10', cat:'energia', sector:'Alimentaria', name:'Dilución + energía',
+{ id:'dilucionEnergia', num:'10', cat:'energia', chapter:3, sector:'Alimentaria', name:'Dilución + energía',
   title:'Dilución con balance de energía',
   context:'Planta de concentrados alimenticios — Ejercicio 4 del libro del curso',
   story:'En una planta de concentrados alimenticios se diluye una corriente concentrada con 60% de sólidos solubles, que ingresa al mezclador con un flujo de 20 kg/h a 81.13 °C, usando agua pura a 25 °C. El producto final debe tener 15% de sólidos. Determine el flujo del producto final y su temperatura de salida.',
@@ -860,7 +921,7 @@ const OPS = [
     };
   }
 },
-{ id:'mezclaObjetivo', num:'11', cat:'energia', sector:'No alimentaria', name:'Mezcla a T objetivo',
+{ id:'mezclaObjetivo', num:'11', cat:'energia', chapter:6, sector:'No alimentaria', name:'Mezcla a T objetivo',
   title:'Mezcla de dos corrientes para una temperatura objetivo',
   context:'Servicios industriales — balance de energía del libro del curso',
   story:'Antes de distribuir agua de proceso a distintas líneas, una planta agroindustrial debe preparar 30 kg de agua a 38 °C, mezclando agua caliente de la caldera (90 °C) con agua fría de la red (22 °C). Determine cuánta agua caliente y cuánta agua fría deben mezclarse para lograr la temperatura deseada.',
@@ -901,7 +962,7 @@ const OPS = [
     };
   }
 },
-{ id:'intercambiadorFlujo', num:'12', cat:'energia', sector:'Alimentaria', name:'Intercambiador (flujo)',
+{ id:'intercambiadorFlujo', num:'12', cat:'energia', chapter:6, sector:'Alimentaria', name:'Intercambiador (flujo)',
   title:'Intercambiador de calor — flujo de agua para pasteurizar',
   context:'Planta láctea — balance de energía del libro del curso',
   story:'En una planta láctea, la leche fría a 4 °C debe calentarse hasta 75 °C para su pasteurización, usando agua caliente que entra a 90 °C y sale a 65 °C en un intercambiador de calor. Se procesan 500 kg/h de leche. Determine el flujo de agua caliente requerido y la potencia térmica del intercambiador.',
@@ -943,7 +1004,7 @@ const OPS = [
     };
   }
 },
-{ id:'bombeo', num:'13', cat:'energia', sector:'No alimentaria', name:'Bombeo de fluidos',
+{ id:'bombeo', num:'13', cat:'energia', chapter:6, sector:'No alimentaria', name:'Bombeo de fluidos',
   title:'Balance de energía mecánica en bombeo',
   context:'Planta de subproductos agroindustriales — balance de energía del libro del curso',
   story:'En una planta de subproductos agroindustriales se bombea un líquido de proceso con densidad de 1.028 kg/L desde un tanque inferior hasta un tanque superior, elevándolo 3 metros, a un flujo volumétrico de 50 L/min. Ambos tanques están a la misma presión y la tubería tiene el mismo diámetro en todo su recorrido, por lo que solo se considera el cambio de energía potencial. Las pérdidas por fricción equivalen al 20% de la energía potencial requerida. Determine el trabajo específico que debe entregar la bomba y la potencia hidráulica requerida.',
@@ -980,6 +1041,332 @@ const OPS = [
         {t:'Flujo másico y potencia hidráulica', f:`ṁ = ρ·Q̇ = ${v.rho}×${v.Qvol}/60 = ${fmt(mdot)} kg/s\nPotencia = wA·ṁ = ${fmt(wA)}×${fmt(mdot)} = ${fmt(Power,2)} W`}
       ],
       note:'Se desprecian los cambios de energía cinética y de presión porque ambos tanques están a la misma presión y la tubería mantiene el mismo diámetro en todo el recorrido.'
+    };
+  }
+},
+{ id:'secadoAire', num:'14', cat:'materia', chapter:3, sector:'Alimentaria', name:'Secado con aire',
+  title:'Secado de cacao con aire de secado',
+  context:'Planta de beneficio de cacao — Ejercicio 2 del libro del curso',
+  story:'La misma planta de beneficio de cacao seca 200 kg de cacao con 48% de humedad inicial (base húmeda), esta vez haciendo circular aire de secado: entra con una humedad absoluta de 0.014 kg de agua por kg de aire seco y sale con 0.018 kg de agua por kg de aire seco. El producto final pesa 111.82 kg con 7% de humedad (base húmeda), tras 48 horas de secado. Determine la masa total de aire seco que circuló y su flujo másico en kg/s.',
+  inputs:[
+    {key:'F', label:'F — masa de cacao húmedo', unit:'kg', dtag:'d-in-1', def:'200'},
+    {key:'Hi', label:'Hi — humedad inicial (base húmeda)', unit:'0–1', def:'0.48'},
+    {key:'H1', label:'H1 — humedad absoluta aire entrada', unit:'kg agua/kg A.S.', def:'0.014'},
+    {key:'H2', label:'H2 — humedad absoluta aire salida', unit:'kg agua/kg A.S.', def:'0.018'},
+    {key:'mF', label:'mF — masa de producto final', unit:'kg', dtag:'d-in-2', def:'111.82'},
+    {key:'Hf', label:'Hf — humedad final (base húmeda)', unit:'0–1', def:'0.07'},
+    {key:'tSecado', label:'Tiempo de secado', unit:'h', def:'48'},
+  ],
+  hints:[
+    'El agua que trae y se lleva el aire de secado es la diferencia entre su humedad absoluta de salida y de entrada. Plantea el balance de agua incluyendo ambas corrientes de aire (entrada y salida) y las de cacao (entrada y salida).',
+    'Agrupa los términos que multiplican a la masa de aire seco (mAS) en un lado de la ecuación, y los términos conocidos del cacao en el otro, para despejar mAS.',
+    'Una vez tengas la masa total de aire seco usada en todo el proceso, divide entre el tiempo total de secado (convertido a segundos) para obtener el flujo másico.'
+  ],
+  answerFields:[
+    {key:'mAS', label:'mAS — masa de aire seco', unit:'kg'},
+    {key:'flujoAS', label:'Flujo másico de aire seco', unit:'kg/s'}
+  ],
+  calc(v){
+    if(v.F<0||v.mF<0) return {error:'Las masas no pueden ser negativas.'};
+    if(v.Hi<0||v.Hi>1||v.Hf<0||v.Hf>1) return {error:'Hi y Hf deben estar entre 0 y 1.'};
+    if(v.H2<=v.H1) return {error:'H2 debe ser mayor que H1 (el aire debe ganar humedad al secar).'};
+    if(v.tSecado<=0) return {error:'El tiempo de secado debe ser mayor que cero.'};
+    const num = v.F*v.Hi - v.mF*v.Hf;
+    const mAS = num/(v.H2-v.H1);
+    const flujoAS = mAS/(v.tSecado*3600);
+    return {
+      outputs:[
+        {key:'mAS',label:'mAS — masa de aire seco',value:fmt(mAS),unit:'kg',raw:mAS},
+        {key:'flujoAS',label:'Flujo másico de aire seco',value:fmt(flujoAS,4),unit:'kg/s',raw:flujoAS}
+      ],
+      diagram:{'d-out-1':fmt(mAS)+' kg A.S.'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance parcial de agua (cacao + aire, entrada = salida)', f:`F·Hi + mAS·H1 = mF·Hf + mAS·H2`},
+        {t:'Se agrupan los términos con mAS y se despeja', f:`F·Hi − mF·Hf = mAS·(H2 − H1)\nmAS = (${v.F}×${v.Hi} − ${v.mF}×${v.Hf}) / (${v.H2} − ${v.H1})\nmAS = ${fmt(mAS)} kg de aire seco`},
+        {t:'Flujo másico de aire seco', f:`Flujo = mAS / (t·3600) = ${fmt(mAS)} / (${v.tSecado}×3600)\nFlujo = ${fmt(flujoAS,4)} kg/s`}
+      ]
+    };
+  }
+},
+{ id:'formulacion1', num:'15', cat:'materia', chapter:3, sector:'Alimentaria', name:'Formulación premezcla', diagramKey:'formulacionDiag',
+  title:'Formulación de una premezcla para helados',
+  context:'Planta de helados — Ejercicio 7 del libro del curso',
+  story:'Una planta de helados debe formular 100 kg de una premezcla que contenga 8% de grasa, 15% de azúcar, 18% de sólidos no grasos (SNG) y 0.4% de estabilizante. Dispone de cinco materias primas: leche en polvo azucarada (1% grasa, 90% SNG, 5% azúcar), grasa vegetal (90% grasa, 9.9% SNG), glucosa (79% azúcar), estabilizante puro (100%) y agua. Determine la cantidad necesaria de cada materia prima.',
+  inputs:[
+    {key:'P', label:'P — masa total de premezcla', unit:'kg', dtag:'d-in-1', def:'100'},
+    {key:'xGrasa', label:'% grasa deseado', unit:'0–1', def:'0.08'},
+    {key:'xSNG', label:'% SNG deseado', unit:'0–1', def:'0.18'},
+    {key:'xAzucar', label:'% azúcar deseado', unit:'0–1', def:'0.15'},
+    {key:'xEstab', label:'% estabilizante deseado', unit:'0–1', def:'0.004'},
+  ],
+  hints:[
+    'De las cinco materias primas, el estabilizante es la única que aporta estabilizante puro. Eso te da directamente una de las cinco incógnitas sin necesidad de sistema de ecuaciones.',
+    'La leche en polvo y la grasa vegetal son las únicas que aportan grasa y SNG. Plantea esos dos balances (grasa y SNG) como un sistema de dos ecuaciones con dos incógnitas.',
+    'Con la leche en polvo ya conocida, el balance de azúcar (leche en polvo + glucosa) te da la glucosa. El agua sale por diferencia del balance total de masa.'
+  ],
+  answerFields:[
+    {key:'A', label:'A — leche en polvo azucarada', unit:'kg'},
+    {key:'B', label:'B — grasa vegetal', unit:'kg'},
+    {key:'C', label:'C — glucosa', unit:'kg'},
+    {key:'D', label:'D — estabilizante', unit:'kg'},
+    {key:'E', label:'E — agua', unit:'kg'}
+  ],
+  calc(v){
+    if(v.P<0) return {error:'P no puede ser negativo.'};
+    for(const k of ['xGrasa','xSNG','xAzucar','xEstab']){ if(v[k]<0||v[k]>1) return {error:'Todos los porcentajes deben estar entre 0 y 1.'}; }
+    const cLPG=0.01, cLPS=0.90, cLPA=0.05, cGVG=0.90, cGVS=0.099, cGLA=0.79;
+    const D = v.P*v.xEstab;
+    const term1 = v.P*v.xGrasa*cLPS/cLPG;
+    const coefB = -cGVG*cLPS/cLPG + cGVS;
+    const B = (v.P*v.xSNG - term1)/coefB;
+    const A = (v.P*v.xGrasa - B*cGVG)/cLPG;
+    const C = (v.P*v.xAzucar - A*cLPA)/cGLA;
+    const E = v.P - A - B - C - D;
+    if(A<0||B<0||C<0||D<0||E<0) return {error:'La formulación no tiene solución físicamente válida con estos porcentajes (alguna materia prima saldría negativa). Prueba con otros porcentajes objetivo.'};
+    return {
+      outputs:[
+        {key:'A',label:'A — leche en polvo azucarada',value:fmt(A),unit:'kg',raw:A},
+        {key:'B',label:'B — grasa vegetal',value:fmt(B),unit:'kg',raw:B},
+        {key:'C',label:'C — glucosa',value:fmt(C),unit:'kg',raw:C},
+        {key:'D',label:'D — estabilizante',value:fmt(D),unit:'kg',raw:D},
+        {key:'E',label:'E — agua',value:fmt(E),unit:'kg',raw:E}
+      ],
+      diagram:{'d-out-1':`A=${fmt(A,1)} B=${fmt(B,1)} C=${fmt(C,1)} D=${fmt(D,2)} E=${fmt(E,1)} kg`}, flows:['fo1'],
+      steps:[
+        {t:'Balance de estabilizante (única fuente: ingrediente D)', f:`D·1,0 = P·xEstab\nD = ${v.P}×${v.xEstab} = ${fmt(D)} kg`},
+        {t:'Sistema de balance de grasa y SNG (leche en polvo A + grasa vegetal B)', f:`A(0,01) + B(0,90) = P·xGrasa\nA(0,90) + B(0,099) = P·xSNG`},
+        {t:'Resolviendo el sistema 2×2', f:`B = ${fmt(B,4)} kg de grasa vegetal\nA = ${fmt(A,4)} kg de leche en polvo`},
+        {t:'Balance de azúcar (leche en polvo A + glucosa C)', f:`A(0,05) + C(0,79) = P·xAzucar\nC = ${fmt(C,4)} kg de glucosa`},
+        {t:'Balance total de masa (el agua completa hasta P)', f:`E = P − A − B − C − D = ${fmt(E,4)} kg de agua`}
+      ]
+    };
+  }
+},
+{ id:'formulacion2', num:'16', cat:'materia', chapter:3, sector:'Alimentaria', name:'Formulación (práctica)', diagramKey:'formulacionDiag',
+  title:'Formulación de premezcla — variante de práctica',
+  context:'Planta de helados — actividad propuesta en el libro del curso',
+  story:'La misma planta de helados quiere ahora una premezcla con 10% de grasa, 13% de azúcar, 20% de SNG y 0.4% de estabilizante, usando las mismas cinco materias primas y composiciones del caso anterior. Determine las cantidades necesarias de cada una para 100 kg de premezcla, y compara mentalmente cómo cambian frente a una formulación con 8% de grasa, 13% de azúcar, 15% de SNG y 0.4% de estabilizante.',
+  inputs:[
+    {key:'P', label:'P — masa total de premezcla', unit:'kg', dtag:'d-in-1', def:'100'},
+    {key:'xGrasa', label:'% grasa deseado', unit:'0–1', def:'0.10'},
+    {key:'xSNG', label:'% SNG deseado', unit:'0–1', def:'0.20'},
+    {key:'xAzucar', label:'% azúcar deseado', unit:'0–1', def:'0.13'},
+    {key:'xEstab', label:'% estabilizante deseado', unit:'0–1', def:'0.004'},
+  ],
+  hints:[
+    'El método es idéntico al caso anterior: primero el estabilizante (directo), luego el sistema grasa+SNG para leche en polvo y grasa vegetal, luego azúcar para la glucosa, y agua por diferencia.',
+    '¿Qué le pasa a la cantidad de grasa vegetal (B) si subes el % de grasa objetivo manteniendo lo demás similar? Compara tu resultado con el del ejercicio anterior (8% grasa) antes de calcular.',
+    'Verifica al final que las cinco cantidades sumen exactamente P — es la comprobación más simple de que no te equivocaste en alguna ecuación.'
+  ],
+  answerFields:[
+    {key:'A', label:'A — leche en polvo azucarada', unit:'kg'},
+    {key:'B', label:'B — grasa vegetal', unit:'kg'},
+    {key:'C', label:'C — glucosa', unit:'kg'},
+    {key:'D', label:'D — estabilizante', unit:'kg'},
+    {key:'E', label:'E — agua', unit:'kg'}
+  ],
+  calc(v){
+    if(v.P<0) return {error:'P no puede ser negativo.'};
+    for(const k of ['xGrasa','xSNG','xAzucar','xEstab']){ if(v[k]<0||v[k]>1) return {error:'Todos los porcentajes deben estar entre 0 y 1.'}; }
+    const cLPG=0.01, cLPS=0.90, cLPA=0.05, cGVG=0.90, cGVS=0.099, cGLA=0.79;
+    const D = v.P*v.xEstab;
+    const term1 = v.P*v.xGrasa*cLPS/cLPG;
+    const coefB = -cGVG*cLPS/cLPG + cGVS;
+    const B = (v.P*v.xSNG - term1)/coefB;
+    const A = (v.P*v.xGrasa - B*cGVG)/cLPG;
+    const C = (v.P*v.xAzucar - A*cLPA)/cGLA;
+    const E = v.P - A - B - C - D;
+    if(A<0||B<0||C<0||D<0||E<0) return {error:'La formulación no tiene solución físicamente válida con estos porcentajes (alguna materia prima saldría negativa). Prueba con otros porcentajes objetivo.'};
+    return {
+      outputs:[
+        {key:'A',label:'A — leche en polvo azucarada',value:fmt(A),unit:'kg',raw:A},
+        {key:'B',label:'B — grasa vegetal',value:fmt(B),unit:'kg',raw:B},
+        {key:'C',label:'C — glucosa',value:fmt(C),unit:'kg',raw:C},
+        {key:'D',label:'D — estabilizante',value:fmt(D),unit:'kg',raw:D},
+        {key:'E',label:'E — agua',value:fmt(E),unit:'kg',raw:E}
+      ],
+      diagram:{'d-out-1':`A=${fmt(A,1)} B=${fmt(B,1)} C=${fmt(C,1)} D=${fmt(D,2)} E=${fmt(E,1)} kg`}, flows:['fo1'],
+      steps:[
+        {t:'Balance de estabilizante', f:`D = P×xEstab = ${v.P}×${v.xEstab} = ${fmt(D)} kg`},
+        {t:'Sistema de grasa y SNG', f:`A(0,01) + B(0,90) = P·xGrasa\nA(0,90) + B(0,099) = P·xSNG\nB = ${fmt(B,4)} kg · A = ${fmt(A,4)} kg`},
+        {t:'Balance de azúcar', f:`A(0,05) + C(0,79) = P·xAzucar\nC = ${fmt(C,4)} kg`},
+        {t:'Balance total (agua por diferencia)', f:`E = P − A − B − C − D = ${fmt(E,4)} kg`}
+      ],
+      note:'Comparado con la formulación de 8% de grasa, subir el objetivo a 10% aumenta la grasa vegetal (B) requerida y reduce el agua (E) disponible.'
+    };
+  }
+},
+{ id:'evapSimple2', num:'17', cat:'materia', chapter:3, sector:'Alimentaria', name:'Evaporador (5000 kg/h)', diagramKey:'evaporator',
+  title:'Evaporador de solución concentrada',
+  context:'Planta de alimentos — Ejercicio 9 del libro del curso',
+  story:'A un evaporador se alimentan 5000 kg/h de una solución con 8% de sólidos en masa. Durante el proceso se elimina agua pura como vapor, obteniéndose una corriente concentrada con 50% de sólidos. Determine los flujos másicos de la corriente concentrada y del vapor de agua eliminado.',
+  inputs:[
+    {key:'F', label:'F — alimentación', unit:'kg/h', dtag:'d-in-1', def:'5000'},
+    {key:'xF', label:'xF — fracción de sólidos en F', unit:'0–1', def:'0.08'},
+    {key:'xL', label:'xL — fracción de sólidos en el concentrado', unit:'0–1', def:'0.50'},
+  ],
+  hints:[
+    'El vapor que sale es agua pura, sin sólidos. ¿Qué balance conviene plantear primero para hallar el flujo del concentrado: el de sólidos o el global?',
+    'Plantea el balance de sólidos entre la alimentación y el concentrado para hallar L directamente.',
+    'Con L conocido, usa el balance global de masa para hallar el vapor V.'
+  ],
+  answerFields:[
+    {key:'L', label:'L — corriente concentrada', unit:'kg/h'},
+    {key:'V', label:'V — vapor de agua eliminado', unit:'kg/h'}
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.xF<0||v.xF>1||v.xL<0||v.xL>1) return {error:'xF y xL deben estar entre 0 y 1.'};
+    if(v.xL<=v.xF) return {error:'xL debe ser mayor que xF para que exista concentración.'};
+    const L=v.F*v.xF/v.xL, V=v.F-L;
+    return {
+      outputs:[
+        {key:'L',label:'L — corriente concentrada',value:fmt(L),unit:'kg/h',raw:L},
+        {key:'V',label:'V — vapor de agua eliminado',value:fmt(V),unit:'kg/h',raw:V}
+      ],
+      diagram:{'d-out-1':fmt(V)+' kg/h','d-out-2':fmt(L)+' kg/h · x='+fmt(v.xL,3)}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de sólidos (no volátiles, permanecen en el líquido)', f:`F·xF = L·xL\nL = F·xF / xL = ${v.F}×${v.xF} / ${v.xL} = ${fmt(L)} kg/h`},
+        {t:'Balance global de masa', f:`F = L + V\nV = F − L = ${v.F} − ${fmt(L)} = ${fmt(V)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'centrifugaMezclador', num:'18', cat:'materia', chapter:3, sector:'Alimentaria', name:'Centrífuga + mezclador', diagramKey:'centrifuga',
+  title:'Estandarización combinando centrífuga y mezclador',
+  context:'Planta láctea — Ejercicio de clase (Clase Ej. 10) del libro del curso',
+  story:'Una planta procesadora requiere estandarizar 100 kg de leche entera (4% de grasa) a 3% de grasa usando una centrífuga, que separa la leche estandarizada (3%) de una corriente de crema (35% de grasa). Adicionalmente, esa leche estandarizada puede pensarse como si proviniera de mezclar una corriente de leche descremada (1% de grasa) con una segunda corriente de crema (también 35% de grasa). Determine la leche estandarizada y la crema principal, y luego la leche descremada y la crema de la mezcla interna.',
+  inputs:[
+    {key:'F', label:'F — leche entera alimentada', unit:'kg', dtag:'d-in-1', def:'100'},
+    {key:'xF', label:'xF — fracción de grasa en F', unit:'0–1', def:'0.04'},
+    {key:'xS', label:'xS — fracción de grasa objetivo (estandarizada)', unit:'0–1', def:'0.03'},
+    {key:'xP', label:'xP — fracción de grasa en la crema', unit:'0–1', def:'0.35'},
+    {key:'xL', label:'xL — fracción de grasa en descremada (mezcla interna)', unit:'0–1', def:'0.01'},
+  ],
+  hints:[
+    'Empieza por la centrífuga principal: balance total y balance de grasa entre F (entera), S (estandarizada) y P (crema), igual que en un separador de dos corrientes.',
+    'Para la segunda parte, piensa que S no es una corriente física nueva, sino el resultado de "mezclar" una leche descremada (L, 1% grasa) con otra crema (N, 35% grasa) — mismo tipo de balance, aplicado ahora a S como si fuera la salida de un mezclador.',
+    'La crema total del sistema es la suma de las dos corrientes de crema que aparecieron: la de la centrífuga (P) y la de la mezcla interna (N).'
+  ],
+  answerFields:[
+    {key:'S', label:'S — leche estandarizada', unit:'kg'},
+    {key:'P', label:'P — crema (centrífuga)', unit:'kg'},
+    {key:'L', label:'L — leche descremada (interna)', unit:'kg'},
+    {key:'N', label:'N — crema (mezcla interna)', unit:'kg'},
+    {key:'M', label:'M — crema total del sistema', unit:'kg'}
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    for(const k of ['xF','xS','xP','xL']){ if(v[k]<0||v[k]>1) return {error:'Todas las fracciones deben estar entre 0 y 1.'}; }
+    if(!(v.xF>v.xS)) return {error:'xF debe ser mayor que xS para que la centrífuga concentre grasa en la crema.'};
+    if(!(v.xP>v.xS)) return {error:'xP debe ser mayor que xS.'};
+    const P = (v.F*v.xF - v.F*v.xS)/(v.xP-v.xS);
+    const S = v.F-P;
+    if(!(v.xP>v.xS && v.xS>v.xL)) return {error:'Se requiere xP > xS > xL para la segunda parte (mezcla interna).'};
+    const N = S*(v.xS-v.xL)/(v.xP-v.xL);
+    const L = S-N;
+    const M = N+P;
+    return {
+      outputs:[
+        {key:'S',label:'S — leche estandarizada',value:fmt(S),unit:'kg',raw:S},
+        {key:'P',label:'P — crema (centrífuga)',value:fmt(P),unit:'kg',raw:P},
+        {key:'L',label:'L — leche descremada (interna)',value:fmt(L),unit:'kg',raw:L},
+        {key:'N',label:'N — crema (mezcla interna)',value:fmt(N),unit:'kg',raw:N},
+        {key:'M',label:'M — crema total del sistema',value:fmt(M),unit:'kg',raw:M}
+      ],
+      diagram:{'d-out-1':fmt(S)+' kg','d-out-2':fmt(P)+' kg crema'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance total y de grasa en la centrífuga principal', f:`F = S + P\nF·xF = S·xS + P·xP`},
+        {t:'Se resuelve para P y S', f:`P = F·(xF−xS)/(xP−xS) = ${v.F}×(${v.xF}−${v.xS})/(${v.xP}−${v.xS}) = ${fmt(P,4)} kg\nS = F − P = ${fmt(S,4)} kg`},
+        {t:'Balance total y de grasa en la mezcla interna (L + N = S)', f:`L + N = S\nL·xL + N·xP = S·xS`},
+        {t:'Se resuelve para N y L', f:`N = S·(xS−xL)/(xP−xL) = ${fmt(N,4)} kg\nL = S − N = ${fmt(L,4)} kg`},
+        {t:'Crema total del sistema', f:`M = N + P = ${fmt(N,4)} + ${fmt(P,4)} = ${fmt(M,4)} kg`}
+      ]
+    };
+  }
+},
+{ id:'evapDoble', num:'19', cat:'materia', chapter:3, sector:'Alimentaria', name:'Doble evaporador', diagramKey:'evapDobleDiag',
+  title:'Evaporadores en serie con igual vapor eliminado',
+  context:'Planta de alimentos — evaporación en dos efectos, ejercicio del libro del curso',
+  story:'En un sistema de dos evaporadores en serie se alimentan 1000 kg/h de una solución con 5% de sólidos. El primer evaporador elimina un flujo de vapor V1 (libre de sólidos) y el segundo elimina V2, con V1 igual a V2. Del segundo evaporador salen 200 kg/h de producto concentrado. Determine el vapor eliminado en cada evaporador y la concentración de sólidos del producto final.',
+  inputs:[
+    {key:'F', label:'F — alimentación', unit:'kg/h', dtag:'d-in-1', def:'1000'},
+    {key:'xF', label:'xF — fracción de sólidos en F', unit:'0–1', def:'0.05'},
+    {key:'P', label:'P — producto final (2.º efecto)', unit:'kg/h', def:'200'},
+  ],
+  hints:[
+    'Con V1 = V2, el balance global de todo el sistema (F = P + V1 + V2) queda con una sola incógnita si expresas V2 en función de V1.',
+    'La concentración final xP no depende de cómo se reparta el vapor entre los dos efectos — solo del balance de sólidos entre F y P. Calcúlala aparte.',
+    'Para el primer evaporador por separado, plantea su propio balance total (F = V1 + L1) para hallar cuánto sale de él hacia el segundo efecto.'
+  ],
+  answerFields:[
+    {key:'V1', label:'V1 — vapor eliminado (1er efecto)', unit:'kg/h'},
+    {key:'V2', label:'V2 — vapor eliminado (2.º efecto)', unit:'kg/h'},
+    {key:'xP', label:'xP — concentración final', unit:'%'}
+  ],
+  calc(v){
+    if(v.F<0||v.P<0) return {error:'Los flujos no pueden ser negativos.'};
+    if(v.xF<0||v.xF>1) return {error:'xF debe estar entre 0 y 1.'};
+    if(v.P>=v.F) return {error:'El producto final debe ser menor que la alimentación.'};
+    const V2 = (v.F-v.P)/2, V1=V2;
+    const xP = v.F*v.xF/v.P;
+    if(xP>1) return {error:'Con estos datos, la concentración final supera el 100% — revisa P.'};
+    return {
+      outputs:[
+        {key:'V1',label:'V1 — vapor eliminado (1er efecto)',value:fmt(V1),unit:'kg/h',raw:V1},
+        {key:'V2',label:'V2 — vapor eliminado (2.º efecto)',value:fmt(V2),unit:'kg/h',raw:V2},
+        {key:'xP',label:'xP — concentración final de sólidos',value:fmt(xP*100,2),unit:'%',raw:xP*100}
+      ],
+      diagram:{'d-out-1':fmt(V1)+' kg/h','d-out-2':fmt(V2)+' kg/h'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Balance global del sistema completo (V1 = V2)', f:`F = P + V1 + V2 = P + 2V1\nV1 = (F−P)/2 = (${v.F}−${v.P})/2 = ${fmt(V1)} kg/h\nV2 = ${fmt(V2)} kg/h`},
+        {t:'Balance de sólidos en todo el sistema (el vapor no lleva sólidos)', f:`F·xF = P·xP\nxP = F·xF/P = ${v.F}×${v.xF}/${v.P} = ${fmt(xP,4)} → ${fmt(xP*100,2)} %`}
+      ],
+      note:'Este es un caso de evaporación de múltiple efecto: dos evaporadores en serie comparten la carga de evaporación total.'
+    };
+  }
+},
+{ id:'evapDobleProp', num:'20', cat:'materia', chapter:3, sector:'Alimentaria', name:'Doble evaporador (relación 1:3)', diagramKey:'evapDobleDiag',
+  title:'Evaporadores en serie con relación de vapor 1:3',
+  context:'Planta de alimentos — ejercicio propuesto del libro del curso',
+  story:'El mismo sistema de dos evaporadores en serie (1000 kg/h de alimentación, 5% de sólidos, 200 kg/h de producto final) ahora reparte el vapor de forma distinta: el primer evaporador elimina un tercio del vapor que elimina el segundo (V1 = V2/3). Determine el vapor eliminado en cada evaporador y la concentración final de sólidos.',
+  inputs:[
+    {key:'F', label:'F — alimentación', unit:'kg/h', dtag:'d-in-1', def:'1000'},
+    {key:'xF', label:'xF — fracción de sólidos en F', unit:'0–1', def:'0.05'},
+    {key:'P', label:'P — producto final (2.º efecto)', unit:'kg/h', def:'200'},
+    {key:'ratio', label:'Relación V1/V2', unit:'adim.', def:'0.333333'},
+  ],
+  hints:[
+    'La relación entre V1 y V2 cambia respecto al caso anterior, pero el balance global sigue siendo el mismo tipo de ecuación: F = P + V1 + V2. Sustituye V1 = ratio·V2 y despeja V2 primero.',
+    '¿Cambia la concentración final xP respecto al caso con V1=V2? Piensa en qué balance depende xP antes de calcular.',
+    'Una vez tengas V1 y V2, verifica que V1 + V2 + P sea igual a F — es tu comprobación rápida.'
+  ],
+  answerFields:[
+    {key:'V1', label:'V1 — vapor eliminado (1er efecto)', unit:'kg/h'},
+    {key:'V2', label:'V2 — vapor eliminado (2.º efecto)', unit:'kg/h'},
+    {key:'xP', label:'xP — concentración final', unit:'%'}
+  ],
+  calc(v){
+    if(v.F<0||v.P<0) return {error:'Los flujos no pueden ser negativos.'};
+    if(v.xF<0||v.xF>1) return {error:'xF debe estar entre 0 y 1.'};
+    if(v.P>=v.F) return {error:'El producto final debe ser menor que la alimentación.'};
+    if(v.ratio<=0) return {error:'La relación V1/V2 debe ser mayor que cero.'};
+    const V2 = (v.F-v.P)/(v.ratio+1);
+    const V1 = v.ratio*V2;
+    const xP = v.F*v.xF/v.P;
+    if(xP>1) return {error:'Con estos datos, la concentración final supera el 100% — revisa P.'};
+    return {
+      outputs:[
+        {key:'V1',label:'V1 — vapor eliminado (1er efecto)',value:fmt(V1),unit:'kg/h',raw:V1},
+        {key:'V2',label:'V2 — vapor eliminado (2.º efecto)',value:fmt(V2),unit:'kg/h',raw:V2},
+        {key:'xP',label:'xP — concentración final de sólidos',value:fmt(xP*100,2),unit:'%',raw:xP*100}
+      ],
+      diagram:{'d-out-1':fmt(V1)+' kg/h','d-out-2':fmt(V2)+' kg/h'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Balance global del sistema completo (V1 = ratio·V2)', f:`F = P + V1 + V2 = P + (ratio+1)·V2\nV2 = (F−P)/(ratio+1) = (${v.F}−${v.P})/(${v.ratio}+1) = ${fmt(V2)} kg/h\nV1 = ratio×V2 = ${fmt(V1)} kg/h`},
+        {t:'Balance de sólidos en todo el sistema', f:`xP = F·xF/P = ${v.F}×${v.xF}/${v.P} = ${fmt(xP,4)} → ${fmt(xP*100,2)} %`}
+      ],
+      note:'La concentración final xP no cambia respecto a otras relaciones V1/V2: solo depende del balance global de sólidos entre F y P, no de cómo se reparte la evaporación entre los efectos.'
     };
   }
 }
@@ -1048,14 +1435,53 @@ async function registrarUso(op, pistasUsadas, verdicto){
   }catch(e){ /* si el registro falla, no se interrumpe el uso del simulador */ }
 }
 
+/* ============================= CAPÍTULOS DEL LIBRO ============================= */
+const CHAPTERS = [
+  {num:3, title:'Balance de materia sin reacción química (estado estacionario)'},
+  {num:4, title:'Balance de materia con reacción química'},
+  {num:5, title:'Balance de materia en estado transitorio'},
+  {num:6, title:'Balance de energía en estado estacionario'},
+  {num:7, title:'Balance de energía con reacción química'},
+  {num:8, title:'Balance de energía en estado transitorio'},
+  {num:9, title:'Balances simultáneos de materia y energía'},
+];
+
 /* ============================= RENDER SIMULADOR ============================= */
-let currentOp = OPS[0].id;
+function opsInChapter(ch){ return OPS.filter(o=>o.chapter===ch); }
+let currentChapter = CHAPTERS.find(c=>opsInChapter(c.num).length>0)?.num || CHAPTERS[0].num;
+let currentOp = opsInChapter(currentChapter)[0] ? opsInChapter(currentChapter)[0].id : OPS[0].id;
 let hintsShown = 0;
+
+function renderChapters(){
+  const box = document.getElementById('chapterScroll');
+  box.innerHTML = CHAPTERS.map(c => {
+    const count = opsInChapter(c.num).length;
+    return `<div class="chapter-chip${c.num===currentChapter?' active':''}${count===0?' empty':''}" data-ch="${c.num}">
+      <span class="cn">CAP. ${c.num}${count?` · ${count}`:' · próx.'}</span><br><span class="ct">${chapterShort(c.num)}</span>
+    </div>`;
+  }).join('');
+  box.querySelectorAll('.chapter-chip').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const ch = parseInt(el.dataset.ch,10);
+      if(opsInChapter(ch).length===0) return;
+      currentChapter = ch;
+      currentOp = opsInChapter(ch)[0].id;
+      renderOp();
+    });
+  });
+  const chObj = CHAPTERS.find(c=>c.num===currentChapter);
+  document.getElementById('chapterTitleBar').textContent = `Capítulo ${currentChapter} — ${chObj.title}`;
+}
+function chapterShort(n){
+  const map = {3:'Materia sin reacción',4:'Materia con reacción',5:'Materia transitorio',6:'Energía estable',7:'Energía con reacción',8:'Energía transitorio',9:'Materia + energía'};
+  return map[n] || '';
+}
 
 function renderChips(){
   const box = document.getElementById('opScroll');
-  box.innerHTML = OPS.map(op => `<div class="chip cat-${op.cat}${op.id===currentOp?' active':''}" data-op="${op.id}">
-      <span class="n">${op.num} · ${CAT_LABEL[op.cat]}</span><span class="t">${op.name}</span>
+  const list = opsInChapter(currentChapter);
+  box.innerHTML = list.map(op => `<div class="chip cat-${op.cat}${op.id===currentOp?' active':''}" data-op="${op.id}">
+      <span class="n">${CAT_LABEL[op.cat]} · ${op.sector}</span><span class="t">${op.name}</span>
     </div>`).join('');
   box.querySelectorAll('.chip').forEach(el=>{
     el.addEventListener('click', ()=>{ currentOp = el.dataset.op; renderOp(); });
@@ -1079,17 +1505,19 @@ function renderHints(op){
 }
 
 function renderOp(){
+  renderChapters();
   renderChips();
   const op = OPS.find(o=>o.id===currentOp);
   hintsShown = 0;
-  document.getElementById('fichaN').textContent = 'FICHA N.º ' + op.num;
+  const idxInChapter = opsInChapter(currentChapter).findIndex(o=>o.id===currentOp)+1;
+  document.getElementById('fichaN').textContent = `CAP. ${currentChapter} · FICHA N.º ${String(idxInChapter).padStart(2,'0')}`;
   const pill = document.getElementById('fichaPill');
   pill.textContent = CAT_LABEL[op.cat]; pill.className = 'pill ' + op.cat;
   document.getElementById('fichaSector').textContent = op.sector;
   document.getElementById('opTitle').textContent = op.title;
   document.getElementById('caseContext').textContent = op.context;
   document.getElementById('caseText').textContent = op.story;
-  document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.id];
+  document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.diagramKey || op.id];
   document.getElementById('resultsBox').innerHTML = '';
   document.getElementById('errBox').innerHTML = '';
 
