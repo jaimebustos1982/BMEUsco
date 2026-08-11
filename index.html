@@ -326,7 +326,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-06-c · 53 fichas · Cap. 8 completo</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-06-d · 58 fichas · los 9 capítulos completos</p>
     </footer>
   </main>
 </div>
@@ -761,6 +761,32 @@ lumpedDiag: `<svg viewBox="0 0 320 160" class="schem">${ARROW_DEFS}
   <text x="14" y="66" class="d-label">T0 (inicial)</text><text x="14" y="88" class="d-val" id="d-in-1">—</text>
   <text x="235" y="65" class="d-label">t necesario</text><text x="235" y="88" class="d-val computed" id="d-out-1">—</text>
   <text x="100" y="146" class="d-label">Tambiente constante alrededor del producto</text>
+</svg>`,
+flashDiag: `<svg viewBox="0 0 320 180" class="schem">${ARROW_DEFS}
+  <rect x="90" y="35" width="110" height="130" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="94" y="30" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,100 L105,100" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,100 L105,100"/>
+  <path class="box-unit" d="M105,55 L185,55 L185,145 L105,145 Z"/>
+  <text x="145" y="95" text-anchor="middle" class="unit-label" style="font-size:9px;">TANQUE</text>
+  <text x="145" y="110" text-anchor="middle" class="unit-label" style="font-size:9px;">FLASH</text>
+  <text x="145" y="125" text-anchor="middle" class="d-label" style="font-size:8px;">(caída de presión)</text>
+  <path class="pipe" d="M155,55 L155,15 L300,15" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M155,55 L155,15 L300,15"/>
+  <path class="pipe" d="M135,145 L135,175 L300,175" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M135,145 L135,175 L300,175"/>
+  <text x="14" y="90" class="d-label">F, T1, Cp</text><text x="14" y="115" class="d-val" id="d-in-1">—</text>
+  <text x="205" y="10" class="d-label">V (vapor flash)</text><text x="205" y="30" class="d-val computed" id="d-out-1">—</text>
+  <text x="180" y="169" class="d-label">L (líquido, a Tsat)</text>
+</svg>`,
+liofilizacionDiag: `<svg viewBox="0 0 320 180" class="schem">${ARROW_DEFS}
+  <rect x="90" y="30" width="120" height="130" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="94" y="25" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C. (cámara de vacío)</text>
+  <path class="box-unit" d="M100,50 L200,50 L200,145 L100,145 Z"/>
+  <text x="150" y="90" text-anchor="middle" class="unit-label" style="font-size:9px;">PRODUCTO</text>
+  <text x="150" y="105" text-anchor="middle" class="unit-label" style="font-size:9px;">CONGELADO</text>
+  <path class="pipe" d="M150,50 L150,15 L300,15" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M150,50 L150,15 L300,15"/>
+  <path class="pipe" d="M60,165 L100,120" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M60,165 L100,120"/>
+  <text x="10" y="65" class="d-label">Hielo a sublimar</text><text x="10" y="88" class="d-val" id="d-in-1">—</text>
+  <text x="20" y="175" class="d-label">Calor placa (Qplaca)</text>
+  <text x="205" y="10" class="d-label">Vapor sublimado</text><text x="205" y="30" class="d-val computed" id="d-out-1">—</text>
 </svg>`
 };
 
@@ -3050,6 +3076,254 @@ const OPS = [
         {t:'Se despeja el tiempo para la temperatura de pasteurización', f:`t = −ln[(Ttarget−Tcamisa)/(T0−Tcamisa)] / k = ${fmt(t,2)} min`}
       ],
       note:'El tiempo de retención exigido por la norma de pasteurización empieza a contar después de este calentamiento, una vez la leche alcanza la temperatura objetivo.'
+    };
+  }
+},
+{ id:'evapDobleEfectoCaldera', num:'54', cat:'energia', chapter:9, sector:'Alimentaria', diagramKey:'evapCalderaDiag', name:'Evaporación múltiple efecto',
+  title:'Evaporador de doble efecto con caldera y consumo de diésel',
+  context:'Planta de concentración de jugos — evaporación de múltiple efecto, ejercicio del libro del curso',
+  story:'La misma planta de jugos ahora concentra sus 10 000 kg/h de jugo (12% sólidos, 30°C, Cp=3.9 kJ/kg·°C) hasta 60% de sólidos usando dos evaporadores en serie (doble efecto), ambos operando a 30 kPa, con V1=V2 (igual vapor eliminado en cada efecto). El primer efecto se calienta con vapor saturado de una caldera a 1000 kPa (agua de alimentación a 25°C), que quema diésel (poder calorífico 43 000 kJ/kg, eficiencia 75%). Determine los flujos de vapor de cada efecto, el vapor de calentamiento y el consumo de diésel.',
+  inputs:[
+    {key:'F', label:'F — alimentación de jugo', unit:'kg/h', dtag:'d-in-1', def:'10000'},
+    {key:'xF', label:'xF — fracción de sólidos en F', unit:'0–1', def:'0.12'},
+    {key:'TF', label:'TF — temperatura de alimentación', unit:'°C', def:'30'},
+    {key:'Cp', label:'Cp — calor específico del jugo', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'xL2', label:'xL2 — fracción de sólidos final (2.º efecto)', unit:'0–1', def:'0.60'},
+    {key:'TL', label:'TL — temp. de ebullición en los evaporadores (Tsat a 30 kPa)', unit:'°C', def:'69.09'},
+    {key:'hg', label:'hg del vapor de calentamiento a 1000 kPa', unit:'kJ/kg', def:'2777.1'},
+    {key:'hf', label:'hf del vapor de calentamiento a 1000 kPa', unit:'kJ/kg', def:'762.51'},
+    {key:'hfg', label:'hfg del agua evaporada a 30 kPa', unit:'kJ/kg', def:'2335.3'},
+    {key:'TsatCaldera', label:'Tsat del vapor a la salida de la caldera (a 1000 kPa)', unit:'°C', def:'179.88'},
+    {key:'Tagua', label:'Temperatura del agua de alimentación a la caldera', unit:'°C', def:'25'},
+    {key:'PC', label:'Poder calorífico del diésel', unit:'kJ/kg', def:'43000'},
+    {key:'eficiencia', label:'Eficiencia de combustión', unit:'0–1', def:'0.75'},
+  ],
+  hints:[
+    'Empieza por el balance global de sólidos entre F y el producto final del 2.º efecto (L2) — el vapor no lleva sólidos, sin importar en cuántos efectos se elimine.',
+    'Con L2 conocido, el balance global de masa te da el vapor total (V1+V2). Usando la condición V1=V2, despeja cada uno.',
+    'El balance de energía se plantea solo alrededor del primer efecto (que es el que recibe el vapor de la caldera): la alimentación F entra a TF, se calienta hasta TL, y de ahí sale V1 como vapor y L1 como líquido hacia el segundo efecto. Con ese balance despejas el vapor de calentamiento mv, y de ahí sigue igual que en el evaporador simple: balance de energía en la caldera y consumo de diésel.'
+  ],
+  answerFields:[
+    {key:'L2', label:'L2 — producto final concentrado', unit:'kg/h'},
+    {key:'V1', label:'V1 — vapor eliminado (1er efecto)', unit:'kg/h'},
+    {key:'L1', label:'L1 — líquido intermedio (al 2.º efecto)', unit:'kg/h'},
+    {key:'mv', label:'Vapor de calentamiento (caldera → 1er efecto)', unit:'kg/h'},
+    {key:'mdiesel', label:'Consumo de diésel', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.xF<0||v.xF>1||v.xL2<0||v.xL2>1) return {error:'xF y xL2 deben estar entre 0 y 1.'};
+    if(v.xL2<=v.xF) return {error:'xL2 debe ser mayor que xF.'};
+    if(v.hg<=v.hf) return {error:'hg debe ser mayor que hf.'};
+    if(v.PC<=0||v.eficiencia<=0||v.eficiencia>1) return {error:'El poder calorífico debe ser mayor que cero y la eficiencia debe estar entre 0 y 1.'};
+    const L2 = v.F*v.xF/v.xL2;
+    const Vtotal = v.F-L2;
+    if(Vtotal<0) return {error:'xL2 produce un vapor total negativo — revisa los datos.'};
+    const V1 = Vtotal/2, V2=V1;
+    const L1 = v.F-V1;
+    const mv = (V1*v.hfg + L1*v.Cp*v.TL - v.F*v.Cp*v.TF)/(v.hg-v.hf);
+    if(mv<0) return {error:'Con estos datos el vapor de calentamiento resulta negativo — revisa los valores de tabla ingresados.'};
+    const hfgCaldera = v.hg-v.hf;
+    const Q = mv*(4.18*(v.TsatCaldera-v.Tagua)+hfgCaldera);
+    const mdiesel = Q/(v.PC*v.eficiencia);
+    return {
+      outputs:[
+        {key:'L2',label:'L2 — producto final concentrado',value:fmt(L2),unit:'kg/h',raw:L2},
+        {key:'V1',label:'V1 — vapor eliminado (1er efecto)',value:fmt(V1),unit:'kg/h',raw:V1},
+        {key:'L1',label:'L1 — líquido intermedio (al 2.º efecto)',value:fmt(L1),unit:'kg/h',raw:L1},
+        {key:'mv',label:'Vapor de calentamiento',value:fmt(mv,2),unit:'kg/h',raw:mv},
+        {key:'mdiesel',label:'Consumo de diésel',value:fmt(mdiesel,2),unit:'kg/h',raw:mdiesel}
+      ],
+      diagram:{'d-out-1':fmt(mdiesel,1)+' kg/h diésel'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Balance de sólidos en todo el sistema (dos efectos)', f:`F·xF = L2·xL2\nL2 = ${v.F}×${v.xF}/${v.xL2} = ${fmt(L2)} kg/h`},
+        {t:'Balance global de masa, con V1=V2', f:`F = L2 + V1 + V2 = L2 + 2V1\nV1 = (F−L2)/2 = ${fmt(V1)} kg/h = V2`},
+        {t:'Balance de masa del primer efecto', f:`L1 = F − V1 = ${v.F} − ${fmt(V1)} = ${fmt(L1)} kg/h`},
+        {t:'Balance de energía del primer efecto (calentado por el vapor de la caldera)', f:`mv = [V1·hfg + L1·Cp·TL − F·Cp·TF] / (hg−hf) = ${fmt(mv,2)} kg/h`},
+        {t:'Balance de energía en la caldera y consumo de diésel', f:`Q = mv·[4,18·(Tsat_caldera−Tagua) + hfg_caldera] = ${fmt(Q,0)} kJ/h\nmdiesel = Q / (PC×eficiencia) = ${fmt(mdiesel,2)} kg/h`}
+      ],
+      note:'Corrección importante frente al desarrollo del libro: para el balance de energía de la caldera se debe usar la temperatura de saturación del vapor a SU PROPIA presión (Tsat a 1000 kPa = 179,88°C), no la temperatura de ebullición del evaporador (69,09°C). El libro usa por error esta última, lo que subestima el consumo real de diésel — vale la pena corregirlo en el manuscrito.'
+    };
+  }
+},
+{ id:'secadoConvectivoCombinado', num:'55', cat:'energia', chapter:9, sector:'Alimentaria', diagramKey:'secadoAire', name:'Secado convectivo (M+E)',
+  title:'Secado convectivo — balance simultáneo de materia y energía',
+  context:'Planta de granos — secador convectivo con aire caliente',
+  story:'Un secador convectivo procesa 500 kg/h de un grano húmedo con 35% de humedad (base húmeda), que debe salir con 12% de humedad (base húmeda). El aire de secado entra al secador a 70°C, tras haber sido calentado desde temperatura ambiente (20°C). Determine el agua removida, y el calor necesario para vaporizarla y para calentar el producto hasta la temperatura de secado.',
+  inputs:[
+    {key:'F', label:'F — grano húmedo alimentado', unit:'kg/h', dtag:'d-in-1', def:'500'},
+    {key:'Hi', label:'Hi — humedad inicial (base húmeda)', unit:'0–1', def:'0.35'},
+    {key:'Hf', label:'Hf — humedad final deseada (base húmeda)', unit:'0–1', def:'0.12'},
+    {key:'hvap', label:'Calor latente de vaporización del agua', unit:'kJ/kg', def:'2257'},
+    {key:'Tsecado', label:'Temperatura de secado', unit:'°C', def:'70'},
+    {key:'Tamb', label:'Temperatura ambiente', unit:'°C', def:'20'},
+    {key:'Cp', label:'Cp — calor específico del producto húmedo', unit:'kJ/kg·°C', def:'3.0'},
+  ],
+  hints:[
+    'Primero resuelve el balance de materia: el sólido seco no cambia entre la entrada y la salida, así que F·(1−Hi) = P·(1−Hf). Despeja P y luego el agua removida A = F−P.',
+    'El calor total tiene dos componentes: el que vaporiza el agua removida (A × calor latente) y el que calienta el producto desde la temperatura ambiente hasta la temperatura de secado.',
+    'Suma ambos calores para obtener el requerimiento energético total del secador — este es el balance simultáneo: un balance de materia y uno de energía resueltos juntos para el mismo sistema.'
+  ],
+  answerFields:[
+    {key:'A', label:'A — agua removida', unit:'kg/h'},
+    {key:'Qtotal', label:'Calor total requerido', unit:'kJ/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.Hi<0||v.Hi>1||v.Hf<0||v.Hf>1) return {error:'Hi y Hf deben estar entre 0 y 1.'};
+    if(v.Hf>=v.Hi) return {error:'Hf debe ser menor que Hi para que exista secado.'};
+    if(v.hvap<=0||v.Cp<=0) return {error:'El calor latente y el Cp deben ser mayores que cero.'};
+    if(v.Tsecado<=v.Tamb) return {error:'La temperatura de secado debe ser mayor que la ambiente.'};
+    const P = v.F*(1-v.Hi)/(1-v.Hf);
+    const A = v.F-P;
+    const Qvap = A*v.hvap;
+    const Qsens = v.F*v.Cp*(v.Tsecado-v.Tamb);
+    const Qtotal = Qvap+Qsens;
+    return {
+      outputs:[
+        {key:'A',label:'A — agua removida',value:fmt(A,2),unit:'kg/h',raw:A},
+        {key:'Qtotal',label:'Calor total requerido',value:fmt(Qtotal,0),unit:'kJ/h',raw:Qtotal}
+      ],
+      diagram:{'d-out-1':fmt(Qtotal,0)+' kJ/h'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Balance de materia (el sólido seco no cambia)', f:`F·(1−Hi) = P·(1−Hf)\nP = ${v.F}×(1−${v.Hi})/(1−${v.Hf}) = ${fmt(P,2)} kg/h\nA = F − P = ${fmt(A,2)} kg/h`},
+        {t:'Calor para vaporizar el agua removida', f:`Qvap = A × hvap = ${fmt(A,2)} × ${v.hvap} = ${fmt(Qvap,0)} kJ/h`},
+        {t:'Calor sensible para calentar el producto hasta la temperatura de secado', f:`Qsens = F·Cp·(Tsecado−Tambiente) = ${v.F}×${v.Cp}×(${v.Tsecado}−${v.Tamb}) = ${fmt(Qsens,0)} kJ/h`},
+        {t:'Calor total requerido (balance simultáneo M+E)', f:`Qtotal = Qvap + Qsens = ${fmt(Qvap,0)} + ${fmt(Qsens,0)} = ${fmt(Qtotal,0)} kJ/h`}
+      ],
+      note:'Modelo simplificado: no considera las pérdidas de calor del secador ni la energía que se lleva el aire húmedo de salida.'
+    };
+  }
+},
+{ id:'flashAdiabatico', num:'56', cat:'energia', chapter:9, sector:'No alimentaria', diagramKey:'flashDiag', name:'Destilación flash',
+  title:'Destilación flash (vaporización súbita adiabática)',
+  context:'Planta agroindustrial — recuperación de vapor flash',
+  story:'Una corriente líquida a 130°C y presión elevada se alimenta a un tanque flash, donde una caída súbita de presión permite que parte del líquido se vaporice instantáneamente (vaporización flash), enfriando el resto hasta la temperatura de saturación de la nueva presión, 100°C. Con un flujo de 2000 kg/h, calor específico de 4.2 kJ/kg·°C, y calor latente de vaporización de 2257 kJ/kg a la presión del tanque flash, determine cuánto líquido se vaporiza y cuánto permanece como líquido.',
+  inputs:[
+    {key:'F', label:'F — flujo de líquido alimentado', unit:'kg/h', dtag:'d-in-1', def:'2000'},
+    {key:'Cp', label:'Cp — calor específico del líquido', unit:'kJ/kg·°C', def:'4.2'},
+    {key:'T1', label:'T1 — temperatura de entrada', unit:'°C', def:'130'},
+    {key:'Tsat', label:'Tsat — temperatura de saturación a la nueva presión', unit:'°C', def:'100'},
+    {key:'hfg', label:'hfg — calor latente a la presión del flash', unit:'kJ/kg', def:'2257'},
+  ],
+  hints:[
+    'En una vaporización flash adiabática, no entra ni sale calor del sistema: el calor que "sobra" en el líquido al enfriarse de T1 a Tsat es exactamente el que se usa para vaporizar una parte de la corriente.',
+    'Plantea la igualdad: calor sensible liberado por el líquido al enfriarse (F·Cp·(T1−Tsat)) = calor latente absorbido por la fracción vaporizada (V·hfg).',
+    'Despeja V de esa igualdad, y obtén el líquido remanente L por diferencia con el balance total de masa (F = V + L).'
+  ],
+  answerFields:[
+    {key:'V', label:'V — vapor generado (flash)', unit:'kg/h'},
+    {key:'L', label:'L — líquido remanente', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.Cp<=0||v.hfg<=0) return {error:'Cp y hfg deben ser mayores que cero.'};
+    if(v.T1<=v.Tsat) return {error:'La temperatura de entrada debe ser mayor que la temperatura de saturación (para que haya vaporización flash).'};
+    const V = v.F*v.Cp*(v.T1-v.Tsat)/v.hfg;
+    if(V>v.F) return {error:'Con estos datos se vaporizaría más líquido del que entra — revisa los valores.'};
+    const L = v.F-V;
+    return {
+      outputs:[
+        {key:'V',label:'V — vapor generado (flash)',value:fmt(V,2),unit:'kg/h',raw:V},
+        {key:'L',label:'L — líquido remanente',value:fmt(L,2),unit:'kg/h',raw:L}
+      ],
+      diagram:{'d-out-1':fmt(V,2)+' kg/h'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Balance de energía adiabático (el calor sensible liberado vaporiza parte del líquido)', f:`F·Cp·(T1−Tsat) = V·hfg`},
+        {t:'Se despeja el vapor generado', f:`V = F·Cp·(T1−Tsat) / hfg = ${v.F}×${v.Cp}×(${v.T1}−${v.Tsat}) / ${v.hfg} = ${fmt(V,2)} kg/h`},
+        {t:'Balance total de masa', f:`L = F − V = ${v.F} − ${fmt(V,2)} = ${fmt(L,2)} kg/h`}
+      ],
+      note:'Modelo de un solo componente (vaporización flash simplificada); una destilación flash real de una mezcla requiere además el equilibrio líquido-vapor de sus componentes.'
+    };
+  }
+},
+{ id:'liofilizacion', num:'57', cat:'energia', chapter:9, sector:'Alimentaria', diagramKey:'liofilizacionDiag', name:'Liofilización',
+  title:'Liofilización — balance de sublimación',
+  context:'Planta de café liofilizado — cámara de liofilización',
+  story:'En una planta de café liofilizado se procesa un lote de 50 kg de extracto de café congelado, del cual el 85% en masa es hielo que debe sublimarse. La cámara de liofilización suministra calor mediante placas calefactoras, y el proceso debe completarse en 20 horas. Determine la masa de hielo a sublimar y la potencia calórica que deben entregar las placas, considerando un calor de sublimación del hielo de 2838 kJ/kg.',
+  inputs:[
+    {key:'F', label:'F — masa del lote congelado', unit:'kg', dtag:'d-in-1', def:'50'},
+    {key:'fraccionHielo', label:'Fracción de hielo a sublimar', unit:'0–1', def:'0.85'},
+    {key:'hsub', label:'Calor de sublimación del hielo', unit:'kJ/kg', def:'2838'},
+    {key:'tLiof', label:'Tiempo total del proceso', unit:'h', def:'20'},
+  ],
+  hints:[
+    'El balance de materia es directo: la masa de hielo a sublimar es la fracción de hielo multiplicada por la masa total del lote.',
+    'A diferencia de la evaporación (líquido a vapor), aquí el cambio de fase es de sólido a vapor directamente (sublimación) — el calor requerido usa el calor de sublimación, no el de vaporización.',
+    'Con el calor total necesario para sublimar toda el agua, divide entre el tiempo disponible del proceso para obtener la potencia calórica promedio que deben entregar las placas.'
+  ],
+  answerFields:[
+    {key:'mHielo', label:'Masa de hielo a sublimar', unit:'kg'},
+    {key:'Qplaca', label:'Calor promedio requerido de las placas', unit:'kJ/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.fraccionHielo<0||v.fraccionHielo>1) return {error:'La fracción de hielo debe estar entre 0 y 1.'};
+    if(v.hsub<=0) return {error:'El calor de sublimación debe ser mayor que cero.'};
+    if(v.tLiof<=0) return {error:'El tiempo del proceso debe ser mayor que cero.'};
+    const mHielo = v.F*v.fraccionHielo;
+    const Qtotal = mHielo*v.hsub;
+    const Qplaca = Qtotal/v.tLiof;
+    return {
+      outputs:[
+        {key:'mHielo',label:'Masa de hielo a sublimar',value:fmt(mHielo,2),unit:'kg',raw:mHielo},
+        {key:'Qplaca',label:'Calor promedio requerido de las placas',value:fmt(Qplaca,1),unit:'kJ/h',raw:Qplaca}
+      ],
+      diagram:{'d-out-1':fmt(mHielo,2)+' kg vapor'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Balance de materia (masa de hielo a sublimar)', f:`mHielo = F × fracción de hielo = ${v.F}×${v.fraccionHielo} = ${fmt(mHielo,2)} kg`},
+        {t:'Calor total requerido para la sublimación', f:`Qtotal = mHielo × hsub = ${fmt(mHielo,2)}×${v.hsub} = ${fmt(Qtotal,0)} kJ`},
+        {t:'Potencia calórica promedio de las placas', f:`Qplaca = Qtotal / tLiof = ${fmt(Qtotal,0)} / ${v.tLiof} = ${fmt(Qplaca,1)} kJ/h`}
+      ],
+      note:'Modelo simplificado con tasa de sublimación constante; en la práctica, la liofilización tiene una fase inicial más rápida que se ralentiza a medida que el frente de sublimación se aleja de la superficie.'
+    };
+  }
+},
+{ id:'fermentacionCombinada', num:'58', cat:'energia', chapter:9, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Fermentación (M+E combinado)',
+  title:'Fermentación alcohólica — balance simultáneo de materia y energía',
+  context:'Destilería de alcohol — balance combinado del fermentador',
+  story:'Resolvamos en un solo balance simultáneo lo que antes se calculó por separado: en el fermentador de la destilería (C6H12O6 → 2 C2H5OH + 2 CO2), se alimentan 1000 kg/h de glucosa con 90% de conversión. La reacción libera 73 kJ por mol de glucosa fermentada. Determine, en un solo balance, el etanol y CO2 producidos (materia) y el flujo de agua de enfriamiento necesario (energía) para mantener el fermentador a temperatura constante, con agua que entra a 20°C y sale a 30°C.',
+  inputs:[
+    {key:'F', label:'F — glucosa alimentada', unit:'kg/h', dtag:'d-in-1', def:'1000'},
+    {key:'X', label:'X — conversión de la glucosa', unit:'0–1', def:'0.90'},
+    {key:'dHrxn', label:'Calor de reacción (dato, por mol de glucosa)', unit:'kJ/mol', def:'73'},
+    {key:'Cw', label:'Cw — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'Twin', label:'Agua de enfriamiento — entrada', unit:'°C', def:'20'},
+    {key:'Twout', label:'Agua de enfriamiento — salida', unit:'°C', def:'30'},
+  ],
+  hints:[
+    'El balance de materia es igual al del capítulo de reacción: halla los moles de glucosa que reaccionan y aplica la estequiometría 1:2:2 para obtener etanol y CO2.',
+    'El balance de energía es igual al del capítulo de energía con reacción: el calor liberado es el producto de los moles reaccionados por el calor de reacción dado.',
+    'Ambos balances comparten el mismo dato de partida (moles de glucosa reaccionados) — resolverlos "simultáneamente" significa que un mismo cálculo alimenta tanto la respuesta de materia como la de energía.'
+  ],
+  answerFields:[
+    {key:'etanol', label:'Etanol producido', unit:'kg/h'},
+    {key:'co2', label:'CO2 producido', unit:'kg/h'},
+    {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.X<0||v.X>1) return {error:'La conversión debe estar entre 0 y 1.'};
+    if(v.Cw<=0) return {error:'Cw debe ser mayor que cero.'};
+    if(v.Twout<=v.Twin) return {error:'El agua de enfriamiento debe salir más caliente de lo que entra.'};
+    const reacciona=v.F*v.X, mol=reacciona/180*1000;
+    const etanol=mol*2*46/1000, co2=mol*2*44/1000;
+    const Q = mol*Math.abs(v.dHrxn);
+    const mw = Q/(v.Cw*(v.Twout-v.Twin));
+    return {
+      outputs:[
+        {key:'etanol',label:'Etanol producido',value:fmt(etanol),unit:'kg/h',raw:etanol},
+        {key:'co2',label:'CO2 producido',value:fmt(co2),unit:'kg/h',raw:co2},
+        {key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}
+      ],
+      diagram:{'d-out-1':fmt(Q,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Balance de materia — moles de glucosa reaccionados', f:`Reacciona = F·X = ${fmt(reacciona)} kg/h → mol = ${fmt(mol,1)} mol/h`},
+        {t:'Balance de materia — productos (estequiometría 1:2:2)', f:`Etanol = mol×2×46/1000 = ${fmt(etanol)} kg/h\nCO2 = mol×2×44/1000 = ${fmt(co2)} kg/h`},
+        {t:'Balance de energía — calor liberado por la misma cantidad de glucosa reaccionada', f:`Q = mol × |ΔHrxn| = ${fmt(mol,1)}×${v.dHrxn} = ${fmt(Q,0)} kJ/h`},
+        {t:'Balance de energía — agua de enfriamiento necesaria', f:`mw = Q / [Cw·(Twsal−Twent)] = ${fmt(mw,1)} kg/h`}
+      ],
+      note:'Este es el sentido de un "balance simultáneo": el mismo resultado del balance de materia (moles reaccionados) es el dato de entrada del balance de energía.'
     };
   }
 }
