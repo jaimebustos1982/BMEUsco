@@ -209,6 +209,18 @@
 
   .chart-box{margin-top:8px;}
 
+  /* ---------- PROTOTIPO: animaciones de equipo (evaporador / centrífuga) ---------- */
+  @keyframes bubbleRise{
+    0%{ transform:translateY(0); opacity:0; }
+    18%{ opacity:.75; }
+    88%{ opacity:.25; }
+    100%{ transform:translateY(-34px); opacity:0; }
+  }
+  .bubble{ fill:var(--ocre); animation:bubbleRise 2.4s ease-in infinite; }
+  @keyframes spinRotor{ from{ transform:rotate(0deg); } to{ transform:rotate(360deg); } }
+  .rotor{ transform-origin:0px 0px; animation:spinRotor 2.6s linear infinite; }
+  .particle{ fill:var(--vino); opacity:.55; }
+
   /* ---------- CUESTIONARIO DE ESQUEMA (capítulo 1) ---------- */
   .quiz-q{margin-bottom:18px;}
   .quiz-q .qtext{font-family:var(--font-display);font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:9px;}
@@ -374,7 +386,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-a · 75 fichas · subíndices químicos + sonido</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-b</p>
     </footer>
   </main>
 </div>
@@ -533,13 +545,24 @@ recycle: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
   <text x="60" y="178" class="d-label">R reciclo</text><text x="60" y="150" class="d-val computed" id="d-out-2">—</text>
 </svg>`,
 evaporator: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <defs><clipPath id="evapClip"><rect x="90" y="60" width="80" height="90"/></clipPath></defs>
   <rect x="80" y="50" width="100" height="110" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="84" y="45" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
   <path class="pipe" d="M10,120 L90,120" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,120 L90,120"/>
+  <circle class="particle" r="2.2" cx="0" cy="0"><animateMotion dur="1.6s" repeatCount="indefinite" path="M10,120 L90,120"/></circle>
   <path class="box-unit" d="M90,60 L170,60 L170,150 L90,150 Z"/>
+  <g clip-path="url(#evapClip)">
+    <circle class="bubble" r="3" cx="108" cy="145" style="animation-delay:0s"/>
+    <circle class="bubble" r="2.3" cx="128" cy="148" style="animation-delay:.6s"/>
+    <circle class="bubble" r="2.7" cx="145" cy="146" style="animation-delay:1.2s"/>
+    <circle class="bubble" r="2" cx="118" cy="147" style="animation-delay:1.8s"/>
+    <circle class="bubble" r="2.5" cx="155" cy="144" style="animation-delay:.3s"/>
+  </g>
   <text x="130" y="108" text-anchor="middle" class="unit-label">EVAPORADOR</text>
   <path class="pipe" d="M140,60 L140,20 L300,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M140,60 L140,20 L300,20"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.3s" repeatCount="indefinite" path="M140,60 L140,20 L300,20"/></circle>
   <path class="pipe" d="M120,150 L120,175 L300,175" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M120,150 L120,175 L300,175"/>
+  <circle class="particle" r="2.2" cx="0" cy="0"><animateMotion dur="1.8s" repeatCount="indefinite" path="M120,150 L120,175 L300,175"/></circle>
   <text x="14" y="110" class="d-label">F, xF</text><text x="14" y="135" class="d-val" id="d-in-1">—</text>
   <text x="205" y="14" class="d-label">V (vapor)</text><text x="205" y="35" class="d-val computed" id="d-out-1">—</text>
   <text x="180" y="168" class="d-label">P, xP</text><text x="180" y="189" class="d-val computed" id="d-out-2">—</text>
@@ -607,11 +630,22 @@ centrifuga: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <rect x="110" y="35" width="95" height="100" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
   <text x="114" y="30" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
   <path class="pipe" d="M10,85 L120,85" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,85 L120,85"/>
+  <circle class="particle" r="2.2" cx="0" cy="0"><animateMotion dur="1.5s" repeatCount="indefinite" path="M10,85 L120,85"/></circle>
   <path class="box-unit" d="M120,45 L195,45 L195,125 L120,125 Z"/>
-  <text x="157" y="80" text-anchor="middle" class="unit-label">CENTRÍ-</text>
-  <text x="157" y="94" text-anchor="middle" class="unit-label">FUGA</text>
+  <g transform="translate(157,68)">
+    <g class="rotor">
+      <line x1="-13" y1="0" x2="13" y2="0" stroke="var(--vino)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="0" y1="-13" x2="0" y2="13" stroke="var(--vino)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-9" y1="-9" x2="9" y2="9" stroke="var(--vino)" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>
+      <line x1="-9" y1="9" x2="9" y2="-9" stroke="var(--vino)" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>
+    </g>
+    <circle r="3" fill="var(--ocre)"/>
+  </g>
+  <text x="157" y="106" text-anchor="middle" class="unit-label" style="font-size:8.5px;">CENTRÍFUGA</text>
   <path class="pipe" d="M195,60 L300,60" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M195,60 L300,60"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.4s" repeatCount="indefinite" path="M195,60 L300,60"/></circle>
   <path class="pipe" d="M195,110 L300,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M195,110 L300,110"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.7s" repeatCount="indefinite" path="M195,110 L300,110"/></circle>
   <text x="14" y="76" class="d-label">L, xL</text><text x="14" y="100" class="d-val" id="d-in-1">—</text>
   <text x="205" y="48" class="d-label">M (crema)</text><text x="205" y="70" class="d-val computed" id="d-out-1">—</text>
   <text x="205" y="122" class="d-label">D (descremada)</text><text x="205" y="144" class="d-val computed" id="d-out-2">—</text>
