@@ -326,7 +326,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-06-a · 40 fichas · Cap. 5 completo</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-06-b · 48 fichas · Cap. 7 completo</p>
     </footer>
   </main>
 </div>
@@ -720,6 +720,23 @@ reactorBatchDecae: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <text x="160" y="114" text-anchor="middle" class="d-label">C(t), disminuye con el tiempo</text>
   <text x="14" y="80" class="d-label">C0 (valor inicial)</text><text x="14" y="102" class="d-val" id="d-in-1">—</text>
   <text x="230" y="80" class="d-label">t necesario (calculado)</text><text x="230" y="102" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+reactorTermico: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <rect x="90" y="40" width="110" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="94" y="35" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,80 L105,80" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,80 L105,80"/>
+  <rect x="105" y="60" width="80" height="80" rx="8" class="box-unit"/>
+  <text x="145" y="95" text-anchor="middle" class="unit-label" style="font-size:9px;">REACTOR</text>
+  <text x="145" y="110" text-anchor="middle" class="d-label">A → B + calor</text>
+  <path class="pipe" d="M185,80 L300,80" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M185,80 L300,80"/>
+  <path class="pipe" d="M145,60 L145,20" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M145,60 L145,20"/>
+  <path class="pipe" d="M20,160 L105,160" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M20,160 L105,160"/>
+  <path class="pipe" d="M185,140 L280,140" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M185,140 L280,140"/>
+  <text x="14" y="70" class="d-label">F (alimentación)</text><text x="14" y="94" class="d-val" id="d-in-1">—</text>
+  <text x="14" y="176" class="d-label">Agua fría entra</text>
+  <text x="190" y="130" class="d-label">Agua sale</text>
+  <text x="150" y="14" class="d-label">Q (calculado)</text><text x="150" y="34" class="d-val computed" id="d-out-1" style="font-size:9px;">—</text>
+  <text x="230" y="70" class="d-label">Producto</text>
 </svg>`
 };
 
@@ -2473,6 +2490,324 @@ const OPS = [
         {t:'Cinética de primer orden en el reactor batch', f:`dCa/dt = −k·Ca  →  Ca(t) = Ca0·e^(−kt)`},
         {t:'Se expresa en función de la conversión X = (Ca0−Ca)/Ca0', f:`1−X = Ca/Ca0 = e^(−kt)`},
         {t:'Se despeja el tiempo para la conversión objetivo', f:`t = −ln(1−X) / k = −ln(1−${v.Xtarget}) / ${v.k} = ${fmt(t,3)} min`}
+      ]
+    };
+  }
+},
+{ id:'fermentacionTermica', num:'41', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Calor de fermentación',
+  title:'Calor liberado en la fermentación alcohólica',
+  context:'Destilería de alcohol — control térmico del fermentador',
+  story:'En el mismo fermentador de la destilería (C6H12O6 → 2 C2H5OH + 2 CO2), la reacción libera calor: el calor de reacción dado para este ejercicio es de 73 kJ por mol de glucosa fermentada (proceso exotérmico). Se alimentan 1000 kg/h de glucosa con 90% de conversión. Para mantener el fermentador a temperatura constante, ese calor se remueve con agua de enfriamiento que entra a 20°C y sale a 30°C. Determine el calor liberado y el flujo de agua de enfriamiento necesario.',
+  inputs:[
+    {key:'F', label:'F — glucosa alimentada', unit:'kg/h', dtag:'d-in-1', def:'1000'},
+    {key:'X', label:'X — conversión de la glucosa', unit:'0–1', def:'0.90'},
+    {key:'dHrxn', label:'Calor de reacción (dato, por mol de glucosa)', unit:'kJ/mol', def:'73'},
+    {key:'Cw', label:'Cw — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'Twin', label:'Agua de enfriamiento — entrada', unit:'°C', def:'20'},
+    {key:'Twout', label:'Agua de enfriamiento — salida', unit:'°C', def:'30'},
+  ],
+  hints:[
+    'Primero necesitas los moles de glucosa que reaccionan — es el mismo cálculo estequiométrico que ya hiciste en el capítulo de reacción (masa que reacciona entre la masa molar de la glucosa, 180 g/mol).',
+    'El calor total liberado es el producto de los moles de glucosa reaccionados por el calor de reacción dado (por mol). Cuidado con las unidades: si el calor de reacción está en kJ/mol, tus moles también deben estar en mol, no en kmol.',
+    'Ese calor debe ser absorbido por el agua de enfriamiento: Q = mw·Cw·ΔTw. Despeja el flujo de agua necesario.'
+  ],
+  answerFields:[
+    {key:'Q', label:'Calor liberado por la reacción', unit:'kJ/h'},
+    {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.X<0||v.X>1) return {error:'La conversión debe estar entre 0 y 1.'};
+    if(v.Cw<=0) return {error:'Cw debe ser mayor que cero.'};
+    if(v.Twout<=v.Twin) return {error:'El agua de enfriamiento debe salir más caliente de lo que entra.'};
+    const reacciona=v.F*v.X, molGlu=reacciona/180*1000;
+    const Q = molGlu*Math.abs(v.dHrxn);
+    const mw = Q/(v.Cw*(v.Twout-v.Twin));
+    return {
+      outputs:[
+        {key:'Q',label:'Calor liberado por la reacción',value:fmt(Q,0),unit:'kJ/h',raw:Q},
+        {key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}
+      ],
+      diagram:{'d-out-1':fmt(Q,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Moles de glucosa que reaccionan', f:`Reacciona = F·X = ${v.F}×${v.X} = ${fmt(reacciona)} kg/h\nmol = ${fmt(reacciona)}/180×1000 = ${fmt(molGlu,1)} mol/h`},
+        {t:'Calor liberado por la reacción', f:`Q = mol × |ΔHrxn| = ${fmt(molGlu,1)} × ${v.dHrxn} = ${fmt(Q,0)} kJ/h`},
+        {t:'Flujo de agua de enfriamiento necesario', f:`mw = Q / [Cw·(Twsal−Twent)] = ${fmt(Q,0)} / [${v.Cw}×(${v.Twout}−${v.Twin})] = ${fmt(mw,1)} kg/h`}
+      ],
+      note:'El calor de reacción es un dato de tabla o de literatura para cada reacción específica — aquí se toma como dato del ejercicio.'
+    };
+  }
+},
+{ id:'vinagreTermico', num:'42', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Calor de oxidación (vinagre)',
+  title:'Calor liberado en la oxidación de etanol a ácido acético',
+  context:'Planta de vinagre — control térmico del fermentador',
+  story:'La oxidación de etanol a ácido acético (C2H5OH + O2 → CH3COOH + H2O) es una reacción fuertemente exotérmica. Para este ejercicio, el calor de reacción dado es de 455 kJ por mol de etanol oxidado. Si se oxidan 100 kg/h de etanol, y el calor se remueve con agua que entra a 20°C y sale a 30°C, determine el calor liberado y el flujo de agua de enfriamiento necesario.',
+  inputs:[
+    {key:'etanolReacciona', label:'Etanol oxidado', unit:'kg/h', dtag:'d-in-1', def:'100'},
+    {key:'dHrxn', label:'Calor de reacción (dato, por mol de etanol)', unit:'kJ/mol', def:'455'},
+    {key:'Cw', label:'Cw — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'Twin', label:'Agua de enfriamiento — entrada', unit:'°C', def:'20'},
+    {key:'Twout', label:'Agua de enfriamiento — salida', unit:'°C', def:'30'},
+  ],
+  hints:[
+    'Convierte el etanol oxidado a moles usando su masa molar (46 g/mol).',
+    'El calor total liberado es el producto de los moles de etanol oxidados por el calor de reacción dado.',
+    'Plantea el balance de energía del agua de enfriamiento (Q = mw·Cw·ΔTw) para hallar el flujo necesario.'
+  ],
+  answerFields:[
+    {key:'Q', label:'Calor liberado', unit:'kJ/h'},
+    {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.etanolReacciona<0) return {error:'El etanol oxidado no puede ser negativo.'};
+    if(v.Cw<=0) return {error:'Cw debe ser mayor que cero.'};
+    if(v.Twout<=v.Twin) return {error:'El agua de enfriamiento debe salir más caliente de lo que entra.'};
+    const mol = v.etanolReacciona/46*1000;
+    const Q = mol*Math.abs(v.dHrxn);
+    const mw = Q/(v.Cw*(v.Twout-v.Twin));
+    return {
+      outputs:[
+        {key:'Q',label:'Calor liberado',value:fmt(Q,0),unit:'kJ/h',raw:Q},
+        {key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}
+      ],
+      diagram:{'d-out-1':fmt(Q,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Moles de etanol oxidados', f:`mol = ${v.etanolReacciona}/46×1000 = ${fmt(mol,1)} mol/h`},
+        {t:'Calor liberado', f:`Q = mol × |ΔHrxn| = ${fmt(mol,1)} × ${v.dHrxn} = ${fmt(Q,0)} kJ/h`},
+        {t:'Flujo de agua de enfriamiento', f:`mw = Q / [Cw·(Twsal−Twent)] = ${fmt(mw,1)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'reactorAdiabatico', num:'43', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Reactor sin control térmico',
+  title:'Aumento de temperatura en un reactor adiabático (sin enfriamiento)',
+  context:'Destilería — ¿qué pasa si falla el sistema de enfriamiento?',
+  story:'En el mismo fermentador de la destilería, imagina que el sistema de enfriamiento falla y el reactor queda operando de forma adiabática (sin remover calor). El calor liberado por la reacción es de 365 000 kJ/h. El caldo de fermentación circulante tiene una masa de 5000 kg y un calor específico de 3.8 kJ/(kg·°C), y entra al fermentador a 25°C. Determine cuánto sube la temperatura del caldo y su temperatura final, si todo el calor se queda en el sistema.',
+  inputs:[
+    {key:'Q', label:'Q — calor liberado por la reacción', unit:'kJ/h', dtag:'d-in-1', def:'365000'},
+    {key:'mTotal', label:'Masa del caldo de fermentación', unit:'kg', def:'5000'},
+    {key:'Cp', label:'Cp — calor específico del caldo', unit:'kJ/kg·°C', def:'3.8'},
+    {key:'Tfeed', label:'Temperatura de entrada del caldo', unit:'°C', def:'25'},
+  ],
+  hints:[
+    'Sin sistema de enfriamiento, todo el calor de la reacción se queda dentro del sistema y se usa en calentar el caldo — es un balance de energía sin corriente de salida de calor.',
+    'Plantea Q = m·Cp·ΔT, donde ΔT es el aumento de temperatura que sufre el caldo por absorber ese calor.',
+    'Suma ese aumento a la temperatura de entrada para obtener la temperatura final del reactor.'
+  ],
+  answerFields:[
+    {key:'dT', label:'Aumento de temperatura', unit:'°C'},
+    {key:'Tfinal', label:'Temperatura final del caldo', unit:'°C'},
+  ],
+  calc(v){
+    if(v.mTotal<=0) return {error:'La masa del caldo debe ser mayor que cero.'};
+    if(v.Cp<=0) return {error:'Cp debe ser mayor que cero.'};
+    const dT = v.Q/(v.mTotal*v.Cp);
+    const Tfinal = v.Tfeed+dT;
+    return {
+      outputs:[
+        {key:'dT',label:'Aumento de temperatura',value:fmt(dT,2),unit:'°C',raw:dT},
+        {key:'Tfinal',label:'Temperatura final del caldo',value:fmt(Tfinal,2),unit:'°C',raw:Tfinal}
+      ],
+      diagram:{'d-out-1':fmt(Tfinal,1)+' °C final'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Balance de energía sin remoción de calor (adiabático)', f:`Q = mTotal·Cp·ΔT`},
+        {t:'Se despeja el aumento de temperatura', f:`ΔT = Q / (mTotal·Cp) = ${v.Q} / (${v.mTotal}×${v.Cp}) = ${fmt(dT,2)} °C`},
+        {t:'Temperatura final', f:`Tfinal = Tentrada + ΔT = ${v.Tfeed} + ${fmt(dT,2)} = ${fmt(Tfinal,2)} °C`}
+      ],
+      note:'Este resultado ilustra por qué se necesita un sistema de enfriamiento: sin control térmico, la temperatura del reactor puede subir hasta afectar los microorganismos o la calidad del producto.'
+    };
+  }
+},
+{ id:'biodigestorTermico', num:'44', cat:'energia', chapter:7, sector:'No alimentaria', diagramKey:'reactorTermico', name:'Balance térmico del biodigestor',
+  title:'Calentamiento de un biodigestor para mantener su temperatura',
+  context:'Planta de biogás — control térmico del digestor anaerobio',
+  story:'Un biodigestor anaerobio debe mantenerse a 35°C (rango mesofílico) para que los microorganismos trabajen eficientemente. En época fría, la temperatura ambiente baja a 15°C, y el digestor pierde calor hacia el ambiente a través de sus paredes, con un coeficiente global de pérdidas de 500 kJ/(h·°C). La propia digestión libera algo de calor metabólico, estimado en 2000 kJ/h. Determine el calor que debe suministrar el sistema de calentamiento para mantener la temperatura de operación.',
+  inputs:[
+    {key:'UA', label:'UA — coeficiente global de pérdidas', unit:'kJ/h·°C', dtag:'d-in-1', def:'500'},
+    {key:'Td', label:'Td — temperatura de operación del digestor', unit:'°C', def:'35'},
+    {key:'Ta', label:'Ta — temperatura ambiente', unit:'°C', def:'15'},
+    {key:'Qgen', label:'Calor metabólico generado por la digestión', unit:'kJ/h', def:'2000'},
+  ],
+  hints:[
+    'Las pérdidas de calor hacia el ambiente se calculan como Qperdidas = UA·(Td−Ta) — mientras mayor la diferencia de temperatura, más rápido se pierde calor.',
+    'Parte de esas pérdidas ya se compensan solas con el calor que libera la propia digestión (calor metabólico). Compara ambos calores.',
+    'El calentamiento externo necesario es la diferencia entre lo que se pierde y lo que ya se genera internamente. Si el calor generado superara a las pérdidas, no haría falta calentar.'
+  ],
+  answerFields:[
+    {key:'Qperd', label:'Calor perdido hacia el ambiente', unit:'kJ/h'},
+    {key:'Qneto', label:'Calentamiento externo necesario', unit:'kJ/h'},
+  ],
+  calc(v){
+    if(v.UA<0) return {error:'UA no puede ser negativo.'};
+    const Qperd = v.UA*(v.Td-v.Ta);
+    const Qneto = Qperd-v.Qgen;
+    return {
+      outputs:[
+        {key:'Qperd',label:'Calor perdido hacia el ambiente',value:fmt(Qperd,0),unit:'kJ/h',raw:Qperd},
+        {key:'Qneto',label:'Calentamiento externo necesario',value:fmt(Qneto,0),unit:'kJ/h',raw:Qneto}
+      ],
+      diagram:{'d-out-1':fmt(Qneto,0)+' kJ/h'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Pérdidas de calor hacia el ambiente', f:`Qperdidas = UA·(Td−Ta) = ${v.UA}×(${v.Td}−${v.Ta}) = ${fmt(Qperd,0)} kJ/h`},
+        {t:'Calentamiento externo necesario (descontando el calor metabólico generado)', f:`Qneto = Qperdidas − Qgenerado = ${fmt(Qperd,0)} − ${v.Qgen} = ${fmt(Qneto,0)} kJ/h`}
+      ],
+      note: (Qneto<0) ? 'El calor metabólico generado supera las pérdidas: no se necesita calentamiento externo (el excedente incluso debería disiparse).' : 'Este calentamiento suele suministrarse recirculando parte del biogás producido en un quemador o con un intercambiador de agua caliente.'
+    };
+  }
+},
+{ id:'saponificacionTermica', num:'45', cat:'energia', chapter:7, sector:'No alimentaria', diagramKey:'reactorTermico', name:'Calor de saponificación',
+  title:'Calor liberado en la reacción de saponificación',
+  context:'Planta de jabones — control térmico del reactor',
+  story:'En la planta de jabones (A + 3B → Glicerina + 3 Jabón), la reacción de saponificación es exotérmica. El calor de reacción dado es de 850 kJ por kmol de aceite (A) reaccionado. Si reaccionan 8 kmol/h de aceite, y el calor se remueve con agua que entra a 18°C y sale a 28°C, determine el calor liberado y el flujo de agua de enfriamiento necesario.',
+  inputs:[
+    {key:'aceiteReacciona', label:'Aceite (A) que reacciona', unit:'kmol/h', dtag:'d-in-1', def:'8'},
+    {key:'dHrxn', label:'Calor de reacción (dato, por kmol de aceite)', unit:'kJ/kmol', def:'850'},
+    {key:'Cw', label:'Cw — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'Twin', label:'Agua de enfriamiento — entrada', unit:'°C', def:'18'},
+    {key:'Twout', label:'Agua de enfriamiento — salida', unit:'°C', def:'28'},
+  ],
+  hints:[
+    'Aquí el calor de reacción ya está dado por kmol de aceite, así que no necesitas convertir unidades de masa a moles — solo multiplicar directamente.',
+    'El calor total liberado es el producto del aceite reaccionado (en kmol/h) por el calor de reacción dado (por kmol).',
+    'Plantea el balance de energía del agua de enfriamiento para despejar el flujo necesario.'
+  ],
+  answerFields:[
+    {key:'Q', label:'Calor liberado', unit:'kJ/h'},
+    {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.aceiteReacciona<0) return {error:'El aceite reaccionado no puede ser negativo.'};
+    if(v.Cw<=0) return {error:'Cw debe ser mayor que cero.'};
+    if(v.Twout<=v.Twin) return {error:'El agua de enfriamiento debe salir más caliente de lo que entra.'};
+    const Q = v.aceiteReacciona*Math.abs(v.dHrxn);
+    const mw = Q/(v.Cw*(v.Twout-v.Twin));
+    return {
+      outputs:[
+        {key:'Q',label:'Calor liberado',value:fmt(Q,0),unit:'kJ/h',raw:Q},
+        {key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}
+      ],
+      diagram:{'d-out-1':fmt(Q,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Calor liberado por la reacción', f:`Q = aceite reaccionado × |ΔHrxn| = ${v.aceiteReacciona} × ${v.dHrxn} = ${fmt(Q,0)} kJ/h`},
+        {t:'Flujo de agua de enfriamiento necesario', f:`mw = Q / [Cw·(Twsal−Twent)] = ${fmt(Q,0)} / [${v.Cw}×(${v.Twout}−${v.Twin})] = ${fmt(mw,1)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'hidrolisisEndotermica', num:'46', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Reacción endotérmica',
+  title:'Calor a suministrar en una reacción endotérmica',
+  context:'Planta de jarabes — hidrólisis con requerimiento de calor',
+  story:'En un proceso de hidrólisis de almidón, se asume para este ejercicio que la reacción es ligeramente endotérmica (requiere calor), con un valor dado de 15 kJ por mol de almidón hidrolizado. Si reaccionan 250 kg/h de almidón (masa molar de la unidad estructural: 162 g/mol), determine el calor que debe suministrarse al reactor y el vapor de calentamiento necesario, si se usa vapor con un calor latente disponible de 2200 kJ/kg.',
+  inputs:[
+    {key:'almidonReacciona', label:'Almidón que reacciona', unit:'kg/h', dtag:'d-in-1', def:'250'},
+    {key:'dHrxn', label:'Calor de reacción (dato, por mol)', unit:'kJ/mol', def:'15'},
+    {key:'hfg', label:'Calor latente del vapor disponible', unit:'kJ/kg', def:'2200'},
+  ],
+  hints:[
+    'Convierte el almidón reaccionado a moles, usando la masa molar de la unidad estructural (162 g/mol).',
+    'Como la reacción es endotérmica, el calor debe suministrarse al sistema (a diferencia de los ejercicios anteriores, donde se removía). El cálculo del calor total es igual: moles reaccionados × calor de reacción.',
+    'El vapor de calentamiento entrega su calor latente al condensarse. Divide el calor total requerido entre el calor latente disponible por kg de vapor.'
+  ],
+  answerFields:[
+    {key:'Q', label:'Calor a suministrar', unit:'kJ/h'},
+    {key:'mv', label:'Vapor de calentamiento necesario', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.almidonReacciona<0) return {error:'El almidón reaccionado no puede ser negativo.'};
+    if(v.hfg<=0) return {error:'El calor latente debe ser mayor que cero.'};
+    const mol = v.almidonReacciona/162*1000;
+    const Q = mol*Math.abs(v.dHrxn);
+    const mv = Q/v.hfg;
+    return {
+      outputs:[
+        {key:'Q',label:'Calor a suministrar',value:fmt(Q,0),unit:'kJ/h',raw:Q},
+        {key:'mv',label:'Vapor de calentamiento necesario',value:fmt(mv,2),unit:'kg/h',raw:mv}
+      ],
+      diagram:{'d-out-1':fmt(Q,0)+' kJ/h'}, flows:['fo1','fo2','fo3'],
+      steps:[
+        {t:'Moles de almidón que reaccionan', f:`mol = ${v.almidonReacciona}/162×1000 = ${fmt(mol,1)} mol/h`},
+        {t:'Calor requerido por la reacción endotérmica', f:`Q = mol × ΔHrxn = ${fmt(mol,1)} × ${v.dHrxn} = ${fmt(Q,0)} kJ/h`},
+        {t:'Vapor de calentamiento necesario', f:`mv = Q / hfg = ${fmt(Q,0)} / ${v.hfg} = ${fmt(mv,2)} kg/h`}
+      ],
+      note:'A diferencia de una reacción exotérmica, aquí el calor debe entregarse al reactor, no removerse.'
+    };
+  }
+},
+{ id:'enfriamientoReactor', num:'47', cat:'energia', chapter:7, sector:'No alimentaria', diagramKey:'reactorTermico', name:'Diseño de enfriamiento',
+  title:'Diseño del sistema de enfriamiento de un reactor exotérmico',
+  context:'Planta agroindustrial — dimensionamiento del sistema de enfriamiento',
+  story:'Un reactor con una reacción exotérmica genera 500 000 kJ/h de calor que debe removerse para mantener la temperatura de operación constante. Se dispone de agua de enfriamiento que puede entrar a 15°C y no debe salir a más de 30°C, por restricciones del sistema de recirculación. Determine el flujo de agua de enfriamiento necesario.',
+  inputs:[
+    {key:'Qgen', label:'Qgen — calor generado por la reacción', unit:'kJ/h', dtag:'d-in-1', def:'500000'},
+    {key:'Cw', label:'Cw — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'Twin', label:'Agua de enfriamiento — entrada', unit:'°C', def:'15'},
+    {key:'Twout', label:'Agua de enfriamiento — salida máxima', unit:'°C', def:'30'},
+  ],
+  hints:[
+    'Este es un balance de energía directo entre el calor que se debe remover y el agua de enfriamiento disponible: Q = mw·Cw·ΔTw.',
+    'Usa la máxima diferencia de temperatura permitida (entrada a salida) para minimizar el flujo de agua necesario — a mayor ΔT permitido, menos agua se necesita para remover el mismo calor.',
+    'Despeja el flujo de agua directamente de la ecuación del balance de energía.'
+  ],
+  answerFields:[
+    {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.Qgen<0) return {error:'El calor generado no puede ser negativo.'};
+    if(v.Cw<=0) return {error:'Cw debe ser mayor que cero.'};
+    if(v.Twout<=v.Twin) return {error:'La temperatura de salida debe ser mayor que la de entrada.'};
+    const mw = v.Qgen/(v.Cw*(v.Twout-v.Twin));
+    return {
+      outputs:[{key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}],
+      diagram:{'d-out-1':fmt(v.Qgen,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Balance de energía del agua de enfriamiento', f:`Qgen = mw·Cw·(Twsal−Twent)`},
+        {t:'Se despeja el flujo de agua', f:`mw = Qgen / [Cw·(Twsal−Twent)] = ${v.Qgen} / [${v.Cw}×(${v.Twout}−${v.Twin})] = ${fmt(mw,1)} kg/h`}
+      ]
+    };
+  }
+},
+{ id:'balanceCombinadoReactor', num:'48', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Balance combinado del reactor',
+  title:'Balance de energía combinado: calentamiento de la alimentación + reacción',
+  context:'Destilería — fermentador con alimentación fría y control de temperatura',
+  story:'Al fermentador de una destilería entran 5000 kg/h de mosto a 15°C, que debe calentarse hasta la temperatura de operación de 32°C (Cp=3.8 kJ/kg·°C) antes de que la fermentación alcance su régimen normal. La reacción libera 365 000 kJ/h. Parte de ese calor se usa para calentar el mosto de entrada hasta la temperatura de operación, y el resto debe removerse con agua de enfriamiento (entra a 20°C, sale a 30°C). Determine el calor removido con agua y el flujo de agua necesario.',
+  inputs:[
+    {key:'Qrx', label:'Qrx — calor liberado por la reacción', unit:'kJ/h', dtag:'d-in-1', def:'365000'},
+    {key:'F', label:'F — flujo de mosto alimentado', unit:'kg/h', def:'5000'},
+    {key:'Cp', label:'Cp — calor específico del mosto', unit:'kJ/kg·°C', def:'3.8'},
+    {key:'Tfeed', label:'Temperatura de entrada del mosto', unit:'°C', def:'15'},
+    {key:'Tset', label:'Temperatura de operación del fermentador', unit:'°C', def:'32'},
+    {key:'Cw', label:'Cw — calor específico del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'Twin', label:'Agua de enfriamiento — entrada', unit:'°C', def:'20'},
+    {key:'Twout', label:'Agua de enfriamiento — salida', unit:'°C', def:'30'},
+  ],
+  hints:[
+    'Antes de pensar en el agua de enfriamiento, calcula cuánto calor se necesita para calentar el mosto de entrada desde su temperatura inicial hasta la temperatura de operación del fermentador — ese calor lo aporta la propia reacción.',
+    'El calor que debe removerse con agua es el calor total generado por la reacción, menos el que ya se "gastó" en calentar el mosto de entrada.',
+    'Con ese calor neto a remover, plantea el balance de energía del agua de enfriamiento para hallar su flujo.'
+  ],
+  answerFields:[
+    {key:'Qremover', label:'Calor a remover con agua', unit:'kJ/h'},
+    {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
+  ],
+  calc(v){
+    if(v.F<0) return {error:'F no puede ser negativo.'};
+    if(v.Cp<=0||v.Cw<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    if(v.Twout<=v.Twin) return {error:'El agua de enfriamiento debe salir más caliente de lo que entra.'};
+    if(v.Tset<=v.Tfeed) return {error:'La temperatura de operación debe ser mayor que la de entrada del mosto.'};
+    const Qabsorbido = v.F*v.Cp*(v.Tset-v.Tfeed);
+    const Qremover = v.Qrx-Qabsorbido;
+    if(Qremover<0) return {error:'El calor de reacción no alcanza siquiera para calentar el mosto hasta la temperatura de operación — revisa los datos.'};
+    const mw = Qremover/(v.Cw*(v.Twout-v.Twin));
+    return {
+      outputs:[
+        {key:'Qremover',label:'Calor a remover con agua',value:fmt(Qremover,0),unit:'kJ/h',raw:Qremover},
+        {key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}
+      ],
+      diagram:{'d-out-1':fmt(Qremover,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      steps:[
+        {t:'Calor usado en calentar el mosto de entrada hasta la temperatura de operación', f:`Qabsorbido = F·Cp·(Tset−Tfeed) = ${v.F}×${v.Cp}×(${v.Tset}−${v.Tfeed}) = ${fmt(Qabsorbido,0)} kJ/h`},
+        {t:'Calor neto a remover con agua de enfriamiento', f:`Qremover = Qrx − Qabsorbido = ${v.Qrx} − ${fmt(Qabsorbido,0)} = ${fmt(Qremover,0)} kJ/h`},
+        {t:'Flujo de agua de enfriamiento necesario', f:`mw = Qremover / [Cw·(Twsal−Twent)] = ${fmt(mw,1)} kg/h`}
       ]
     };
   }
