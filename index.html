@@ -64,6 +64,25 @@
   .docente-line b{color:var(--ink);font-weight:600;}
   .app-badge{ display:inline-flex;align-items:center;gap:6px;margin-top:9px; font-family:var(--font-mono);font-size:10.5px;letter-spacing:.06em;color:var(--vino); background:var(--vino-soft); border:1px solid var(--vino); border-radius:20px; padding:3px 10px; }
   .app-badge b{font-weight:700;}
+  .sound-toggle{
+    margin-left:8px; background:var(--card); border:1px solid var(--line); border-radius:20px;
+    width:30px;height:30px; font-size:14px; cursor:pointer; vertical-align:middle;
+    display:inline-flex; align-items:center; justify-content:center; padding:0;
+  }
+  .sound-toggle.muted{opacity:.45;}
+
+  @keyframes glowCorrect{
+    0%{ box-shadow:0 0 0 0 rgba(75,122,82,0.55); }
+    60%{ box-shadow:0 0 0 10px rgba(75,122,82,0); }
+    100%{ box-shadow:0 0 0 0 rgba(75,122,82,0); }
+  }
+  @keyframes glowError{
+    0%{ box-shadow:0 0 0 0 rgba(166,51,43,0.5); }
+    60%{ box-shadow:0 0 0 8px rgba(166,51,43,0); }
+    100%{ box-shadow:0 0 0 0 rgba(166,51,43,0); }
+  }
+  .flash-correct{ animation:glowCorrect 0.85s ease-out 1; }
+  .flash-error{ animation:glowError 0.85s ease-out 1; }
 
   .userbar{ display:flex;justify-content:space-between;align-items:center; padding:9px 0; font-size:11.5px; color:var(--ink-dim); }
   .userbar b{color:var(--ink);}
@@ -289,6 +308,7 @@
       <h1 class="course-title">Balance de Materia y Energía</h1>
       <div class="docente-line">Docente: <b>D. Sc. Jaime Daniel Bustos Vanegas</b></div>
       <div class="app-badge"><b>BMEUsco</b> · Operaciones unitarias en procesos agroindustriales</div>
+      <button class="sound-toggle" id="soundToggle" title="Sonido">🔊</button>
     </div>
     <div class="userbar" id="userbar"></div>
   </div>
@@ -354,7 +374,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-07-b · 75 fichas · Cap. 1 completo (12 esquemas)</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-a · 75 fichas · subíndices químicos + sonido</p>
     </footer>
   </main>
 </div>
@@ -378,7 +398,79 @@ function fmt(n, d=3){
 function num(v){ const n=parseFloat(v); return isNaN(n)?null:n; }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+/* ============================= SONIDO ============================= */
+let audioCtx = null;
+let soundEnabled = true;
+try{ const saved = localStorage.getItem('sonido-activado'); if(saved!==null) soundEnabled = saved==='1'; }catch(e){}
+
+function getAudioCtx(){
+  if(!audioCtx){
+    try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ return null; }
+  }
+  if(audioCtx && audioCtx.state==='suspended'){ audioCtx.resume().catch(()=>{}); }
+  return audioCtx;
+}
+function playTone(freq, duration, type, volume, delay){
+  if(!soundEnabled) return;
+  try{
+    const ctx = getAudioCtx();
+    if(!ctx) return;
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type||'sine';
+    osc.frequency.value = freq;
+    const t0 = ctx.currentTime + (delay||0);
+    gain.gain.setValueAtTime(volume||0.12, t0);
+    gain.gain.exponentialRampToValueAtTime(0.0008, t0 + duration);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(t0); osc.stop(t0 + duration + 0.02);
+  }catch(e){}
+}
+function soundStartup(){
+  playTone(523.25, 0.12, 'sine', 0.11, 0);
+  playTone(659.25, 0.12, 'sine', 0.11, 0.1);
+  playTone(783.99, 0.2, 'sine', 0.13, 0.2);
+}
+function soundKey(){ playTone(1500, 0.02, 'square', 0.015, 0); }
+function soundHint(){ playTone(392, 0.09, 'triangle', 0.09, 0); }
+function soundCorrect(){
+  playTone(659.25, 0.09, 'sine', 0.12, 0);
+  playTone(987.77, 0.16, 'sine', 0.14, 0.08);
+}
+function soundError(){
+  playTone(233, 0.16, 'sine', 0.11, 0);
+  playTone(185, 0.22, 'sine', 0.1, 0.1);
+}
+function soundPartial(){
+  playTone(440, 0.09, 'sine', 0.1, 0);
+  playTone(523.25, 0.12, 'sine', 0.1, 0.08);
+}
+
+function renderSoundToggle(){
+  const btn = document.getElementById('soundToggle');
+  if(!btn) return;
+  btn.textContent = soundEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !soundEnabled);
+}
+document.getElementById('soundToggle').addEventListener('click', ()=>{
+  soundEnabled = !soundEnabled;
+  try{ localStorage.setItem('sonido-activado', soundEnabled?'1':'0'); }catch(e){}
+  renderSoundToggle();
+  if(soundEnabled) soundHint();
+});
+renderSoundToggle();
+
+let startupPlayed = false;
+function tryStartupSound(){
+  if(startupPlayed) return;
+  startupPlayed = true;
+  soundStartup();
+}
+document.addEventListener('click', tryStartupSound, {once:true});
+document.addEventListener('touchstart', tryStartupSound, {once:true});
+
 function buildLineChart(points, series, opts){
+
   opts = opts || {};
   const W=300,H=175,padL=42,padB=24,padT=12,padR=12;
   const plotW=W-padL-padR, plotH=H-padT-padB;
@@ -655,11 +747,11 @@ fermentadorVinagre: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
   <path class="pipe" d="M10,135 L100,135" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,135 L100,135"/>
   <rect x="100" y="55" width="110" height="90" rx="8" class="box-unit"/>
   <text x="155" y="95" text-anchor="middle" class="unit-label">FERMENTADOR</text>
-  <text x="155" y="112" text-anchor="middle" class="d-label" style="font-size:8px;">C2H5OH+O2→CH3COOH+H2O</text>
+  <text x="155" y="112" text-anchor="middle" class="d-label" style="font-size:8px;">C₂H₅OH+O₂→CH₃COOH+H₂O</text>
   <path class="pipe" d="M210,75 L300,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M210,75 L300,75"/>
   <path class="pipe" d="M210,125 L300,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M210,125 L300,125"/>
   <text x="14" y="50" class="d-label">Líquido: etanol+agua</text><text x="14" y="75" class="d-val" id="d-in-1">—</text>
-  <text x="14" y="150" class="d-label">Aire: O2+N2</text><text x="14" y="128" class="d-val" id="d-in-2">—</text>
+  <text x="14" y="150" class="d-label">Aire: O₂+N₂</text><text x="14" y="128" class="d-val" id="d-in-2">—</text>
   <text x="215" y="65" class="d-label">Líquido: ácido+agua</text><text x="215" y="88" class="d-val computed" id="d-out-1">—</text>
   <text x="215" y="140" class="d-label">Gas de salida</text><text x="215" y="160" class="d-val computed" id="d-out-2">—</text>
 </svg>`,
@@ -1721,19 +1813,19 @@ const OPS = [
 { id:'airePrelim', num:'21', cat:'materia', chapter:4, sector:'Alimentaria', name:'Composición del aire', diagramKey:'aireDiag',
   title:'Cálculo preliminar: masa molar y composición del aire',
   context:'Planta de vinagre — cálculo preliminar del libro del curso',
-  story:'Antes de resolver un balance con reacción química que usa aire como reactivo (como la oxidación de etanol a ácido acético), conviene calcular la masa molar del aire y su composición másica a partir de su composición molar. El aire seco típico tiene 21% molar de O2 y 79% molar de N2. Determine la masa molar del aire y el porcentaje másico de cada componente.',
+  story:'Antes de resolver un balance con reacción química que usa aire como reactivo (como la oxidación de etanol a ácido acético), conviene calcular la masa molar del aire y su composición másica a partir de su composición molar. El aire seco típico tiene 21% molar de O₂ y 79% molar de N₂. Determine la masa molar del aire y el porcentaje másico de cada componente.',
   inputs:[
-    {key:'yO2', label:'yO2 — fracción molar de O2 en el aire', unit:'0–1', dtag:'d-in-1', def:'0.21'},
+    {key:'yO2', label:'yO2 — fracción molar de O₂ en el aire', unit:'0–1', dtag:'d-in-1', def:'0.21'},
   ],
   hints:[
     'La masa molar de una mezcla de gases es el promedio ponderado de las masas molares de sus componentes, usando las fracciones molares como peso.',
-    'Las masas molares del O2 (32 g/mol) y N2 (28 g/mol) son datos fijos de la tabla periódica — no dependen del problema.',
+    'Las masas molares del O₂ (32 g/mol) y N₂ (28 g/mol) son datos fijos de la tabla periódica — no dependen del problema.',
     'Para pasar de fracción molar a fracción másica, multiplica cada fracción molar por la masa molar de ese componente y divide entre la masa molar total de la mezcla.'
   ],
   answerFields:[
     {key:'Maire', label:'Masa molar del aire', unit:'g/mol'},
-    {key:'pO2', label:'% másico de O2', unit:'%'},
-    {key:'pN2', label:'% másico de N2', unit:'%'}
+    {key:'pO2', label:'% másico de O₂', unit:'%'},
+    {key:'pN2', label:'% másico de N₂', unit:'%'}
   ],
   calc(v){
     if(v.yO2<0||v.yO2>1) return {error:'yO2 debe estar entre 0 y 1.'};
@@ -1744,14 +1836,14 @@ const OPS = [
     return {
       outputs:[
         {key:'Maire',label:'Masa molar del aire',value:fmt(Maire,2),unit:'g/mol',raw:Maire},
-        {key:'pO2',label:'% másico de O2',value:fmt(pO2,1),unit:'%',raw:pO2},
-        {key:'pN2',label:'% másico de N2',value:fmt(pN2,1),unit:'%',raw:pN2}
+        {key:'pO2',label:'% másico de O₂',value:fmt(pO2,1),unit:'%',raw:pO2},
+        {key:'pN2',label:'% másico de N₂',value:fmt(pN2,1),unit:'%',raw:pN2}
       ],
       diagram:{'d-out-1':fmt(Maire,2)+' g/mol'}, flows:['fo1'],
       steps:[
         {t:'Masa molar del aire (promedio ponderado por fracción molar)', f:`M_aire = yO2·MO2 + yN2·MN2\nM_aire = ${v.yO2}×32 + ${fmt(yN2,2)}×28 = ${fmt(Maire,2)} g/mol`},
-        {t:'Fracción másica de O2', f:`%m/m O2 = (yO2·MO2 / M_aire) × 100 = ${fmt(pO2,1)} %`},
-        {t:'Fracción másica de N2 (por diferencia)', f:`%m/m N2 = 100 − ${fmt(pO2,1)} = ${fmt(pN2,1)} %`}
+        {t:'Fracción másica de O₂', f:`%m/m O₂ = (yO2·MO2 / M_aire) × 100 = ${fmt(pO2,1)} %`},
+        {t:'Fracción másica de N₂ (por diferencia)', f:`%m/m N₂ = 100 − ${fmt(pO2,1)} = ${fmt(pN2,1)} %`}
       ]
     };
   }
@@ -1759,12 +1851,12 @@ const OPS = [
 { id:'vinagreSalida', num:'22', cat:'materia', chapter:4, sector:'Alimentaria', name:'Vinagre (desde salida)', diagramKey:'fermentadorVinagre',
   title:'Fermentación de vinagre — a partir de la corriente de salida',
   context:'Planta de vinagre — fermentación con células inmovilizadas, ejercicio del libro del curso',
-  story:'En un proceso de fermentación continua de vinagre con células inmovilizadas, la producción de ácido acético es de 2 kg/h y la concentración máxima de ácido acético tolerada por las células es del 12%. Se bombea aire al fermentador con un flujo de 200 mol/h (21% O2, 79% N2). La reacción es C2H5OH + O2 → CH3COOH + H2O. Determine el etanol y el agua mínimos necesarios por hora, y el flujo y composición del aire de salida.',
+  story:'En un proceso de fermentación continua de vinagre con células inmovilizadas, la producción de ácido acético es de 2 kg/h y la concentración máxima de ácido acético tolerada por las células es del 12%. Se bombea aire al fermentador con un flujo de 200 mol/h (21% O₂, 79% N₂). La reacción es C₂H₅OH + O₂ → CH₃COOH + H₂O. Determine el etanol y el agua mínimos necesarios por hora, y el flujo y composición del aire de salida.',
   inputs:[
     {key:'P_AC', label:'Producción de ácido acético', unit:'kg/h', dtag:'d-in-1', def:'2'},
     {key:'xPmax', label:'Concentración máxima tolerada', unit:'0–1', def:'0.12'},
     {key:'aireEntrada', label:'Aire alimentado', unit:'mol/h', def:'200'},
-    {key:'yO2', label:'yO2 — fracción molar de O2 en el aire', unit:'0–1', def:'0.21'},
+    {key:'yO2', label:'yO2 — fracción molar de O₂ en el aire', unit:'0–1', def:'0.21'},
   ],
   hints:[
     'La corriente de salida tiene más información que la de entrada: comienza por ahí. Si el 12% de esa corriente es ácido acético y ya sabes cuántos kg/h son, puedes hallar el flujo total de salida P.',
@@ -1775,7 +1867,7 @@ const OPS = [
     {key:'etanolEntra', label:'Etanol mínimo necesario', unit:'kg/h'},
     {key:'aguaEntra', label:'Agua mínima necesaria', unit:'kg/h'},
     {key:'Asalida', label:'Flujo de aire de salida', unit:'kg/h'},
-    {key:'pO2sale', label:'% molar de O2 en el aire de salida', unit:'%'}
+    {key:'pO2sale', label:'% molar de O₂ en el aire de salida', unit:'%'}
   ],
   calc(v){
     if(v.P_AC<0||v.aireEntrada<0) return {error:'Los flujos no pueden ser negativos.'};
@@ -1793,7 +1885,7 @@ const OPS = [
     const aguaEntra = W-aguaGenera;
     const O2consume = acidoMol*MW.O2;
     const O2sale = O2entra-O2consume;
-    if(O2sale<0) return {error:'El aire alimentado no trae suficiente O2 para producir esa cantidad de ácido acético.'};
+    if(O2sale<0) return {error:'El aire alimentado no trae suficiente O₂ para producir esa cantidad de ácido acético.'};
     const N2sale = N2entra;
     const Asalida = O2sale+N2sale;
     const pO2sale = (O2sale/MW.O2)/((O2sale/MW.O2)+(N2sale/MW.N2))*100;
@@ -1802,15 +1894,15 @@ const OPS = [
         {key:'etanolEntra',label:'Etanol mínimo necesario',value:fmt(etanolEntra,3),unit:'kg/h',raw:etanolEntra},
         {key:'aguaEntra',label:'Agua mínima necesaria',value:fmt(aguaEntra,3),unit:'kg/h',raw:aguaEntra},
         {key:'Asalida',label:'Flujo de aire de salida',value:fmt(Asalida,3),unit:'kg/h',raw:Asalida},
-        {key:'pO2sale',label:'% molar de O2 en el aire de salida',value:fmt(pO2sale,1),unit:'%',raw:pO2sale}
+        {key:'pO2sale',label:'% molar de O₂ en el aire de salida',value:fmt(pO2sale,1),unit:'%',raw:pO2sale}
       ],
       diagram:{'d-out-1':fmt(etanolEntra,2)+' kg/h etanol'}, flows:['fo1','fo2'],
       steps:[
         {t:'Flujo total y agua de salida (a partir de la concentración máxima)', f:`P = P_AC / xPmax = ${v.P_AC} / ${v.xPmax} = ${fmt(P,3)} kg/h\nW = P − P_AC = ${fmt(W,3)} kg/h de agua`},
-        {t:'Aire de entrada en base másica', f:`N2 entra = ${fmt(N2entra,3)} kg/h · O2 entra = ${fmt(O2entra,3)} kg/h`},
+        {t:'Aire de entrada en base másica', f:`N₂ entra = ${fmt(N2entra,3)} kg/h · O₂ entra = ${fmt(O2entra,3)} kg/h`},
         {t:'Balance de ácido acético y etanol (estequiometría 1:1)', f:`Ácido acético generado = ${v.P_AC} kg/h = ${fmt(acidoMol,5)} kmol/h\nEtanol entra = ${fmt(acidoMol,5)}×46 = ${fmt(etanolEntra,3)} kg/h`},
         {t:'Balance de agua', f:`Agua generada = ${fmt(acidoMol,5)}×18 = ${fmt(aguaGenera,3)} kg/h\nAgua entra = W − agua generada = ${fmt(aguaEntra,3)} kg/h`},
-        {t:'Balance de O2 y N2 (el N2 no reacciona)', f:`O2 consumido = ${fmt(acidoMol,5)}×32 = ${fmt(O2consume,3)} kg/h\nO2 sale = ${fmt(O2entra,3)} − ${fmt(O2consume,3)} = ${fmt(O2sale,3)} kg/h\nN2 sale = N2 entra = ${fmt(N2sale,3)} kg/h`}
+        {t:'Balance de O₂ y N₂ (el N₂ no reacciona)', f:`O₂ consumido = ${fmt(acidoMol,5)}×32 = ${fmt(O2consume,3)} kg/h\nO2 sale = ${fmt(O2entra,3)} − ${fmt(O2consume,3)} = ${fmt(O2sale,3)} kg/h\nN2 sale = N₂ entra = ${fmt(N2sale,3)} kg/h`}
       ]
     };
   }
@@ -1818,23 +1910,23 @@ const OPS = [
 { id:'vinagreEntrada', num:'23', cat:'materia', chapter:4, sector:'Alimentaria', name:'Vinagre (desde entrada)', diagramKey:'fermentadorVinagre',
   title:'Fermentación de vinagre — a partir de la corriente de entrada',
   context:'Planta de vinagre — reactor continuo (CSTR), ejercicio del libro del curso',
-  story:'En un reactor continuo para producción de vinagre por fermentación aeróbica, se alimenta una corriente líquida de 20 kg/h que contiene 9% en masa de etanol, junto con aire seco a 0.250 kmol/h (21% O2, 79% N2). La reacción es C2H5OH + O2 → CH3COOH + H2O. Determine el etanol y agua en la alimentación líquida, el O2 que sale sin reaccionar, la composición del gas de salida, y el ácido acético y agua producidos.',
+  story:'En un reactor continuo para producción de vinagre por fermentación aeróbica, se alimenta una corriente líquida de 20 kg/h que contiene 9% en masa de etanol, junto con aire seco a 0.250 kmol/h (21% O₂, 79% N₂). La reacción es C₂H₅OH + O₂ → CH₃COOH + H₂O. Determine el etanol y agua en la alimentación líquida, el O₂ que sale sin reaccionar, la composición del gas de salida, y el ácido acético y agua producidos.',
   inputs:[
     {key:'F', label:'F — alimentación líquida', unit:'kg/h', dtag:'d-in-1', def:'20'},
     {key:'xEtanol', label:'Fracción de etanol en F', unit:'0–1', def:'0.09'},
     {key:'aireEntrada', label:'Aire alimentado', unit:'kmol/h', def:'0.250'},
-    {key:'yO2', label:'yO2 — fracción molar de O2 en el aire', unit:'0–1', def:'0.21'},
+    {key:'yO2', label:'yO2 — fracción molar de O₂ en el aire', unit:'0–1', def:'0.21'},
   ],
   hints:[
     'Aquí la entrada trae más información: calcula primero el etanol y el agua que entran en la corriente líquida a partir del flujo total y la fracción de etanol.',
-    'Convierte el etanol de entrada a base molar, y úsalo para hallar cuánto O2 se consume (estequiometría 1:1 entre etanol y O2). El O2 que sale es lo que entró menos lo que se consumió.',
+    'Convierte el etanol de entrada a base molar, y úsalo para hallar cuánto O₂ se consume (estequiometría 1:1 entre etanol y O₂). El O₂ que sale es lo que entró menos lo que se consumió.',
     'El ácido acético generado (en base molar) es igual al etanol consumido. Conviértelo a masa para sumarlo al balance de agua que sale en la corriente líquida.'
   ],
   answerFields:[
     {key:'etanolEntra', label:'Etanol en la alimentación', unit:'kg/h'},
     {key:'aguaEntraLiq', label:'Agua en la alimentación líquida', unit:'kg/h'},
-    {key:'O2sale', label:'O2 sin reaccionar', unit:'kmol/h'},
-    {key:'pO2sale', label:'% molar de O2 en el gas de salida', unit:'%'},
+    {key:'O2sale', label:'O₂ sin reaccionar', unit:'kmol/h'},
+    {key:'pO2sale', label:'% molar de O₂ en el gas de salida', unit:'%'},
     {key:'acidoGeneradoKg', label:'Ácido acético producido', unit:'kg/h'},
     {key:'aguaSaleLiq', label:'Agua total en la corriente líquida de salida', unit:'kg/h'}
   ],
@@ -1850,7 +1942,7 @@ const OPS = [
     const etanolMol = etanolEntra/MW.etanol;
     const O2consume = etanolMol;
     const O2sale = O2entra-O2consume;
-    if(O2sale<0) return {error:'El aire alimentado no trae suficiente O2 para reaccionar con todo el etanol.'};
+    if(O2sale<0) return {error:'El aire alimentado no trae suficiente O₂ para reaccionar con todo el etanol.'};
     const totalSaleMol = O2sale+N2entra;
     const pO2sale = O2sale/totalSaleMol*100;
     const acidoGeneradoMol = etanolMol;
@@ -1861,17 +1953,17 @@ const OPS = [
       outputs:[
         {key:'etanolEntra',label:'Etanol en la alimentación',value:fmt(etanolEntra,3),unit:'kg/h',raw:etanolEntra},
         {key:'aguaEntraLiq',label:'Agua en la alimentación líquida',value:fmt(aguaEntraLiq,3),unit:'kg/h',raw:aguaEntraLiq},
-        {key:'O2sale',label:'O2 sin reaccionar',value:fmt(O2sale,4),unit:'kmol/h',raw:O2sale},
-        {key:'pO2sale',label:'% molar de O2 en el gas de salida',value:fmt(pO2sale,2),unit:'%',raw:pO2sale},
+        {key:'O2sale',label:'O₂ sin reaccionar',value:fmt(O2sale,4),unit:'kmol/h',raw:O2sale},
+        {key:'pO2sale',label:'% molar de O₂ en el gas de salida',value:fmt(pO2sale,2),unit:'%',raw:pO2sale},
         {key:'acidoGeneradoKg',label:'Ácido acético producido',value:fmt(acidoGeneradoKg,3),unit:'kg/h',raw:acidoGeneradoKg},
         {key:'aguaSaleLiq',label:'Agua total en la corriente líquida',value:fmt(aguaSaleLiq,3),unit:'kg/h',raw:aguaSaleLiq}
       ],
       diagram:{'d-out-1':fmt(acidoGeneradoKg,2)+' kg/h ácido'}, flows:['fo1','fo2'],
       steps:[
         {t:'Etanol y agua en la alimentación líquida', f:`Etanol entra = F·xEtanol = ${v.F}×${v.xEtanol} = ${fmt(etanolEntra,3)} kg/h\nAgua entra = F − Etanol = ${fmt(aguaEntraLiq,3)} kg/h`},
-        {t:'O2 y N2 de entrada, y O2 consumido (estequiometría 1:1 con etanol)', f:`O2 entra = ${v.aireEntrada}×${v.yO2} = ${fmt(O2entra,4)} kmol/h\nO2 consumido = Etanol entra / 46 = ${fmt(O2consume,4)} kmol/h`},
-        {t:'O2 que sale sin reaccionar y composición del gas', f:`O2 sale = ${fmt(O2entra,4)} − ${fmt(O2consume,4)} = ${fmt(O2sale,4)} kmol/h\n%O2 en salida = ${fmt(pO2sale,2)} %`},
-        {t:'Ácido acético y agua generados', f:`Ácido acético = O2 consumido × 60 = ${fmt(acidoGeneradoKg,3)} kg/h\nAgua generada = O2 consumido × 18 = ${fmt(aguaGeneradaKg,3)} kg/h\nAgua sale (líquida) = ${fmt(aguaEntraLiq,3)} + ${fmt(aguaGeneradaKg,3)} = ${fmt(aguaSaleLiq,3)} kg/h`}
+        {t:'O₂ y N₂ de entrada, y O₂ consumido (estequiometría 1:1 con etanol)', f:`O₂ entra = ${v.aireEntrada}×${v.yO2} = ${fmt(O2entra,4)} kmol/h\nO2 consumido = Etanol entra / 46 = ${fmt(O2consume,4)} kmol/h`},
+        {t:'O₂ que sale sin reaccionar y composición del gas', f:`O₂ sale = ${fmt(O2entra,4)} − ${fmt(O2consume,4)} = ${fmt(O2sale,4)} kmol/h\n%O₂ en salida = ${fmt(pO2sale,2)} %`},
+        {t:'Ácido acético y agua generados', f:`Ácido acético = O₂ consumido × 60 = ${fmt(acidoGeneradoKg,3)} kg/h\nAgua generada = O₂ consumido × 18 = ${fmt(aguaGeneradaKg,3)} kg/h\nAgua sale (líquida) = ${fmt(aguaEntraLiq,3)} + ${fmt(aguaGeneradaKg,3)} = ${fmt(aguaSaleLiq,3)} kg/h`}
       ]
     };
   }
@@ -1879,19 +1971,19 @@ const OPS = [
 { id:'fermentacionAlcoholica', num:'24', cat:'materia', chapter:4, sector:'Alimentaria', name:'Fermentación alcohólica', diagramKey:'reactor',
   title:'Fermentación alcohólica de glucosa',
   context:'Destilería de alcohol — fermentación del mosto',
-  story:'En una destilería, el mosto de caña se fermenta según la reacción C6H12O6 → 2 C2H5OH + 2 CO2 (fermentación alcohólica de Gay-Lussac). Se alimentan 1000 kg/h de glucosa al fermentador, con una conversión del 90%. Determine el etanol y el CO2 producidos, y la glucosa que queda sin reaccionar.',
+  story:'En una destilería, el mosto de caña se fermenta según la reacción C₆H₁₂O₆ → 2 C₂H₅OH + 2 CO₂ (fermentación alcohólica de Gay-Lussac). Se alimentan 1000 kg/h de glucosa al fermentador, con una conversión del 90%. Determine el etanol y el CO₂ producidos, y la glucosa que queda sin reaccionar.',
   inputs:[
     {key:'F', label:'F — glucosa alimentada', unit:'kg/h', dtag:'d-in-1', def:'1000'},
     {key:'X', label:'X — conversión de la glucosa', unit:'0–1', def:'0.90'},
   ],
   hints:[
-    'La masa molar de la glucosa (C6H12O6) es 180 g/mol. Calcula primero cuánta glucosa reacciona, en masa y luego en moles.',
-    'Por cada mol de glucosa que reacciona se forman 2 moles de etanol (46 g/mol) y 2 moles de CO2 (44 g/mol) — la estequiometría de la reacción balanceada.',
-    'Verifica tu resultado: la masa de glucosa que reaccionó debe ser igual a la suma de las masas de etanol y CO2 producidos (conservación de masa).'
+    'La masa molar de la glucosa (C₆H₁₂O₆) es 180 g/mol. Calcula primero cuánta glucosa reacciona, en masa y luego en moles.',
+    'Por cada mol de glucosa que reacciona se forman 2 moles de etanol (46 g/mol) y 2 moles de CO₂ (44 g/mol) — la estequiometría de la reacción balanceada.',
+    'Verifica tu resultado: la masa de glucosa que reaccionó debe ser igual a la suma de las masas de etanol y CO₂ producidos (conservación de masa).'
   ],
   answerFields:[
     {key:'etanol', label:'Etanol producido', unit:'kg/h'},
-    {key:'co2', label:'CO2 producido', unit:'kg/h'},
+    {key:'co2', label:'CO₂ producido', unit:'kg/h'},
     {key:'sinReaccionar', label:'Glucosa sin reaccionar', unit:'kg/h'}
   ],
   calc(v){
@@ -1902,35 +1994,35 @@ const OPS = [
     return {
       outputs:[
         {key:'etanol',label:'Etanol producido',value:fmt(etanol),unit:'kg/h',raw:etanol},
-        {key:'co2',label:'CO2 producido',value:fmt(co2),unit:'kg/h',raw:co2},
+        {key:'co2',label:'CO₂ producido',value:fmt(co2),unit:'kg/h',raw:co2},
         {key:'sinReaccionar',label:'Glucosa sin reaccionar',value:fmt(sinReaccionar),unit:'kg/h',raw:sinReaccionar}
       ],
-      diagram:{'d-out-1':fmt(etanol)+' kg/h etanol','d-out-2':fmt(co2)+' kg/h CO2'}, flows:['fo1','fo2'],
+      diagram:{'d-out-1':fmt(etanol)+' kg/h etanol','d-out-2':fmt(co2)+' kg/h CO₂'}, flows:['fo1','fo2'],
       steps:[
         {t:'Glucosa que reacciona, en masa y en moles', f:`Reacciona = F·X = ${v.F}×${v.X} = ${fmt(reacciona)} kg/h\nmol glucosa = ${fmt(reacciona)} / 180 = ${fmt(molGlu,4)} kmol/h`},
-        {t:'Etanol y CO2 producidos (estequiometría 1:2:2)', f:`Etanol = mol glucosa × 2 × 46 = ${fmt(etanol)} kg/h\nCO2 = mol glucosa × 2 × 44 = ${fmt(co2)} kg/h`},
+        {t:'Etanol y CO₂ producidos (estequiometría 1:2:2)', f:`Etanol = mol glucosa × 2 × 46 = ${fmt(etanol)} kg/h\nCO2 = mol glucosa × 2 × 44 = ${fmt(co2)} kg/h`},
         {t:'Glucosa sin reaccionar', f:`Sin reaccionar = F×(1−X) = ${fmt(sinReaccionar)} kg/h`}
       ],
-      note:'Verificación de conservación de masa: la glucosa que reaccionó (' + fmt(reacciona) + ' kg/h) debe ser igual a etanol + CO2 producidos.'
+      note:'Verificación de conservación de masa: la glucosa que reaccionó (' + fmt(reacciona) + ' kg/h) debe ser igual a etanol + CO₂ producidos.'
     };
   }
 },
 { id:'biogas', num:'25', cat:'materia', chapter:4, sector:'No alimentaria', name:'Producción de biogás', diagramKey:'reactor',
   title:'Digestión anaerobia para producción de biogás',
   context:'Planta de subproductos agroindustriales — biodigestor',
-  story:'Una planta de tratamiento de residuos agroindustriales alimenta un biodigestor anaerobio con 500 kg/h de materia orgánica biodegradable (equivalente a glucosa, C6H12O6), que se transforma según la reacción simplificada C6H12O6 → 3 CH4 + 3 CO2. Con una eficiencia de conversión del 65%, determine el metano y el CO2 producidos, y la materia orgánica que no se degrada.',
+  story:'Una planta de tratamiento de residuos agroindustriales alimenta un biodigestor anaerobio con 500 kg/h de materia orgánica biodegradable (equivalente a glucosa, C₆H₁₂O₆), que se transforma según la reacción simplificada C₆H₁₂O₆ → 3 CH₄ + 3 CO₂. Con una eficiencia de conversión del 65%, determine el metano y el CO₂ producidos, y la materia orgánica que no se degrada.',
   inputs:[
     {key:'F', label:'F — materia orgánica alimentada', unit:'kg/h', dtag:'d-in-1', def:'500'},
     {key:'X', label:'X — eficiencia de conversión', unit:'0–1', def:'0.65'},
   ],
   hints:[
     'El planteamiento es igual al de una fermentación: primero halla cuánta materia orgánica (base glucosa, 180 g/mol) reacciona, en masa y en moles.',
-    'La reacción produce 3 moles de CH4 (16 g/mol) y 3 moles de CO2 (44 g/mol) por cada mol de glucosa equivalente que se degrada.',
+    'La reacción produce 3 moles de CH₄ (16 g/mol) y 3 moles de CO₂ (44 g/mol) por cada mol de glucosa equivalente que se degrada.',
     'La materia que no se degrada es simplemente la fracción no convertida de la alimentación (1−X).'
   ],
   answerFields:[
-    {key:'ch4', label:'Metano (CH4) producido', unit:'kg/h'},
-    {key:'co2', label:'CO2 producido', unit:'kg/h'},
+    {key:'ch4', label:'Metano (CH₄) producido', unit:'kg/h'},
+    {key:'co2', label:'CO₂ producido', unit:'kg/h'},
     {key:'sinReaccionar', label:'Materia orgánica sin degradar', unit:'kg/h'}
   ],
   calc(v){
@@ -1940,14 +2032,14 @@ const OPS = [
     const ch4=mol*3*16, co2=mol*3*44, sinReaccionar=v.F*(1-v.X);
     return {
       outputs:[
-        {key:'ch4',label:'Metano (CH4) producido',value:fmt(ch4),unit:'kg/h',raw:ch4},
-        {key:'co2',label:'CO2 producido',value:fmt(co2),unit:'kg/h',raw:co2},
+        {key:'ch4',label:'Metano (CH₄) producido',value:fmt(ch4),unit:'kg/h',raw:ch4},
+        {key:'co2',label:'CO₂ producido',value:fmt(co2),unit:'kg/h',raw:co2},
         {key:'sinReaccionar',label:'Materia orgánica sin degradar',value:fmt(sinReaccionar),unit:'kg/h',raw:sinReaccionar}
       ],
-      diagram:{'d-out-1':fmt(ch4)+' kg/h CH4','d-out-2':fmt(co2)+' kg/h CO2'}, flows:['fo1','fo2'],
+      diagram:{'d-out-1':fmt(ch4)+' kg/h CH₄','d-out-2':fmt(co2)+' kg/h CO₂'}, flows:['fo1','fo2'],
       steps:[
         {t:'Materia orgánica que reacciona, en masa y en moles', f:`Reacciona = F·X = ${v.F}×${v.X} = ${fmt(reacciona)} kg/h\nmol equivalentes = ${fmt(reacciona)} / 180 = ${fmt(mol,4)} kmol/h`},
-        {t:'Metano y CO2 producidos (estequiometría 1:3:3)', f:`CH4 = mol × 3 × 16 = ${fmt(ch4)} kg/h\nCO2 = mol × 3 × 44 = ${fmt(co2)} kg/h`},
+        {t:'Metano y CO₂ producidos (estequiometría 1:3:3)', f:`CH₄ = mol × 3 × 16 = ${fmt(ch4)} kg/h\nCO2 = mol × 3 × 44 = ${fmt(co2)} kg/h`},
         {t:'Materia orgánica sin degradar', f:`Sin degradar = F×(1−X) = ${fmt(sinReaccionar)} kg/h`}
       ],
       note:'Modelo simplificado: se representa la materia orgánica biodegradable con la fórmula de la glucosa como base de cálculo estequiométrica.'
@@ -2045,13 +2137,13 @@ const OPS = [
 { id:'hidrolisisAlmidon', num:'28', cat:'materia', chapter:4, sector:'Alimentaria', name:'Hidrólisis de almidón', diagramKey:'reactor',
   title:'Hidrólisis de almidón a glucosa',
   context:'Planta de jarabes de glucosa — hidrólisis de almidón de yuca',
-  story:'Una planta procesadora de yuca produce jarabe de glucosa hidrolizando almidón según la reacción C6H10O5 + H2O → C6H12O6. Se alimentan 300 kg/h de almidón con una conversión de hidrólisis del 85%. Determine el agua consumida, la glucosa producida y el almidón sin reaccionar.',
+  story:'Una planta procesadora de yuca produce jarabe de glucosa hidrolizando almidón según la reacción C₆H₁₀O₅ + H₂O → C₆H₁₂O₆. Se alimentan 300 kg/h de almidón con una conversión de hidrólisis del 85%. Determine el agua consumida, la glucosa producida y el almidón sin reaccionar.',
   inputs:[
     {key:'F', label:'F — almidón alimentado', unit:'kg/h', dtag:'d-in-1', def:'300'},
     {key:'X', label:'X — conversión de hidrólisis', unit:'0–1', def:'0.85'},
   ],
   hints:[
-    'La unidad estructural del almidón (C6H10O5) tiene masa molar 162 g/mol. Calcula primero cuánto almidón reacciona, en masa y en moles.',
+    'La unidad estructural del almidón (C₆H₁₀O₅) tiene masa molar 162 g/mol. Calcula primero cuánto almidón reacciona, en masa y en moles.',
     'La reacción es 1:1:1 — cada mol de almidón que reacciona consume un mol de agua (18 g/mol) y produce un mol de glucosa (180 g/mol).',
     'Comprueba tu resultado: la masa de almidón reaccionado más el agua consumida debe ser igual a la masa de glucosa producida (conservación de masa).'
   ],
@@ -2126,19 +2218,19 @@ const OPS = [
 { id:'gasesCombustion', num:'30', cat:'energia', chapter:6, sector:'No alimentaria', name:'Gases de combustión', diagramKey:'exchanger',
   title:'Recuperación de calor de gases de combustión',
   context:'Planta de tueste de café — precalentamiento de aire con gases de escape',
-  story:'En el proceso de tueste de café, los gases de escape del sistema de quema (a 200°C) se usan para precalentar aire fresco en un intercambiador, antes de liberarlos a la atmósfera a 120°C. El aire fresco entra a 25°C y sale a 80°C. La mezcla de gases de combustión se compone de N2 (75%), CO2 (12%), H2O (10%) y O2 (3%) en masa. Determine el calor recuperado por kg de gases y la masa de aire precalentada por cada kg de gas.',
+  story:'En el proceso de tueste de café, los gases de escape del sistema de quema (a 200°C) se usan para precalentar aire fresco en un intercambiador, antes de liberarlos a la atmósfera a 120°C. El aire fresco entra a 25°C y sale a 80°C. La mezcla de gases de combustión se compone de N₂ (75%), CO₂ (12%), H₂O (10%) y O₂ (3%) en masa. Determine el calor recuperado por kg de gases y la masa de aire precalentada por cada kg de gas.',
   inputs:[
     {key:'Tgin', label:'T gas entrada (al intercambiador)', unit:'°C', dtag:'d-in-1', def:'200'},
     {key:'Tgout', label:'T gas salida', unit:'°C', def:'120'},
     {key:'TAin', label:'T aire entrada', unit:'°C', def:'25'},
     {key:'TAout', label:'T aire salida', unit:'°C', dtag:'d-in-2', def:'80'},
-    {key:'yN2', label:'Fracción másica N2 en el gas', unit:'0–1', def:'0.75'},
-    {key:'yCO2', label:'Fracción másica CO2 en el gas', unit:'0–1', def:'0.12'},
-    {key:'yH2O', label:'Fracción másica H2O en el gas', unit:'0–1', def:'0.10'},
-    {key:'yO2', label:'Fracción másica O2 en el gas', unit:'0–1', def:'0.03'},
+    {key:'yN2', label:'Fracción másica N₂ en el gas', unit:'0–1', def:'0.75'},
+    {key:'yCO2', label:'Fracción másica CO₂ en el gas', unit:'0–1', def:'0.12'},
+    {key:'yH2O', label:'Fracción másica H₂O en el gas', unit:'0–1', def:'0.10'},
+    {key:'yO2', label:'Fracción másica O₂ en el gas', unit:'0–1', def:'0.03'},
   ],
   hints:[
-    'El gas es una mezcla de varios componentes: su calor específico efectivo es el promedio ponderado de los Cp de cada componente (N2=1.04, CO2=0.88, H2O=1.93, O2=1.04 kJ/kg·°C), usando las fracciones másicas como peso.',
+    'El gas es una mezcla de varios componentes: su calor específico efectivo es el promedio ponderado de los Cp de cada componente (N₂=1.04, CO₂=0.88, H₂O=1.93, O₂=1.04 kJ/kg·°C), usando las fracciones másicas como peso.',
     'Toma como base de cálculo 1 kg de gas. El calor cedido por ese kilogramo al enfriarse de la temperatura de entrada a la de salida es el "calor recuperado por kg de gas".',
     'Ese mismo calor lo gana el aire. Con el Cp del aire (1.0085 kJ/kg·°C) y su cambio de temperatura, despeja cuántos kg de aire se precalientan por cada kg de gas.'
   ],
@@ -2164,7 +2256,7 @@ const OPS = [
       ],
       diagram:{'d-out-1':fmt(mA,2)+' kg aire/kg gas'}, flows:['fo1','fo2'],
       steps:[
-        {t:'Calor específico efectivo del gas (promedio ponderado)', f:`Cgas = yN2·CN2 + yCO2·CCO2 + yH2O·CH2O + yO2·CO2\nCgas = ${v.yN2}×1,04 + ${v.yCO2}×0,88 + ${v.yH2O}×1,93 + ${v.yO2}×1,04 = ${fmt(Cgas,4)} kJ/kg·°C`},
+        {t:'Calor específico efectivo del gas (promedio ponderado)', f:`Cgas = yN2·CN2 + yCO2·CCO2 + yH2O·CH2O + yO2·CO₂\nCgas = ${v.yN2}×1,04 + ${v.yCO2}×0,88 + ${v.yH2O}×1,93 + ${v.yO2}×1,04 = ${fmt(Cgas,4)} kJ/kg·°C`},
         {t:'Calor recuperado por kg de gas (base de cálculo = 1 kg de gas)', f:`Q/kg gas = Cgas·(Tgs − Tge) = ${fmt(Cgas,4)}×(${v.Tgout} − ${v.Tgin}) = ${fmt(Qgas,2)} kJ/kg`},
         {t:'Masa de aire precalentada por kg de gas', f:`mA = [Cgas·(Tgs−Tge)] / [CAire·(TAe−TAs)]\nmA = ${fmt(Qgas,2)} / (${CAire}×(${v.TAin} − ${v.TAout})) = ${fmt(mA,3)} kg aire/kg gas`}
       ]
@@ -2636,7 +2728,7 @@ const OPS = [
 { id:'fermentacionTermica', num:'41', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Calor de fermentación',
   title:'Calor liberado en la fermentación alcohólica',
   context:'Destilería de alcohol — control térmico del fermentador',
-  story:'En el mismo fermentador de la destilería (C6H12O6 → 2 C2H5OH + 2 CO2), la reacción libera calor: el calor de reacción dado para este ejercicio es de 73 kJ por mol de glucosa fermentada (proceso exotérmico). Se alimentan 1000 kg/h de glucosa con 90% de conversión. Para mantener el fermentador a temperatura constante, ese calor se remueve con agua de enfriamiento que entra a 20°C y sale a 30°C. Determine el calor liberado y el flujo de agua de enfriamiento necesario.',
+  story:'En el mismo fermentador de la destilería (C₆H₁₂O₆ → 2 C₂H₅OH + 2 CO₂), la reacción libera calor: el calor de reacción dado para este ejercicio es de 73 kJ por mol de glucosa fermentada (proceso exotérmico). Se alimentan 1000 kg/h de glucosa con 90% de conversión. Para mantener el fermentador a temperatura constante, ese calor se remueve con agua de enfriamiento que entra a 20°C y sale a 30°C. Determine el calor liberado y el flujo de agua de enfriamiento necesario.',
   inputs:[
     {key:'F', label:'F — glucosa alimentada', unit:'kg/h', dtag:'d-in-1', def:'1000'},
     {key:'X', label:'X — conversión de la glucosa', unit:'0–1', def:'0.90'},
@@ -2680,7 +2772,7 @@ const OPS = [
 { id:'vinagreTermico', num:'42', cat:'energia', chapter:7, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Calor de oxidación (vinagre)',
   title:'Calor liberado en la oxidación de etanol a ácido acético',
   context:'Planta de vinagre — control térmico del fermentador',
-  story:'La oxidación de etanol a ácido acético (C2H5OH + O2 → CH3COOH + H2O) es una reacción fuertemente exotérmica. Para este ejercicio, el calor de reacción dado es de 455 kJ por mol de etanol oxidado. Si se oxidan 100 kg/h de etanol, y el calor se remueve con agua que entra a 20°C y sale a 30°C, determine el calor liberado y el flujo de agua de enfriamiento necesario.',
+  story:'La oxidación de etanol a ácido acético (C₂H₅OH + O₂ → CH₃COOH + H₂O) es una reacción fuertemente exotérmica. Para este ejercicio, el calor de reacción dado es de 455 kJ por mol de etanol oxidado. Si se oxidan 100 kg/h de etanol, y el calor se remueve con agua que entra a 20°C y sale a 30°C, determine el calor liberado y el flujo de agua de enfriamiento necesario.',
   inputs:[
     {key:'etanolReacciona', label:'Etanol oxidado', unit:'kg/h', dtag:'d-in-1', def:'100'},
     {key:'dHrxn', label:'Calor de reacción (dato, por mol de etanol)', unit:'kJ/mol', def:'455'},
@@ -3371,7 +3463,7 @@ const OPS = [
 { id:'fermentacionCombinada', num:'58', cat:'energia', chapter:9, sector:'Alimentaria', diagramKey:'reactorTermico', name:'Fermentación (M+E combinado)',
   title:'Fermentación alcohólica — balance simultáneo de materia y energía',
   context:'Destilería de alcohol — balance combinado del fermentador',
-  story:'Resolvamos en un solo balance simultáneo lo que antes se calculó por separado: en el fermentador de la destilería (C6H12O6 → 2 C2H5OH + 2 CO2), se alimentan 1000 kg/h de glucosa con 90% de conversión. La reacción libera 73 kJ por mol de glucosa fermentada. Determine, en un solo balance, el etanol y CO2 producidos (materia) y el flujo de agua de enfriamiento necesario (energía) para mantener el fermentador a temperatura constante, con agua que entra a 20°C y sale a 30°C.',
+  story:'Resolvamos en un solo balance simultáneo lo que antes se calculó por separado: en el fermentador de la destilería (C₆H₁₂O₆ → 2 C₂H₅OH + 2 CO₂), se alimentan 1000 kg/h de glucosa con 90% de conversión. La reacción libera 73 kJ por mol de glucosa fermentada. Determine, en un solo balance, el etanol y CO₂ producidos (materia) y el flujo de agua de enfriamiento necesario (energía) para mantener el fermentador a temperatura constante, con agua que entra a 20°C y sale a 30°C.',
   inputs:[
     {key:'F', label:'F — glucosa alimentada', unit:'kg/h', dtag:'d-in-1', def:'1000'},
     {key:'X', label:'X — conversión de la glucosa', unit:'0–1', def:'0.90'},
@@ -3381,13 +3473,13 @@ const OPS = [
     {key:'Twout', label:'Agua de enfriamiento — salida', unit:'°C', def:'30'},
   ],
   hints:[
-    'El balance de materia es igual al del capítulo de reacción: halla los moles de glucosa que reaccionan y aplica la estequiometría 1:2:2 para obtener etanol y CO2.',
+    'El balance de materia es igual al del capítulo de reacción: halla los moles de glucosa que reaccionan y aplica la estequiometría 1:2:2 para obtener etanol y CO₂.',
     'El balance de energía es igual al del capítulo de energía con reacción: el calor liberado es el producto de los moles reaccionados por el calor de reacción dado.',
     'Ambos balances comparten el mismo dato de partida (moles de glucosa reaccionados) — resolverlos "simultáneamente" significa que un mismo cálculo alimenta tanto la respuesta de materia como la de energía.'
   ],
   answerFields:[
     {key:'etanol', label:'Etanol producido', unit:'kg/h'},
-    {key:'co2', label:'CO2 producido', unit:'kg/h'},
+    {key:'co2', label:'CO₂ producido', unit:'kg/h'},
     {key:'mw', label:'Flujo de agua de enfriamiento', unit:'kg/h'},
   ],
   calc(v){
@@ -3402,7 +3494,7 @@ const OPS = [
     return {
       outputs:[
         {key:'etanol',label:'Etanol producido',value:fmt(etanol),unit:'kg/h',raw:etanol},
-        {key:'co2',label:'CO2 producido',value:fmt(co2),unit:'kg/h',raw:co2},
+        {key:'co2',label:'CO₂ producido',value:fmt(co2),unit:'kg/h',raw:co2},
         {key:'mw',label:'Flujo de agua de enfriamiento',value:fmt(mw,1),unit:'kg/h',raw:mw}
       ],
       diagram:{'d-out-1':fmt(Q,0)+' kJ/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
@@ -4020,6 +4112,7 @@ function renderOp(){
   op.inputs.forEach(inp=>{
     if(inp.dtag){ const el=document.getElementById(inp.dtag); if(el) el.textContent=inp.def; }
     document.getElementById('in-'+inp.key).addEventListener('input', (e)=>{
+      soundKey();
       if(inp.dtag){ const el=document.getElementById(inp.dtag); if(el) el.textContent = e.target.value===''?'—':e.target.value; }
     });
   });
@@ -4030,9 +4123,12 @@ function renderOp(){
       <label>${af.label} <span class="unit-hint">(${af.unit})</span></label>
       <input type="number" step="any" inputmode="decimal" id="ans-${af.key}" placeholder="—">
     </div>`).join('');
+  ansGrid.querySelectorAll('input').forEach(inp=>{
+    inp.addEventListener('input', soundKey);
+  });
 
   renderHints(op);
-  document.getElementById('hintBtn').onclick = ()=>{ hintsShown++; renderHints(op); };
+  document.getElementById('hintBtn').onclick = ()=>{ hintsShown++; soundHint(); renderHints(op); };
 }
 
 function renderEsquemaQuiz(op){
@@ -4182,11 +4278,12 @@ async function runCalc(){
   const collected = collectValues(op);
   if(collected.error){
     document.getElementById('errBox').innerHTML = `<div class="err-box">${collected.error}</div>`;
-    document.getElementById('resultsBox').innerHTML=''; return;
+    document.getElementById('resultsBox').innerHTML=''; soundError(); return;
   }
   const studentAnswers = collectAnswers(op);
   const res = op.calc(collected.values);
   renderResults(res, studentAnswers);
+  if(res.error){ soundError(); }
   if(!res.error){
     const verdicto = verdictoGlobal(res, studentAnswers);
     registrarUso(op, hintsShown, verdicto);
@@ -4194,6 +4291,17 @@ async function runCalc(){
       guardarProgreso(op.id, verdicto);
       renderChapters();
       renderChips();
+    }
+    const resultsPanel = document.querySelector('#resultsBox .results');
+    if(verdicto==='Correcta'){
+      soundCorrect();
+      if(resultsPanel) resultsPanel.classList.add('flash-correct');
+    } else if(verdicto==='Parcial'){
+      soundPartial();
+      if(resultsPanel) resultsPanel.classList.add('flash-correct');
+    } else if(verdicto==='Incorrecta'){
+      soundError();
+      if(resultsPanel) resultsPanel.classList.add('flash-error');
     }
   }
 }
