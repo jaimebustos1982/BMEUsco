@@ -326,7 +326,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-05-e · 33 fichas · Cap. 5 (transitorios) iniciado</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-06-a · 40 fichas · Cap. 5 completo</p>
     </footer>
   </main>
 </div>
@@ -688,6 +688,38 @@ tanqueTransitorio: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <text x="14" y="36" class="d-label">F (agua pura)</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
   <text x="14" y="116" class="d-label">S (salmuera), xS</text><text x="14" y="140" class="d-val" id="d-in-2">—</text>
   <text x="205" y="76" class="d-label">P, xP(t) — varía en el tiempo</text><text x="205" y="100" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+tanqueNivel: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <rect x="100" y="20" width="120" height="130" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="104" y="15" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,55 L130,55" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,55 L130,55"/>
+  <path class="box-unit" d="M130,35 L195,35 L195,135 L130,135 Z"/>
+  <text x="162" y="80" text-anchor="middle" class="unit-label" style="font-size:9px;">TANQUE</text>
+  <text x="162" y="96" text-anchor="middle" class="d-label">m(t)</text>
+  <path class="pipe" d="M195,115 L300,115" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M195,115 L300,115"/>
+  <text x="14" y="46" class="d-label">Entrada</text><text x="14" y="70" class="d-val" id="d-in-1">—</text>
+  <text x="205" y="106" class="d-label">Salida</text><text x="205" y="128" class="d-val" id="d-in-2">—</text>
+  <text x="160" y="18" class="d-label">t (calculado)</text><text x="160" y="10" class="d-val computed" id="d-out-1" style="font-size:9px;">—</text>
+</svg>`,
+reactorBatch: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <rect x="105" y="25" width="110" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="109" y="20" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C. (sistema cerrado — lote)</text>
+  <path class="box-unit" d="M115,40 L205,40 L205,130 L115,130 Z"/>
+  <text x="160" y="78" text-anchor="middle" class="unit-label">REACTOR</text>
+  <text x="160" y="94" text-anchor="middle" class="unit-label">POR LOTES</text>
+  <text x="160" y="112" text-anchor="middle" class="d-label">m(t), crece con el tiempo</text>
+  <text x="14" y="80" class="d-label">m0 (inóculo inicial)</text><text x="14" y="102" class="d-val" id="d-in-1">—</text>
+  <text x="230" y="80" class="d-label">t necesario (calculado)</text><text x="230" y="102" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+reactorBatchDecae: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
+  <rect x="105" y="25" width="110" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="109" y="20" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C. (sistema cerrado)</text>
+  <path class="box-unit" d="M115,40 L205,40 L205,130 L115,130 Z"/>
+  <text x="160" y="80" text-anchor="middle" class="unit-label">SISTEMA</text>
+  <text x="160" y="96" text-anchor="middle" class="unit-label">CERRADO</text>
+  <text x="160" y="114" text-anchor="middle" class="d-label">C(t), disminuye con el tiempo</text>
+  <text x="14" y="80" class="d-label">C0 (valor inicial)</text><text x="14" y="102" class="d-val" id="d-in-1">—</text>
+  <text x="230" y="80" class="d-label">t necesario (calculado)</text><text x="230" y="102" class="d-val computed" id="d-out-1">—</text>
 </svg>`
 };
 
@@ -2153,6 +2185,295 @@ const OPS = [
         {t:'Diferencias finitas (verificación numérica, Δt='+v.deltaT+' min)', f:`xP(i+1) = xP(i) + Δt·(b − a·xP(i))\nAmbos métodos deben converger al mismo valor de estado estacionario.`}
       ],
       note:'La concentración de estado estacionario también se puede obtener directamente haciendo dxP/dt=0 en el balance (equivalente a un balance de masa en estado estable), sin resolver la ecuación diferencial.'
+    };
+  }
+},
+{ id:'llenadoTanque', num:'34', cat:'materia', chapter:5, sector:'Alimentaria', diagramKey:'tanqueNivel', name:'Llenado de tanque',
+  title:'Llenado de un tanque con salida simultánea',
+  context:'Centro de acopio de leche — balance de materia transitorio',
+  story:'Un tanque de almacenamiento en un centro de acopio de leche parte con 500 kg de leche cruda. Ingresa leche recolectada a 800 kg/h, mientras que simultáneamente se extrae leche hacia la pasteurización a 200 kg/h. Determine en cuánto tiempo el tanque alcanza los 5000 kg, capacidad máxima segura.',
+  inputs:[
+    {key:'m0', label:'m0 — masa inicial en el tanque', unit:'kg', dtag:'d-in-1', def:'500'},
+    {key:'Fin', label:'Fin — flujo de entrada', unit:'kg/h', def:'800'},
+    {key:'Fout', label:'Fout — flujo de salida', unit:'kg/h', dtag:'d-in-2', def:'200'},
+    {key:'mTarget', label:'Masa objetivo (capacidad máxima)', unit:'kg', def:'5000'},
+  ],
+  hints:[
+    'Plantea el balance total de masa con acumulación: dm/dt = Fin − Fout. Como ambos flujos son constantes, el lado derecho no depende de m — es la ecuación diferencial más simple posible.',
+    'Si dm/dt es una constante, la masa crece linealmente con el tiempo: m(t) = m0 + (Fin−Fout)·t. No necesitas factor integrante para este caso.',
+    'Para hallar el tiempo en que se alcanza la masa objetivo, despeja t de esa ecuación lineal.'
+  ],
+  answerFields:[
+    {key:'t', label:'Tiempo para alcanzar la masa objetivo', unit:'h'},
+  ],
+  calc(v){
+    if(v.m0<0||v.Fin<0||v.Fout<0) return {error:'Los valores no pueden ser negativos.'};
+    const neta = v.Fin-v.Fout;
+    if(neta<=0) return {error:'El flujo de entrada debe ser mayor que el de salida para que el tanque se llene.'};
+    if(v.mTarget<=v.m0) return {error:'La masa objetivo debe ser mayor que la masa inicial.'};
+    const t = (v.mTarget-v.m0)/neta;
+    const tGraf = t*1.15;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = tGraf*i/nSteps;
+      points.push({t:tt, masa: v.m0+neta*tt});
+    }
+    const chart = buildLineChart(points, [{key:'masa', label:'Masa en el tanque (kg)', color:'var(--vino)'}], {xLabel:'tiempo (h)', yDec:0});
+    return {
+      outputs:[{key:'t',label:'Tiempo para alcanzar la masa objetivo',value:fmt(t,3),unit:'h',raw:t}],
+      diagram:{'d-out-1':fmt(t,2)+' h'}, flows:['fo1','fo2'], chart,
+      steps:[
+        {t:'Balance total de masa con acumulación', f:`dm/dt = Fin − Fout = ${v.Fin} − ${v.Fout} = ${fmt(neta)} kg/h (constante)`},
+        {t:'Integrando (flujo neto constante → crecimiento lineal)', f:`m(t) = m0 + (Fin−Fout)·t`},
+        {t:'Se despeja el tiempo para la masa objetivo', f:`t = (mTarget − m0) / (Fin−Fout) = (${v.mTarget} − ${v.m0}) / ${fmt(neta)} = ${fmt(t,3)} h`}
+      ]
+    };
+  }
+},
+{ id:'vaciadoTanque', num:'35', cat:'materia', chapter:5, sector:'No alimentaria', diagramKey:'tanqueNivel', name:'Vaciado de tanque',
+  title:'Vaciado de un tanque sin reposición',
+  context:'Destilería — tanque de melaza',
+  story:'Un tanque de melaza en una destilería contiene 2000 kg y se vacía hacia el proceso de fermentación a un flujo constante de 150 kg/h, sin ninguna corriente de entrada que lo reponga. Determine en cuánto tiempo el tanque llega a su nivel mínimo operativo de 300 kg.',
+  inputs:[
+    {key:'m0', label:'m0 — masa inicial en el tanque', unit:'kg', dtag:'d-in-2', def:'2000'},
+    {key:'Fout', label:'Fout — flujo de salida', unit:'kg/h', def:'150'},
+    {key:'mTarget', label:'Masa objetivo (nivel mínimo)', unit:'kg', def:'300'},
+  ],
+  hints:[
+    'Sin corriente de entrada, el balance total de masa con acumulación se reduce a dm/dt = −Fout, una constante negativa.',
+    'Integrando esa ecuación (flujo constante), la masa disminuye linealmente: m(t) = m0 − Fout·t.',
+    'Despeja el tiempo cuando la masa llega al nivel mínimo operativo.'
+  ],
+  answerFields:[
+    {key:'t', label:'Tiempo para llegar al nivel mínimo', unit:'h'},
+  ],
+  calc(v){
+    if(v.m0<0||v.Fout<0) return {error:'Los valores no pueden ser negativos.'};
+    if(v.Fout===0) return {error:'El flujo de salida debe ser mayor que cero para que el tanque se vacíe.'};
+    if(v.mTarget>=v.m0) return {error:'La masa objetivo debe ser menor que la masa inicial.'};
+    if(v.mTarget<0) return {error:'La masa objetivo no puede ser negativa.'};
+    const t = (v.m0-v.mTarget)/v.Fout;
+    const tGraf = t*1.15;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = tGraf*i/nSteps;
+      points.push({t:tt, masa: Math.max(0, v.m0-v.Fout*tt)});
+    }
+    const chart = buildLineChart(points, [{key:'masa', label:'Masa en el tanque (kg)', color:'var(--vino)'}], {xLabel:'tiempo (h)', yDec:0});
+    return {
+      outputs:[{key:'t',label:'Tiempo para llegar al nivel mínimo',value:fmt(t,3),unit:'h',raw:t}],
+      diagram:{'d-out-1':fmt(t,2)+' h'}, flows:['fo2'], chart,
+      steps:[
+        {t:'Balance total de masa con acumulación (sin entrada)', f:`dm/dt = −Fout = −${v.Fout} kg/h (constante)`},
+        {t:'Integrando (flujo de salida constante → disminución lineal)', f:`m(t) = m0 − Fout·t`},
+        {t:'Se despeja el tiempo para llegar al nivel mínimo', f:`t = (m0 − mTarget) / Fout = (${v.m0} − ${v.mTarget}) / ${v.Fout} = ${fmt(t,3)} h`}
+      ]
+    };
+  }
+},
+{ id:'cipDilucion', num:'36', cat:'materia', chapter:5, sector:'Alimentaria', diagramKey:'tanqueNivel', name:'Lavado CIP (dilución)',
+  title:'Dilución de un residuo por lavado (CIP)',
+  context:'Planta láctea — limpieza en el sitio (CIP) de un tanque de proceso',
+  story:'Después de una limpieza CIP, un tanque de 200 L queda con un residuo de detergente a una concentración de 2%. Se hace circular agua limpia a 50 L/min (con salida simultánea al mismo flujo, manteniendo el volumen constante) para enjuagar el tanque. Determine cuánto tiempo se necesita para que la concentración de detergente baje al 0.01%, límite considerado seguro.',
+  inputs:[
+    {key:'mT', label:'Volumen del tanque (constante)', unit:'L', dtag:'d-in-1', def:'200'},
+    {key:'F', label:'F — flujo de agua limpia (entra y sale)', unit:'L/min', def:'50'},
+    {key:'x0', label:'x0 — concentración inicial de residuo', unit:'0–1', def:'0.02'},
+    {key:'xTarget', label:'Concentración objetivo (segura)', unit:'0–1', def:'0.0001'},
+  ],
+  hints:[
+    'Es el mismo tipo de balance que el tanque salino: el agua limpia que entra no trae residuo (b=0 en la ecuación dx/dt + a·x = b), así que la ecuación se simplifica bastante.',
+    'Con b=0, la solución analítica se reduce a una exponencial simple: x(t) = x0·e^(−at), donde a = F/mT.',
+    'Para hallar el tiempo, despeja t de esa exponencial usando logaritmo natural: t = −ln(xTarget/x0)/a.'
+  ],
+  answerFields:[
+    {key:'t', label:'Tiempo de lavado necesario', unit:'min'},
+  ],
+  calc(v){
+    if(v.mT<=0||v.F<0) return {error:'El volumen debe ser mayor que cero y el flujo no puede ser negativo.'};
+    if(v.x0<=0||v.x0>1||v.xTarget<=0||v.xTarget>1) return {error:'Las concentraciones deben estar entre 0 y 1 (mayores que 0).'};
+    if(v.xTarget>=v.x0) return {error:'La concentración objetivo debe ser menor que la inicial.'};
+    const a = v.F/v.mT;
+    const t = -Math.log(v.xTarget/v.x0)/a;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = t*1.15*i/nSteps;
+      points.push({t:tt, aprox: v.x0*Math.exp(-a*tt)*100});
+    }
+    const chart = buildLineChart(points, [{key:'aprox', label:'Concentración de residuo (%)', color:'var(--vino)'}], {xLabel:'tiempo (min)', yDec:3});
+    return {
+      outputs:[{key:'t',label:'Tiempo de lavado necesario',value:fmt(t,2),unit:'min',raw:t}],
+      diagram:{'d-out-1':fmt(t,1)+' min'}, flows:['fo1','fo2'], chart,
+      steps:[
+        {t:'Balance parcial de residuo (el agua entrante no trae residuo, b=0)', f:`dx/dt + a·x = 0,  con a = F/mT = ${v.F}/${v.mT} = ${fmt(a,4)} min⁻¹`},
+        {t:'Solución analítica (caso particular con b=0)', f:`x(t) = x0·e^(−at)`},
+        {t:'Se despeja el tiempo para la concentración objetivo', f:`t = −ln(xTarget/x0) / a = −ln(${v.xTarget}/${v.x0}) / ${fmt(a,4)} = ${fmt(t,2)} min`}
+      ]
+    };
+  }
+},
+{ id:'crecimientoBatch', num:'37', cat:'materia', chapter:5, sector:'Alimentaria', diagramKey:'reactorBatch', name:'Crecimiento en lote',
+  title:'Crecimiento exponencial en fermentación por lotes',
+  context:'Planta de biomasa — fermentador batch de levadura',
+  story:'En un fermentador por lotes (batch, sin entrada ni salida durante la fermentación) se inocula levadura con una biomasa inicial de 2 kg. La tasa específica de crecimiento es de 0.35 h⁻¹, y el crecimiento es proporcional a la biomasa presente (crecimiento exponencial). Determine en cuánto tiempo la biomasa alcanza los 50 kg.',
+  inputs:[
+    {key:'m0', label:'m0 — biomasa inicial (inóculo)', unit:'kg', dtag:'d-in-1', def:'2'},
+    {key:'mu', label:'μ — tasa específica de crecimiento', unit:'h⁻¹', def:'0.35'},
+    {key:'mTarget', label:'Biomasa objetivo', unit:'kg', def:'50'},
+  ],
+  hints:[
+    'A diferencia de los tanques con flujo, aquí no hay corrientes de entrada ni salida — es un sistema cerrado (lote). La acumulación de biomasa se debe únicamente a que la propia biomasa se reproduce.',
+    'Si la velocidad de crecimiento es proporcional a la biomasa presente, la ecuación diferencial es dm/dt = μ·m — una de las ecuaciones diferenciales más simples de la ingeniería de bioprocesos.',
+    'La solución de esa ecuación es exponencial: m(t) = m0·e^(μt). Despeja t usando logaritmo natural para hallar cuándo se alcanza la biomasa objetivo.'
+  ],
+  answerFields:[
+    {key:'t', label:'Tiempo para alcanzar la biomasa objetivo', unit:'h'},
+  ],
+  calc(v){
+    if(v.m0<=0) return {error:'La biomasa inicial debe ser mayor que cero.'};
+    if(v.mu<=0) return {error:'La tasa de crecimiento debe ser mayor que cero.'};
+    if(v.mTarget<=v.m0) return {error:'La biomasa objetivo debe ser mayor que la inicial.'};
+    const t = Math.log(v.mTarget/v.m0)/v.mu;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = t*1.15*i/nSteps;
+      points.push({t:tt, masa: v.m0*Math.exp(v.mu*tt)});
+    }
+    const chart = buildLineChart(points, [{key:'masa', label:'Biomasa (kg)', color:'var(--vino)'}], {xLabel:'tiempo (h)', yDec:1});
+    return {
+      outputs:[{key:'t',label:'Tiempo para alcanzar la biomasa objetivo',value:fmt(t,3),unit:'h',raw:t}],
+      diagram:{'d-out-1':fmt(t,2)+' h'}, flows:[], chart,
+      steps:[
+        {t:'Balance de biomasa en sistema cerrado (crecimiento proporcional a la biomasa presente)', f:`dm/dt = μ·m`},
+        {t:'Solución analítica (ecuación de crecimiento exponencial)', f:`m(t) = m0·e^(μt)`},
+        {t:'Se despeja el tiempo para la biomasa objetivo', f:`t = ln(mTarget/m0) / μ = ln(${v.mTarget}/${v.m0}) / ${v.mu} = ${fmt(t,3)} h`}
+      ]
+    };
+  }
+},
+{ id:'secadoTransitorio', num:'38', cat:'materia', chapter:5, sector:'Alimentaria', diagramKey:'secadoAire', name:'Secado transitorio',
+  title:'Secado transitorio hacia la humedad de equilibrio',
+  context:'Planta de beneficio de cacao — secado en el tiempo',
+  story:'En un secador de granos de cacao, la humedad del grano (base seca) disminuye con el tiempo acercándose a una humedad de equilibrio con el aire de secado. La humedad inicial es 45% (b.s.), la humedad de equilibrio es 8% (b.s.), y la constante de velocidad de secado es 0.08 min⁻¹. Determine en cuánto tiempo el grano alcanza 12% de humedad (b.s.).',
+  inputs:[
+    {key:'X0', label:'X0 — humedad inicial (b.s.)', unit:'0–1', dtag:'d-in-1', def:'0.45'},
+    {key:'Xeq', label:'Xeq — humedad de equilibrio (b.s.)', unit:'0–1', def:'0.08'},
+    {key:'k', label:'k — constante de velocidad de secado', unit:'min⁻¹', def:'0.08'},
+    {key:'Xtarget', label:'Humedad objetivo (b.s.)', unit:'0–1', def:'0.12'},
+  ],
+  hints:[
+    'Este modelo simplificado asume que la velocidad de pérdida de humedad es proporcional a cuánta humedad le falta al grano para llegar al equilibrio: dX/dt = −k·(X−Xeq). Es la misma estructura matemática que el tanque salino, aplicada ahora a la humedad.',
+    'La solución analítica tiene la misma forma que en ese caso: X(t) = Xeq + (X0−Xeq)·e^(−kt).',
+    'Despeja t de esa ecuación para la humedad objetivo, usando logaritmo natural.'
+  ],
+  answerFields:[
+    {key:'t', label:'Tiempo de secado necesario', unit:'min'},
+  ],
+  calc(v){
+    if(v.X0<0||v.X0>1||v.Xeq<0||v.Xeq>1||v.Xtarget<0||v.Xtarget>1) return {error:'Las humedades deben estar entre 0 y 1.'};
+    if(v.k<=0) return {error:'La constante de secado debe ser mayor que cero.'};
+    if(v.X0<=v.Xeq) return {error:'La humedad inicial debe ser mayor que la humedad de equilibrio.'};
+    if(v.Xtarget<=v.Xeq||v.Xtarget>=v.X0) return {error:'La humedad objetivo debe estar entre la de equilibrio y la inicial.'};
+    const t = -Math.log((v.Xtarget-v.Xeq)/(v.X0-v.Xeq))/v.k;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = t*1.15*i/nSteps;
+      points.push({t:tt, aprox: (v.Xeq+(v.X0-v.Xeq)*Math.exp(-v.k*tt))*100});
+    }
+    const chart = buildLineChart(points, [{key:'aprox', label:'Humedad del grano (%, b.s.)', color:'var(--vino)'}], {xLabel:'tiempo (min)', yDec:1});
+    return {
+      outputs:[{key:'t',label:'Tiempo de secado necesario',value:fmt(t,2),unit:'min',raw:t}],
+      diagram:{'d-out-1':fmt(t,1)+' min'}, flows:['fo1','fo2'], chart,
+      steps:[
+        {t:'Modelo simplificado de secado en período decreciente', f:`dX/dt = −k·(X − Xeq)`},
+        {t:'Solución analítica (misma estructura que el tanque salino)', f:`X(t) = Xeq + (X0−Xeq)·e^(−kt)`},
+        {t:'Se despeja el tiempo para la humedad objetivo', f:`t = −ln[(Xtarget−Xeq)/(X0−Xeq)] / k = ${fmt(t,2)} min`}
+      ],
+      note:'Modelo simplificado del período de velocidad decreciente de secado; no representa el período de velocidad constante inicial.'
+    };
+  }
+},
+{ id:'vidaUtil', num:'39', cat:'materia', chapter:5, sector:'Alimentaria', diagramKey:'reactorBatchDecae', name:'Vida útil de un nutriente',
+  title:'Degradación de un nutriente durante el almacenamiento',
+  context:'Planta de jugos — vida útil por degradación de vitamina C',
+  story:'Un jugo de fruta envasado tiene un contenido inicial de vitamina C de 50 mg/100 mL. Durante el almacenamiento, la vitamina C se degrada siguiendo una cinética de primer orden, con una constante de degradación de 0.015 día⁻¹. El criterio de vida útil del producto es que conserve al menos el 50% de la vitamina C inicial (25 mg/100 mL). Determine la vida útil estimada del producto.',
+  inputs:[
+    {key:'C0', label:'C0 — concentración inicial de vitamina C', unit:'mg/100mL', dtag:'d-in-1', def:'50'},
+    {key:'k', label:'k — constante de degradación', unit:'día⁻¹', def:'0.015'},
+    {key:'Ctarget', label:'Concentración mínima aceptable', unit:'mg/100mL', def:'25'},
+  ],
+  hints:[
+    'La degradación de nutrientes en alimentos se modela comúnmente como una reacción de primer orden: la velocidad de pérdida es proporcional a la cantidad presente en cada instante. Plantea dC/dt = −k·C.',
+    'La solución de esa ecuación diferencial es una exponencial decreciente: C(t) = C0·e^(−kt) — la misma estructura matemática que ya usaste en el lavado CIP.',
+    'Despeja el tiempo t para el cual la concentración llega al valor mínimo aceptable, usando logaritmo natural.'
+  ],
+  answerFields:[
+    {key:'t', label:'Vida útil estimada', unit:'días'},
+  ],
+  calc(v){
+    if(v.C0<=0) return {error:'La concentración inicial debe ser mayor que cero.'};
+    if(v.k<=0) return {error:'La constante de degradación debe ser mayor que cero.'};
+    if(v.Ctarget<=0||v.Ctarget>=v.C0) return {error:'La concentración mínima debe estar entre 0 y la concentración inicial.'};
+    const t = -Math.log(v.Ctarget/v.C0)/v.k;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = t*1.15*i/nSteps;
+      points.push({t:tt, aprox: v.C0*Math.exp(-v.k*tt)});
+    }
+    const chart = buildLineChart(points, [{key:'aprox', label:'Vitamina C (mg/100mL)', color:'var(--vino)'}], {xLabel:'tiempo (días)', yDec:1});
+    return {
+      outputs:[{key:'t',label:'Vida útil estimada',value:fmt(t,2),unit:'días',raw:t}],
+      diagram:{'d-out-1':fmt(t,1)+' días'}, flows:[], chart,
+      steps:[
+        {t:'Cinética de degradación de primer orden', f:`dC/dt = −k·C`},
+        {t:'Solución analítica', f:`C(t) = C0·e^(−kt)`},
+        {t:'Se despeja el tiempo para la concentración mínima aceptable', f:`t = −ln(Ctarget/C0) / k = −ln(${v.Ctarget}/${v.C0}) / ${v.k} = ${fmt(t,2)} días`}
+      ],
+      note:'Modelo de primer orden, común para vitaminas hidrosolubles (como la vitamina C) en productos líquidos almacenados a temperatura constante.'
+    };
+  }
+},
+{ id:'reactorBatch1erOrden', num:'40', cat:'materia', chapter:5, sector:'No alimentaria', diagramKey:'reactorBatchDecae', name:'Reactor batch (1er orden)',
+  title:'Reactor por lotes con reacción de primer orden',
+  context:'Planta de subproductos — hidrólisis enzimática por lotes',
+  story:'En un reactor por lotes (batch) se lleva a cabo una reacción de hidrólisis enzimática de primer orden respecto al sustrato, con una constante cinética de 0.12 min⁻¹. Determine el tiempo necesario para alcanzar una conversión del 90% del sustrato.',
+  inputs:[
+    {key:'k', label:'k — constante cinética de la reacción', unit:'min⁻¹', dtag:'d-in-1', def:'0.12'},
+    {key:'Xtarget', label:'Conversión objetivo', unit:'0–1', def:'0.90'},
+  ],
+  hints:[
+    'En un reactor batch con reacción de primer orden, la concentración del sustrato disminuye según dCa/dt = −k·Ca, igual que las otras cinéticas de primer orden que ya trabajaste.',
+    'La conversión X se define como X = (Ca0−Ca)/Ca0, es decir, Ca = Ca0·(1−X). No necesitas conocer Ca0 en valor absoluto — solo la fracción convertida.',
+    'Combina la solución analítica Ca(t)=Ca0·e^(−kt) con la definición de conversión para despejar el tiempo directamente en función de X y k: t = −ln(1−X)/k.'
+  ],
+  answerFields:[
+    {key:'t', label:'Tiempo necesario', unit:'min'},
+  ],
+  calc(v){
+    if(v.k<=0) return {error:'La constante cinética debe ser mayor que cero.'};
+    if(v.Xtarget<=0||v.Xtarget>=1) return {error:'La conversión objetivo debe estar entre 0 y 1 (sin llegar a 1).'};
+    const t = -Math.log(1-v.Xtarget)/v.k;
+    const points=[];
+    const nSteps=40;
+    for(let i=0;i<=nSteps;i++){
+      const tt = t*1.15*i/nSteps;
+      points.push({t:tt, aprox: (1-Math.exp(-v.k*tt))*100});
+    }
+    const chart = buildLineChart(points, [{key:'aprox', label:'Conversión (%)', color:'var(--vino)'}], {xLabel:'tiempo (min)', yDec:1});
+    return {
+      outputs:[{key:'t',label:'Tiempo necesario',value:fmt(t,3),unit:'min',raw:t}],
+      diagram:{'d-out-1':fmt(t,2)+' min'}, flows:[], chart,
+      steps:[
+        {t:'Cinética de primer orden en el reactor batch', f:`dCa/dt = −k·Ca  →  Ca(t) = Ca0·e^(−kt)`},
+        {t:'Se expresa en función de la conversión X = (Ca0−Ca)/Ca0', f:`1−X = Ca/Ca0 = e^(−kt)`},
+        {t:'Se despeja el tiempo para la conversión objetivo', f:`t = −ln(1−X) / k = −ln(1−${v.Xtarget}) / ${v.k} = ${fmt(t,3)} min`}
+      ]
     };
   }
 }
