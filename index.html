@@ -354,7 +354,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-07-a · 64 fichas · Cap. 1 (prototipo) y Cap. 2 completo</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-07-b · 75 fichas · Cap. 1 completo (12 esquemas)</p>
     </footer>
   </main>
 </div>
@@ -826,6 +826,56 @@ conversionDiag: `<svg viewBox="0 0 320 130" class="schem">${ARROW_DEFS}
   <path class="pipe" d="M200,65 L300,65" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M200,65 L300,65"/>
   <text x="14" y="55" class="d-label">Valor original</text><text x="14" y="80" class="d-val" id="d-in-1">—</text>
   <text x="210" y="55" class="d-label">Valor en SI</text><text x="210" y="80" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+reciclonSecadorDiag: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <rect x="55" y="18" width="215" height="112" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="59" y="13" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,55 L70,55" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,55 L70,55"/>
+  <circle cx="70" cy="55" r="5" fill="var(--ocre)"/>
+  <path class="pipe" d="M10,110 L110,110" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M10,110 L110,110"/>
+  <path class="pipe" d="M70,55 L120,55 L120,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M70,55 L120,55 L120,90"/>
+  <rect x="110" y="90" width="90" height="65" rx="6" class="box-unit"/>
+  <text x="155" y="118" text-anchor="middle" class="unit-label" style="font-size:9px;">SECADOR</text>
+  <path class="pipe" d="M200,120 L260,120" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M200,120 L260,120"/>
+  <circle cx="260" cy="120" r="5" fill="var(--ocre)"/>
+  <path class="pipe" d="M260,120 L300,120" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M260,120 L300,120"/>
+  <path class="pipe" d="M260,120 L260,30 L70,30 L70,55" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo6" d="M260,120 L260,30 L70,30 L70,55"/>
+  <text x="14" y="45" class="d-label">Aire fresco</text>
+  <text x="14" y="100" class="d-label">Producto húmedo</text>
+  <text x="205" y="112" class="d-label">Aire de purga</text>
+  <text x="150" y="145" class="d-label">Aire recirculado (todavía seco)</text>
+</svg>`,
+reactorRecicloDiag: `<svg viewBox="0 0 320 190" class="schem">${ARROW_DEFS}
+  <rect x="55" y="18" width="245" height="112" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="59" y="13" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,90 L70,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,90 L70,90"/>
+  <circle cx="70" cy="90" r="5" fill="var(--vino)"/>
+  <path class="pipe" d="M70,90 L110,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M70,90 L110,90"/>
+  <rect x="110" y="55" width="80" height="70" rx="6" class="box-unit"/>
+  <text x="150" y="88" text-anchor="middle" class="unit-label" style="font-size:9px;">REACTOR</text>
+  <text x="150" y="103" text-anchor="middle" class="d-label" style="font-size:8px;">A → B (sin conv. total)</text>
+  <path class="pipe" d="M190,90 L230,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M190,90 L230,90"/>
+  <rect x="230" y="65" width="70" height="55" rx="6" class="box-unit"/>
+  <text x="265" y="88" text-anchor="middle" class="unit-label" style="font-size:8.5px;">SEPARADOR</text>
+  <path class="pipe" d="M265,120 L265,160 L310,160" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M265,120 L265,160 L310,160"/>
+  <path class="pipe" d="M290,65 L290,30 L70,30 L70,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M290,65 L290,30 L70,30 L70,90"/>
+  <text x="14" y="80" class="d-label">Alimentación fresca (A)</text>
+  <text x="205" y="150" class="d-label">Producto (B)</text>
+  <text x="150" y="140" class="d-label">Reciclo — A sin reaccionar</text>
+</svg>`,
+serieDosOperacionesDiag: `<svg viewBox="0 0 320 150" class="schem">${ARROW_DEFS}
+  <rect x="55" y="30" width="245" height="90" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="59" y="25" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,75 L70,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,75 L70,75"/>
+  <rect x="70" y="45" width="80" height="60" rx="6" class="box-unit"/>
+  <text x="110" y="72" text-anchor="middle" class="unit-label" style="font-size:9px;">OPERACIÓN 1</text>
+  <path class="pipe" d="M150,75 L210,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M150,75 L210,75"/>
+  <rect x="210" y="45" width="80" height="60" rx="6" class="box-unit"/>
+  <text x="250" y="72" text-anchor="middle" class="unit-label" style="font-size:9px;">OPERACIÓN 2</text>
+  <path class="pipe" d="M300,75 L315,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M300,75 L315,75"/>
+  <text x="14" y="65" class="d-label">Alimentación</text>
+  <text x="155" y="65" class="d-label">Intermedio</text>
+  <text x="255" y="30" class="d-label">Producto final</text>
 </svg>`
 };
 
@@ -3560,6 +3610,215 @@ const OPS = [
       note:'Revisar las unidades de cada término ANTES de sustituir números es el hábito que evita errores de homogeneidad dimensional — no basta con que la fórmula sea correcta, cada variable debe estar en la unidad que la ecuación espera.'
     };
   }
+},
+{ id:'esquemaSeparador', num:'65', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'centrifuga', name:'Plantea el esquema: separador',
+  title:'Identifica el esquema — separación centrífuga',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'Una planta láctea recibe leche entera y la introduce en una centrífuga, que la separa en dos corrientes: una de crema, rica en grasa, y otra de leche descremada, con muy poca grasa. Ninguna corriente cambia de composición química — solo se separan físicamente por diferencia de densidad. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Qué tipo de operación unitaria es esta?', options:['Mezclador','Separador (centrífuga)','Reactor','Secador'], correct:1,
+      explain:'Una corriente que entra y se divide en dos corrientes de diferente composición, sin reacción química, es un separador — en este caso, uno que aprovecha la diferencia de densidad (centrífuga).'},
+    {q:'¿Cuántas corrientes de entrada tiene el sistema?', options:['1','2','3'], correct:0,
+      explain:'Solo entra una corriente: la leche entera.'},
+    {q:'¿Cuántas corrientes de salida tiene el sistema?', options:['1','2','3'], correct:1,
+      explain:'Salen dos corrientes: crema y leche descremada.'},
+    {q:'¿Cuál de estas es una variable respuesta típica en este tipo de problema (lo que normalmente se pide calcular)?', options:['La composición de la leche entera de entrada','Los flujos de crema y descremada que salen','El tipo de operación unitaria','El número de corrientes'], correct:1,
+      explain:'Lo típico es que el enunciado dé la composición de las tres corrientes (o al menos dos) y el flujo de entrada, y pida calcular los flujos de las corrientes de salida.'},
+    {q:'¿Qué información adicional necesitarías para poder resolver este problema numéricamente?', options:['El flujo de leche entera y el % de grasa de las tres corrientes','La temperatura de la leche','El tiempo de centrifugado','El color de la crema'], correct:0,
+      explain:'Para un balance de materia sin reacción, los datos clave son los flujos conocidos y las composiciones (aquí, el % de grasa) de cada corriente — la temperatura y el tiempo no son necesarios para el balance de masa.'}
+  ],
+  schemaExplain:'El esquema tiene una corriente de entrada (leche entera, con su flujo y % de grasa) que entra a un separador (dibujado como un bloque rotulado "CENTRÍFUGA"), y dos corrientes de salida: crema (arriba, mayor % de grasa) y leche descremada (abajo, menor % de grasa). El volumen de control encierra la centrífuga completa, cruzado por las tres corrientes.'
+},
+{ id:'esquemaEvaporador', num:'66', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'evaporator', name:'Plantea el esquema: evaporador',
+  title:'Identifica el esquema — concentración por evaporación',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'Un trapiche panelero calienta el jugo de caña en pailas abiertas, evaporando agua hasta que el jugo se concentra en miel. El vapor de agua se libera a la atmósfera, y la miel concentrada continúa al siguiente proceso. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Qué operación unitaria describe mejor este proceso?', options:['Separador por densidad','Evaporador','Mezclador','Intercambiador de calor sin cambio de fase'], correct:1,
+      explain:'Se elimina un componente (agua) por cambio de fase (líquido a vapor) para concentrar el resto — es la definición de un evaporador.'},
+    {q:'¿Cuántas corrientes de entrada tiene el sistema?', options:['1','2','3'], correct:0,
+      explain:'Entra una sola corriente: el jugo de caña.'},
+    {q:'¿Cuántas corrientes de salida tiene el sistema?', options:['1','2','3'], correct:1,
+      explain:'Salen dos corrientes: el vapor de agua liberado y la miel concentrada.'},
+    {q:'¿Cuál de las siguientes suele ser la variable conocida (dato) en un problema de evaporador?', options:['El flujo de vapor que sale','La concentración de sólidos en la alimentación y en el producto final','La masa de miel producida por hora','Ninguna, todo se calcula'], correct:1,
+      explain:'Normalmente el enunciado da la concentración de sólidos solubles de entrada y la que se busca en el producto (o la del producto dado), y pide calcular los flujos de vapor y de producto.'},
+    {q:'¿Qué principio de conservación aplicarías para plantear este balance (sin reacción química)?', options:['Conservación de energía únicamente','Conservación de masa total y conservación de sólidos (el soluto no se evapora)','Conservación del volumen','Ninguno, se resuelve por tanteo'], correct:1,
+      explain:'Al no haber reacción, se plantea un balance de masa total (todo lo que entra sale, repartido entre vapor y producto) y un balance del soluto no volátil, que permanece íntegro en el líquido concentrado.'}
+  ],
+  schemaExplain:'El esquema tiene una corriente de entrada (jugo de caña, con su flujo y concentración de sólidos), un bloque rotulado "EVAPORADOR", y dos corrientes de salida: el vapor de agua (arriba, sin sólidos) y la miel concentrada (abajo, con mayor concentración de sólidos). El volumen de control encierra el evaporador completo.'
+},
+{ id:'esquemaSecador', num:'67', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'secadoAire', name:'Plantea el esquema: secador',
+  title:'Identifica el esquema — secado con aire caliente',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'En una planta de café, el grano recién despulpado y lavado se seca haciendo circular aire caliente a través de un lecho de granos, hasta alcanzar la humedad de exportación. El aire sale más húmedo de lo que entró, habiendo absorbido el agua removida del grano. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Cuántas corrientes de entrada tiene el sistema?', options:['1 (solo el grano)','2 (el grano y el aire de secado)','3'], correct:1,
+      explain:'Aunque a veces se piensa solo en el producto, el aire de secado también es una corriente que entra al sistema y cruza el volumen de control — y es indispensable para el balance.'},
+    {q:'¿Cuántas corrientes de salida tiene el sistema?', options:['1 (solo el grano seco)','2 (el grano seco y el aire húmedo de salida)','3'], correct:1,
+      explain:'El aire también sale del sistema, ahora con más humedad — es tan corriente de salida como el grano seco.'},
+    {q:'¿Qué le pasa a la humedad del aire entre la entrada y la salida?', options:['Disminuye','Aumenta','No cambia'], correct:1,
+      explain:'El aire es el medio que se lleva el agua removida del grano — por eso sale más húmedo de lo que entró.'},
+    {q:'¿Cuál sería la variable respuesta más probable en un problema numérico de este tipo?', options:['La humedad del grano antes de secar','La masa de aire seco necesaria para el secado','El color del grano','El tipo de secador'], correct:1,
+      explain:'Un planteamiento típico da las humedades del grano (antes y después) y del aire (antes y después), y pide calcular cuánto aire seco se necesita para lograr esa remoción de humedad.'},
+    {q:'¿Este proceso involucra reacción química?', options:['Sí','No'], correct:1,
+      explain:'El secado es un proceso físico (cambio de fase del agua, de líquida/ligada a vapor) — no hay ninguna transformación química de las sustancias involucradas.'}
+  ],
+  schemaExplain:'El esquema tiene dos corrientes de entrada (grano húmedo y aire de secado con su humedad inicial) y dos de salida (grano seco y aire con mayor humedad), representadas como dos líneas paralelas que atraviesan un bloque rotulado "SECADOR". El volumen de control encierra el secador completo, cruzado por las cuatro corrientes (dos de entrada, dos de salida).'
+},
+{ id:'esquemaReactor', num:'68', cat:'materia', chapter:1, sector:'No alimentaria', kind:'esquema', diagramKey:'reactor', name:'Plantea el esquema: reactor',
+  title:'Identifica el esquema — reactor con reacción química',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'Una planta de biodiésel alimenta aceite de palma a un reactor, donde ocurre la reacción de transesterificación que lo transforma en biodiésel. No toda la materia prima reacciona: una fracción de aceite sale sin convertir junto con el biodiésel producido. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Qué distingue a este esquema de un simple separador o mezclador?', options:['Tiene más de una corriente de entrada','Ocurre una transformación química: entra una sustancia y sale otra distinta','Tiene una corriente de salida','Nada, son iguales'], correct:1,
+      explain:'La diferencia clave de un reactor frente a las operaciones físicas (mezclar, separar, evaporar, secar) es que aparece una sustancia nueva que no estaba en la entrada — hay reacción química.'},
+    {q:'¿Qué significa que "no toda la materia prima reacciona"?', options:['Que hubo un error en el proceso','Que la conversión es menor al 100%, y sale aceite sin reaccionar junto con el producto','Que el reactor no sirve','Que se necesita un separador antes del reactor'], correct:1,
+      explain:'Es normal y esperado que un reactor real no alcance conversión completa — el enunciado indica que la salida es una mezcla de producto (biodiésel) y reactivo sin convertir (aceite).'},
+    {q:'¿Qué variable necesitarías conocer para calcular cuánto aceite sale sin reaccionar?', options:['La temperatura del reactor','La conversión de la reacción','El color del biodiésel','El precio del aceite'], correct:1,
+      explain:'La conversión (X) es la variable clave que relaciona la alimentación inicial con la cantidad que efectivamente reacciona — sin ese dato no se puede calcular cuánto queda sin convertir.'},
+    {q:'¿Cuántas corrientes de salida tiene este sistema, tal como está descrito?', options:['1 (una mezcla de biodiésel y aceite sin reaccionar)','2 (biodiésel puro y aceite puro por separado)','3'], correct:0,
+      explain:'Tal como está descrito el enunciado, el reactor entrega una sola corriente de salida que es una MEZCLA de producto y reactivo sin convertir — para separarlos haría falta otra operación unitaria (un separador), que no se menciona aquí.'},
+    {q:'Si quisieras recuperar el aceite sin reaccionar y reenviarlo al reactor, ¿qué tendrías que agregar al esquema?', options:['Nada, ya está incluido','Un separador después del reactor y una corriente de reciclo de vuelta a la entrada','Otro reactor en paralelo','Un mezclador'], correct:1,
+      explain:'Esa es exactamente la configuración de "reactor con reciclo" que verás más adelante: un separador después del reactor para aislar el reactivo sin convertir, y una corriente que lo regresa a la entrada del reactor.'}
+  ],
+  schemaExplain:'El esquema tiene una corriente de entrada (aceite de palma alimentado) hacia un bloque rotulado "REACTOR" (con la reacción indicada dentro, A → B), y una corriente de salida que representa la mezcla de biodiésel producido y aceite sin reaccionar. El volumen de control encierra el reactor completo.'
+},
+{ id:'esquemaIntercambiador', num:'69', cat:'energia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'exchanger', name:'Plantea el esquema: intercambiador',
+  title:'Identifica el esquema — intercambiador de calor',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'En una planta láctea, la leche pasteurizada sale muy caliente y debe enfriarse antes de envasarse. Para eso se hace pasar por un intercambiador de calor de placas, donde cede calor a una corriente de agua fría que circula en sentido contrario, sin que ambas corrientes se mezclen físicamente en ningún momento. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Qué distingue a un intercambiador de calor de un mezclador?', options:['El intercambiador tiene más corrientes','En el intercambiador, las corrientes NUNCA se mezclan físicamente — solo intercambian calor a través de una pared','El intercambiador es más grande','No hay diferencia'], correct:1,
+      explain:'La característica que define a un intercambiador es que las corrientes permanecen físicamente separadas (por ejemplo, por placas metálicas) — solo se transfiere energía (calor) entre ellas, nunca masa.'},
+    {q:'¿Cuántas corrientes de entrada tiene este sistema?', options:['1','2','3'], correct:1,
+      explain:'Entran dos corrientes independientes: la leche caliente y el agua fría.'},
+    {q:'¿Cuántas corrientes de salida tiene?', options:['1 (una mezcla)','2 (leche enfriada y agua calentada, cada una por su lado)','3'], correct:1,
+      explain:'Salen dos corrientes, cada una por su propio camino: la leche ya enfriada y el agua ya calentada — nunca se combinan en una sola corriente de salida.'},
+    {q:'¿Qué balance es el que normalmente resuelve este tipo de problema?', options:['Balance de masa únicamente','Balance de energía: el calor que cede la corriente caliente lo gana la corriente fría','Balance de reacción química','No se necesita ningún balance'], correct:1,
+      explain:'Al no haber cambio de composición ni mezcla física, el balance relevante es de energía — igualando el calor cedido por una corriente con el calor ganado por la otra.'},
+    {q:'¿Cuál sería típicamente el volumen de control para este problema?', options:['Solo la corriente caliente','Solo la corriente fría','Todo el intercambiador, incluyendo ambos canales de flujo','No se necesita definir uno'], correct:2,
+      explain:'El volumen de control abarca el equipo completo, con las cuatro corrientes (dos entradas, dos salidas) cruzando su frontera — aunque dentro de él haya dos caminos separados que nunca se mezclan.'}
+  ],
+  schemaExplain:'El esquema tiene dos corrientes independientes que atraviesan el intercambiador en sentidos opuestos (contracorriente): la leche entra caliente y sale fría; el agua entra fría y sale caliente. Ambas corrientes se dibujan como líneas paralelas separadas (nunca convergen), y el volumen de control (línea punteada) encierra el equipo completo.'
+},
+{ id:'esquemaBombeo', num:'70', cat:'energia', chapter:1, sector:'No alimentaria', kind:'esquema', diagramKey:'bombeo', name:'Plantea el esquema: bombeo',
+  title:'Identifica el esquema — sistema de bombeo',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'Una planta de subproductos agroindustriales bombea un líquido de proceso desde un tanque a nivel del suelo hasta un tanque elevado, para alimentar la siguiente etapa del proceso por gravedad. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Este problema involucra un cambio en la composición del fluido?', options:['Sí','No'], correct:1,
+      explain:'El bombeo es una operación puramente mecánica: el fluido no cambia de composición ni de temperatura de forma significativa — solo cambia su posición (altura) y presión.'},
+    {q:'¿Qué tipo de balance es el más relevante para resolver este problema?', options:['Balance de masa de un componente','Balance de energía mecánica (elevación, pérdidas por fricción, trabajo de la bomba)','Balance de reacción química','Balance de humedad'], correct:1,
+      explain:'Este es un problema de energía mecánica: se relaciona el trabajo que entrega la bomba con el cambio de energía potencial del fluido (y las pérdidas por fricción), no con transformaciones de materia.'},
+    {q:'¿Qué variables necesitarías conocer como mínimo para resolver este problema?', options:['La composición química del fluido','La densidad del fluido, el caudal, y la diferencia de altura entre los dos tanques','El color del tanque','El material de la tubería únicamente'], correct:1,
+      explain:'Para un balance de energía mecánica de bombeo, los datos esenciales son la densidad y el caudal del fluido (para hallar el flujo másico) y la diferencia de altura a vencer (energía potencial).'},
+    {q:'¿Cuántas corrientes "de proceso" (materia) entran y salen del sistema bomba+tubería?', options:['0 — es un sistema cerrado','1 corriente que entra por el tanque inferior y sale por el tanque superior','2 corrientes de entrada'], correct:1,
+      explain:'Es una sola corriente continua de líquido que entra por un extremo (tanque inferior) y sale por el otro (tanque superior) — no hay división ni combinación de corrientes.'},
+    {q:'¿Es necesario definir una base de cálculo en este tipo de problema?', options:['Sí, casi siempre se trabaja por unidad de masa o por caudal dado','No, nunca hace falta'], correct:0,
+      explain:'Los balances de energía mecánica suelen expresarse por unidad de masa (J/kg) y luego se multiplican por el flujo másico — el caudal dado en el enunciado suele ser la base con la que se calcula ese flujo.'}
+  ],
+  schemaExplain:'El esquema muestra un tanque inferior conectado por tubería a una bomba, y de ahí a un tanque superior, con la diferencia de altura (Δz) marcada entre ambos. El volumen de control encierra todo el trayecto del fluido, desde la superficie del tanque inferior hasta la superficie del tanque superior — los puntos 1 y 2 de la ecuación de energía mecánica.'
+},
+{ id:'esquemaDestilacion', num:'71', cat:'energia', chapter:1, sector:'No alimentaria', kind:'esquema', diagramKey:'flashDiag', name:'Plantea el esquema: destilación flash',
+  title:'Identifica el esquema — vaporización flash',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'En una destilería, una corriente de mosto fermentado sale caliente y a presión de una etapa previa, y se alimenta a un tanque donde una caída súbita de presión provoca que una parte se vaporice instantáneamente (vaporización flash), mientras el resto permanece como líquido, ahora más frío. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Qué tipo de cambio provoca la vaporización parcial en este proceso?', options:['Una reacción química','Una caída de presión (sin necesidad de agregar calor externo)','Un aumento de la masa alimentada','La adición de otro componente'], correct:1,
+      explain:'En una vaporización flash, no se agrega calor externo: la caída de presión hace que el punto de ebullición baje, y el propio calor sensible del líquido caliente es suficiente para vaporizar una fracción — por eso el líquido remanente sale más frío.'},
+    {q:'¿Cuántas corrientes de salida tiene este sistema?', options:['1','2 (vapor y líquido)','3'], correct:1,
+      explain:'El tanque flash separa la alimentación en dos corrientes: el vapor generado y el líquido remanente, cada una con su propia composición y temperatura.'},
+    {q:'¿Este proceso necesita una fuente externa de calor?', options:['Sí, siempre', 'No — es adiabático: el propio calor sensible del líquido caliente provee la energía de vaporización'], correct:1,
+      explain:'La vaporización flash es un proceso adiabático: el calor que se "pierde" al enfriarse el líquido remanente es exactamente el que se usa para vaporizar la fracción que sale como vapor — no entra ni sale calor del sistema.'},
+    {q:'¿Qué balance conjunto es necesario para resolver este tipo de problema?', options:['Solo balance de masa','Solo balance de energía','Balance de masa Y de energía juntos (es un balance simultáneo)','Ninguno'], correct:2,
+      explain:'Se necesita el balance de masa (para relacionar vapor, líquido y alimentación) junto con el de energía (para saber cuánto se vaporiza, a partir del calor sensible disponible) — resueltos de forma simultánea.'},
+    {q:'¿Cuál sería la variable respuesta más probable en un problema numérico de este tipo?', options:['La temperatura de entrada','La fracción o cantidad que se vaporiza (flash)','La composición de la alimentación','El tipo de tanque'], correct:1,
+      explain:'Lo que normalmente se pide calcular es cuánta masa se vaporiza (V) y cuánta queda como líquido (L), a partir de las temperaturas de entrada y de saturación, y las propiedades térmicas del fluido.'}
+  ],
+  schemaExplain:'El esquema tiene una corriente de entrada (líquido caliente a presión) hacia un tanque flash (representado con una nota de "caída de presión" dentro), y dos corrientes de salida: el vapor generado (arriba) y el líquido remanente, más frío (abajo). El volumen de control encierra el tanque completo.'
+},
+{ id:'esquemaMezcladorSeparador', num:'72', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'centrifuga', name:'Plantea el esquema: dos operaciones',
+  title:'Identifica el esquema — proceso con dos operaciones unitarias',
+  context:'Metodología para resolver balances — capítulo 1 (procesos combinados)',
+  story:'Una planta láctea primero separa la leche entera en una centrífuga, obteniendo crema y leche descremada. Luego, para producir leche semidescremada, mezcla parte de la crema obtenida de vuelta con la leche descremada, en un mezclador aparte. No se pide ningún cálculo en este ejercicio — el objetivo es reconocer que aquí hay más de una operación unitaria encadenada.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Cuántas operaciones unitarias distintas intervienen en este proceso?', options:['1','2 (una centrífuga y un mezclador)','3'], correct:1,
+      explain:'Hay dos equipos con funciones distintas: primero una centrífuga que separa, y después un mezclador que combina — dos operaciones unitarias en serie, no una sola.'},
+    {q:'¿La corriente de "crema" que sale de la centrífuga es la misma que entra al mezclador?', options:['Sí, es la misma corriente, solo que ahora es la entrada de otro equipo','No, son corrientes distintas sin relación'], correct:0,
+      explain:'Una corriente de salida de una operación puede ser (y frecuentemente es) la corriente de entrada de la siguiente — es la esencia de un proceso con varias etapas.'},
+    {q:'¿Cuántos volúmenes de control distintos podrías definir para analizar este proceso completo?', options:['Solo uno, alrededor de todo el proceso','Podrías definir uno alrededor de cada equipo por separado, o uno grande alrededor de todo el sistema, según qué te pidan calcular', 'Ninguno, no aplica aquí'], correct:1,
+      explain:'Esta es una decisión clave en problemas con varias operaciones: puedes analizar cada equipo con su propio volumen de control (para hallar variables internas, como la crema producida), o encerrar todo el proceso en un solo volumen de control grande (si solo te interesan las corrientes que entran y salen del sistema completo).'},
+    {q:'Si quisieras hallar el flujo de leche semidescremada final directamente, sin calcular la crema intermedia, ¿qué volumen de control convendría más?', options:['Uno pequeño alrededor de la centrífuga solamente','Uno grande que encierre tanto la centrífuga como el mezclador','Ninguno'], correct:1,
+      explain:'Un volumen de control grande, que encierre todo el sistema, te permite relacionar directamente las corrientes que entran (leche entera, y la porción de crema que no se recircula) con las que salen, sin necesidad de calcular las corrientes intermedias.'},
+    {q:'¿La corriente de leche descremada de la centrífuga es una corriente que cruza el volumen de control grande (todo el sistema), o queda "adentro"?', options:['Cruza el volumen de control grande, porque sale de la centrífuga y entra al mezclador — sigue dentro del sistema completo','Sale completamente del sistema'], correct:0,
+      explain:'Si el volumen de control grande encierra AMBOS equipos, la corriente de leche descremada que va de la centrífuga al mezclador queda completamente adentro — es una corriente "interna" que no cruza la frontera del sistema completo, aunque sí cruza la frontera de cada equipo individual.'}
+  ],
+  schemaExplain:'El esquema muestra dos equipos en serie: primero una centrífuga (entra leche entera, salen crema y descremada), y luego un mezclador (entra parte de la crema junto con la descremada, sale leche semidescremada). Se pueden dibujar dos volúmenes de control: uno pequeño por equipo, o uno grande que encierre ambos — la corriente de descremada que conecta ambos equipos queda "dentro" del volumen de control grande.'
+},
+{ id:'esquemaRecicloSecador', num:'73', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'reciclonSecadorDiag', name:'Plantea el esquema: reciclo en secado',
+  title:'Identifica el esquema — recirculación de aire en un secador',
+  context:'Metodología para resolver balances — capítulo 1 (procesos con reciclo)',
+  story:'Para ahorrar energía, un secador de granos no descarta todo el aire de salida: como ese aire sale todavía con capacidad de absorber algo más de humedad, una parte se mezcla con aire fresco antes de volver a entrar al secador, mientras que el resto se purga hacia la atmósfera. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Qué corriente de este esquema es la que se recircula?', options:['El producto seco','Parte del aire de salida del secador','El aire fresco de entrada','Ninguna, no hay reciclo'], correct:1,
+      explain:'El reciclo es la porción del aire que YA pasó por el secador (aire de salida) y se regresa a mezclarse con aire fresco antes de volver a entrar — exactamente como el reciclo de líquido en los procesos de mezcla que ya viste.'},
+    {q:'¿Dónde se juntan el aire fresco y el aire reciclado?', options:['Dentro del secador','En un punto de mezcla, antes de entrar al secador','Nunca se juntan'], correct:1,
+      explain:'Hay un punto de mezcla (un nodo) antes del secador, donde el aire fresco y el aire reciclado se combinan en una sola corriente que es la que realmente entra al equipo.'},
+    {q:'¿Qué corriente representa la "purga" en este sistema?', options:['El aire fresco','La porción del aire de salida que NO se recircula y se libera a la atmósfera','El producto seco','No hay purga en este esquema'], correct:1,
+      explain:'La purga es la fracción del aire de salida que sale definitivamente del sistema — necesaria para que el sistema no acumule humedad indefinidamente al recircular.'},
+    {q:'Si dibujas el volumen de control alrededor de todo el sistema (incluyendo el punto de mezcla y el secador), ¿la corriente de reciclo cruza esa frontera?', options:['Sí, la cruza dos veces','No, queda completamente dentro del volumen de control grande','Solo la cruza una vez'], correct:1,
+      explain:'Igual que en el reciclo de líquidos: si el volumen de control encierra tanto el punto de mezcla como el secador, la corriente de reciclo nunca sale de esa frontera — es interna al sistema, y no aparece en el balance global (solo aire fresco entra, y solo purga+producto salen).'},
+    {q:'¿Cuántas corrientes cruzan la frontera de un volumen de control que encierre TODO el sistema (incluido el reciclo)?', options:['2: aire fresco entra; purga y producto seco salen (más el producto húmedo que entra)','4, incluyendo el reciclo','1'], correct:0,
+      explain:'Contando materia prima: entran el producto húmedo y el aire fresco; salen el producto seco y la purga de aire — el reciclo, al quedar dentro de la frontera grande, no se cuenta como corriente que la cruza.'}
+  ],
+  schemaExplain:'El esquema muestra: aire fresco + aire reciclado que se combinan en un punto de mezcla antes de entrar al secador (junto con el producto húmedo); el secador entrega producto seco y aire de salida; ese aire de salida se divide en dos: una porción se recircula de vuelta al punto de mezcla, y el resto se purga a la atmósfera. El volumen de control grande encierra el punto de mezcla, el secador y el punto de división — el reciclo queda dentro de esa frontera.'
+},
+{ id:'esquemaReactorReciclo', num:'74', cat:'materia', chapter:1, sector:'No alimentaria', kind:'esquema', diagramKey:'reactorRecicloDiag', name:'Plantea el esquema: reactor con reciclo',
+  title:'Identifica el esquema — reactor con reciclo de reactivo',
+  context:'Metodología para resolver balances — capítulo 1 (procesos con reciclo)',
+  story:'En una planta de biodiésel, el reactor no logra convertir el 100% del aceite alimentado. Para no desperdiciar materia prima, la corriente de salida del reactor pasa primero por un separador, que aísla el aceite sin reaccionar del biodiésel producido. Ese aceite recuperado se recircula, mezclándose con aceite fresco antes de volver a entrar al reactor. No se pide ningún cálculo en este ejercicio — es la configuración de reciclo más común en reactores con conversión incompleta.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Cuántas operaciones unitarias distintas hay en este esquema?', options:['1 (solo el reactor)','2 (un reactor y un separador)','3'], correct:1,
+      explain:'Hay un reactor (donde ocurre la reacción) y un separador después de él (que aísla el reactivo sin convertir del producto) — dos equipos con funciones distintas.'},
+    {q:'¿Qué corriente entra al reactor: solo el aceite fresco, o algo más?', options:['Solo el aceite fresco','El aceite fresco MÁS el aceite reciclado, ya mezclados','Solo el aceite reciclado'], correct:1,
+      explain:'Antes de entrar al reactor, el aceite fresco se combina con el aceite recuperado del separador — el reactor recibe la alimentación combinada, no solo la fresca.'},
+    {q:'¿Por qué es necesario un separador después del reactor, y no se puede reciclar directamente la salida del reactor?', options:['Porque la salida del reactor es una mezcla de producto y reactivo sin reaccionar — hay que separarlos antes de reciclar solo el reactivo','No es necesario, es un error del enunciado','Porque el reactor no genera ninguna salida'], correct:0,
+      explain:'Si se reciclara la salida completa del reactor (sin separar), estarías devolviendo biodiésel ya formado de vuelta al reactor, lo cual no tiene sentido — el separador permite reciclar ÚNICAMENTE el aceite sin reaccionar.'},
+    {q:'Si el volumen de control encierra todo el sistema (reactor + separador + reciclo), ¿qué corrientes cruzan esa frontera?', options:['Aceite fresco (entra) y biodiésel producto (sale) — el reciclo queda adentro','Las cuatro corrientes: fresco, reciclo, salida del reactor, y producto','Solo el reciclo'], correct:0,
+      explain:'Con un volumen de control grande que encierra el punto de mezcla, el reactor y el separador, solo el aceite fresco (entrada) y el biodiésel (salida) cruzan la frontera — el reciclo es una corriente interna.'},
+    {q:'¿Qué balance de materia sería más simple de plantear primero: alrededor de todo el sistema, o alrededor del reactor solo?', options:['Alrededor de todo el sistema, porque no involucra la corriente de reciclo (desconocida) en la ecuación','Alrededor del reactor solo, siempre es más simple'], correct:0,
+      explain:'Esta es una estrategia clave en problemas con reciclo: el balance alrededor de TODO el sistema no incluye la corriente de reciclo (que suele ser una incógnita), así que conviene resolverlo primero — y usar esa información para luego analizar el reactor o el separador por separado si hace falta.'}
+  ],
+  schemaExplain:'El esquema muestra: aceite fresco que se mezcla con aceite reciclado (proveniente del separador) antes de entrar al reactor; el reactor entrega una mezcla de biodiésel y aceite sin reaccionar hacia un separador; el separador divide esa corriente en biodiésel (producto final, sale del sistema) y aceite sin reaccionar (se recircula de vuelta al punto de mezcla). El volumen de control grande encierra el punto de mezcla, el reactor y el separador — el reciclo queda dentro de esa frontera.'
+},
+{ id:'esquemaEvapSecadorSerie', num:'75', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'serieDosOperacionesDiag', name:'Plantea el esquema: evaporador + secador',
+  title:'Identifica el esquema — evaporación seguida de secado',
+  context:'Metodología para resolver balances — capítulo 1 (procesos combinados)',
+  story:'Una planta de café instantáneo primero concentra el extracto de café líquido en un evaporador, eliminando gran parte del agua. Luego, ese concentrado se termina de secar en una torre de secado por aspersión (spray dryer), donde se convierte en el polvo final. No se pide ningún cálculo en este ejercicio.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Cuántas operaciones unitarias distintas hay en este proceso?', options:['1','2 (evaporador y secador)','3'], correct:1,
+      explain:'Son dos equipos con funciones distintas: primero un evaporador (concentra un líquido eliminando parte del agua como vapor) y luego un secador (elimina el agua restante hasta obtener un sólido/polvo).'},
+    {q:'¿Qué corriente conecta al evaporador con el secador?', options:['El extracto líquido concentrado que sale del evaporador y entra al secador','El vapor de agua del evaporador','No hay conexión, son independientes'], correct:0,
+      explain:'El producto concentrado (líquido, con menos agua) que sale del evaporador es la corriente de entrada del secador — es la corriente "intermedia" que conecta ambas etapas.'},
+    {q:'¿En qué se diferencian las corrientes de vapor que salen de cada equipo?', options:['En nada, son idénticas','Ambas remueven agua, pero salen en puntos distintos del proceso — cada una cruza la frontera de SU PROPIO equipo','No hay corrientes de vapor'], correct:1,
+      explain:'Aunque ambas corrientes son "agua removida", una sale del evaporador (primera etapa) y otra del secador (segunda etapa) — cada una cruza la frontera de su propio volumen de control si los analizas por separado.'},
+    {q:'Si el enunciado te da la humedad inicial del extracto y la humedad final del polvo, pero te pide el agua total removida en todo el proceso, ¿qué conviene hacer?', options:['Definir un volumen de control alrededor de todo el sistema (evaporador + secador) y platear un solo balance global','Es imposible resolverlo sin conocer la corriente intermedia'], correct:0,
+      explain:'Igual que en otros procesos de varias etapas, si solo te interesa la relación entre la entrada y la salida FINAL, conviene encerrar todo el proceso en un único volumen de control grande — no necesitas conocer el concentrado intermedio para ese balance global.'},
+    {q:'¿Es necesario que ambos equipos usen la misma base de cálculo?', options:['Sí, siempre debe ser consistente la base a lo largo de todo el proceso encadenado','No, cada equipo puede usar una base distinta sin problema'], correct:0,
+      explain:'Cuando se encadenan varias operaciones, la base de cálculo (por ejemplo, "100 kg/h de extracto alimentado") debe mantenerse consistente en todo el análisis, para que las corrientes intermedias conecten correctamente entre una etapa y la siguiente.'}
+  ],
+  schemaExplain:'El esquema muestra dos bloques en serie: "EVAPORADOR" (entra extracto líquido diluido, sale vapor de agua y extracto concentrado) seguido de "SECADOR" (entra el concentrado, sale aire húmedo y polvo de café final). La corriente que conecta ambos equipos (el concentrado) es interna si se dibuja un volumen de control alrededor de todo el sistema.'
 }
 ];
 const CAT_LABEL = {materia:'MATERIA', energia:'ENERGÍA'};
