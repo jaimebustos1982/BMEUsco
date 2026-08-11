@@ -190,6 +190,30 @@
 
   .chart-box{margin-top:8px;}
 
+  /* ---------- CUESTIONARIO DE ESQUEMA (capítulo 1) ---------- */
+  .quiz-q{margin-bottom:18px;}
+  .quiz-q .qtext{font-family:var(--font-display);font-size:13.5px;font-weight:600;color:var(--ink);margin-bottom:9px;}
+  .quiz-opt{
+    display:flex;align-items:center;gap:9px;padding:9px 12px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:6px;cursor:pointer;font-size:12.5px;color:var(--ink-dim);
+    background:var(--card); transition:background .12s, border-color .12s;
+  }
+  .quiz-opt:active{transform:scale(0.99);}
+  .quiz-opt input{margin:0;accent-color:var(--vino);}
+  .quiz-opt.selected{border-color:var(--vino);background:var(--vino-soft);color:var(--ink);}
+  .quiz-opt.correct{border-color:var(--correct,#4B7A52);background:var(--correct-soft,rgba(75,122,82,0.1));color:var(--ink);}
+  .quiz-opt.incorrect{border-color:var(--error);background:var(--error-soft);color:var(--ink);}
+  .quiz-explain{font-size:12px;color:var(--ink-dim);margin-top:4px;padding:8px 10px;background:var(--paper2);border-radius:7px;display:none;}
+  .quiz-explain.show{display:block;}
+  .quiz-score{
+    font-family:var(--font-mono);font-size:12.5px;color:var(--vino);background:var(--vino-soft);
+    border:1px solid var(--vino);border-radius:8px;padding:10px 12px;margin-bottom:14px;
+  }
+  .reveal-btn{
+    width:100%;background:var(--ink);color:#fff;border:none;border-radius:7px;padding:13px;
+    font-family:var(--font-display);font-weight:700;font-size:13.5px;cursor:pointer;margin-top:6px;
+  }
+
   .calc-btn{ width:100%; background:var(--vino); color:#fff; border:none; border-radius:7px; padding:13px; font-family:var(--font-display); font-weight:700; font-size:14px; letter-spacing:.02em; cursor:pointer; transition:transform .08s, filter .15s; }
   .calc-btn:active{transform:scale(0.98);filter:brightness(1.1);}
 
@@ -296,12 +320,16 @@
           <div class="case-text" id="caseText"></div>
         </div>
 
-        <div class="schem-box"><div id="schemContainer"></div></div>
+        <div id="esquemaContainer"></div>
 
-        <p class="sec-label">Datos conocidos del problema</p>
-        <div class="inputs-grid" id="inputsGrid"></div>
+        <div id="schemWrap" class="schem-box"><div id="schemContainer"></div></div>
 
-        <div class="hint-box">
+        <div id="datosWrap">
+          <p class="sec-label">Datos conocidos del problema</p>
+          <div class="inputs-grid" id="inputsGrid"></div>
+        </div>
+
+        <div class="hint-box" id="hintWrap">
           <div class="hint-head">
             <span class="sec-label">¿Cómo lo planteo? Pistas guiadas</span>
           </div>
@@ -309,7 +337,7 @@
           <button class="hint-btn" id="hintBtn"></button>
         </div>
 
-        <div class="answer-box">
+        <div class="answer-box" id="answerWrap">
           <p class="sec-label">Tu respuesta</p>
           <p class="hint-empty">Resuelve el balance en tu cuaderno e ingresa aquí tus resultados. Es opcional: si los dejas en blanco, igual podrás ver la solución.</p>
           <div class="answer-grid" id="answerGrid"></div>
@@ -326,7 +354,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-06-d · 58 fichas · los 9 capítulos completos</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-07-a · 64 fichas · Cap. 1 (prototipo) y Cap. 2 completo</p>
     </footer>
   </main>
 </div>
@@ -787,6 +815,17 @@ liofilizacionDiag: `<svg viewBox="0 0 320 180" class="schem">${ARROW_DEFS}
   <text x="10" y="65" class="d-label">Hielo a sublimar</text><text x="10" y="88" class="d-val" id="d-in-1">—</text>
   <text x="20" y="175" class="d-label">Calor placa (Qplaca)</text>
   <text x="205" y="10" class="d-label">Vapor sublimado</text><text x="205" y="30" class="d-val computed" id="d-out-1">—</text>
+</svg>`,
+conversionDiag: `<svg viewBox="0 0 320 130" class="schem">${ARROW_DEFS}
+  <rect x="105" y="20" width="110" height="90" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="109" y="15" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M10,65 L120,65" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,65 L120,65"/>
+  <rect x="120" y="35" width="80" height="60" rx="8" class="box-unit"/>
+  <text x="160" y="60" text-anchor="middle" class="unit-label" style="font-size:9px;">CONVERSIÓN</text>
+  <text x="160" y="75" text-anchor="middle" class="unit-label" style="font-size:9px;">DE UNIDADES</text>
+  <path class="pipe" d="M200,65 L300,65" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M200,65 L300,65"/>
+  <text x="14" y="55" class="d-label">Valor original</text><text x="14" y="80" class="d-val" id="d-in-1">—</text>
+  <text x="210" y="55" class="d-label">Valor en SI</text><text x="210" y="80" class="d-val computed" id="d-out-1">—</text>
 </svg>`
 };
 
@@ -3326,6 +3365,201 @@ const OPS = [
       note:'Este es el sentido de un "balance simultáneo": el mismo resultado del balance de materia (moles reaccionados) es el dato de entrada del balance de energía.'
     };
   }
+},
+{ id:'esquemaMezclador', num:'59', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', diagramKey:'mixer', name:'Plantea el esquema: mezcla',
+  title:'Identifica el esquema — mezcla de pulpas de fruta',
+  context:'Metodología para resolver balances — capítulo 1',
+  story:'En una despulpadora de frutas, se combina una corriente de pulpa de mango con 14 °Brix con otra corriente de pulpa de mango más diluida, con 8 °Brix, en un tanque agitado, para obtener una mezcla estandarizada que luego se envasa. No se pide ningún cálculo numérico en este ejercicio — el objetivo es que definas correctamente cómo se vería el esquema del proceso antes de intentar resolver nada.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {
+      q:'¿Qué tipo de operación unitaria describe mejor este proceso?',
+      options:['Separador / centrífuga','Mezclador','Evaporador','Reactor con reacción química'],
+      correct:1,
+      explain:'Dos corrientes que se combinan en una sola, sin que se elimine ni se genere ningún componente, es la firma de un mezclador — no hay separación de fases ni transformación química.'
+    },
+    {
+      q:'¿Cuántas corrientes de entrada tiene el sistema?',
+      options:['1','2','3','4'],
+      correct:1,
+      explain:'El enunciado menciona explícitamente dos corrientes de pulpa (14°Brix y 8°Brix) que entran al tanque.'
+    },
+    {
+      q:'¿Cuántas corrientes de salida tiene el sistema?',
+      options:['1','2','3'],
+      correct:0,
+      explain:'Solo se menciona una mezcla resultante que sale del tanque hacia el envasado — una sola corriente de salida.'
+    },
+    {
+      q:'Según el enunciado, ¿cuál de las siguientes es una variable conocida (dato)?',
+      options:['El flujo másico de cada corriente de entrada','La concentración de sólidos solubles (°Brix) de cada corriente de entrada','La temperatura del tanque','El tiempo de residencia en el tanque'],
+      correct:1,
+      explain:'El enunciado da explícitamente los °Brix de ambas corrientes (14 y 8). No menciona flujos, temperatura ni tiempo — esas no son datos de este problema tal como está escrito.'
+    },
+    {
+      q:'¿Es necesario definir una base de cálculo para poder plantear este balance?',
+      options:['Sí, porque el enunciado no da ningún flujo másico específico','No, porque ya se conocen todos los flujos'],
+      correct:0,
+      explain:'Como no se da ningún flujo (ni de entrada ni de salida), para resolver numéricamente este problema habría que asumir una base de cálculo — por ejemplo, "100 kg/h de mezcla final" — antes de poder aplicar los balances.'
+    }
+  ],
+  schemaExplain:'El esquema correcto tiene dos corrientes de entrada (F1 con 14°Brix y F2 con 8°Brix) que convergen en un mezclador, y una sola corriente de salida (F3, la mezcla estandarizada). El volumen de control se dibuja como una línea punteada que encierra el tanque mezclador completo, de forma que las tres corrientes lo crucen — dos entrando, una saliendo. Como no hay flujos numéricos dados, este problema necesitaría una base de cálculo para resolverse (por ejemplo, asumir 100 kg/h de F3), algo que no hacía falta identificar en los ejercicios de los capítulos anteriores porque ya traían los flujos dados.'
+},
+{ id:'convFlujoMasico', num:'60', cat:'materia', chapter:2, sector:'Alimentaria', diagramKey:'conversionDiag', name:'Flujo volumétrico → másico',
+  title:'Conversión de flujo volumétrico a flujo másico (SI)',
+  context:'Manejo de unidades — Sistema Internacional',
+  story:'En una planta, un medidor reporta un caudal de 850 L/min de jarabe con densidad de 1.32 g/mL. Los cálculos de balance de materia del curso trabajan en unidades base del Sistema Internacional (kg y s). Convierta el caudal a flujo másico en kg/s.',
+  inputs:[
+    {key:'Qvol', label:'Caudal', unit:'L/min', dtag:'d-in-1', def:'850'},
+    {key:'densidad', label:'Densidad', unit:'g/mL', def:'1.32'},
+  ],
+  hints:[
+    'Convierte primero el caudal a unidades base del SI: litros a metros cúbicos (÷1000) y minutos a segundos (÷60).',
+    'Convierte la densidad de g/mL a kg/m³. Un dato útil: 1 g/mL equivale numéricamente a 1000 kg/m³.',
+    'El flujo másico es el producto del caudal (en m³/s) por la densidad (en kg/m³) — verifica que las unidades se cancelen correctamente y quede en kg/s.'
+  ],
+  answerFields:[
+    {key:'masico', label:'Flujo másico', unit:'kg/s'},
+  ],
+  calc(v){
+    if(v.Qvol<0) return {error:'El caudal no puede ser negativo.'};
+    if(v.densidad<=0) return {error:'La densidad debe ser mayor que cero.'};
+    const Qvol_m3s = v.Qvol/1000/60;
+    const densidad_kgm3 = v.densidad*1000;
+    const masico = Qvol_m3s*densidad_kgm3;
+    return {
+      outputs:[{key:'masico',label:'Flujo másico',value:fmt(masico,3),unit:'kg/s',raw:masico}],
+      diagram:{'d-out-1':fmt(masico,3)+' kg/s'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Conversión del caudal a unidades base SI (m³/s)', f:`Qvol = ${v.Qvol} L/min × (1 m³/1000 L) × (1 min/60 s) = ${fmt(Qvol_m3s,6)} m³/s`},
+        {t:'Conversión de la densidad a unidades base SI (kg/m³)', f:`ρ = ${v.densidad} g/mL × 1000 = ${fmt(densidad_kgm3,1)} kg/m³`},
+        {t:'Flujo másico', f:`ṁ = Qvol × ρ = ${fmt(Qvol_m3s,6)} × ${fmt(densidad_kgm3,1)} = ${fmt(masico,3)} kg/s`}
+      ]
+    };
+  }
+},
+{ id:'convPotencia', num:'61', cat:'materia', chapter:2, sector:'No alimentaria', diagramKey:'conversionDiag', name:'Potencia (HP → kW)',
+  title:'Conversión de potencia a unidades del SI',
+  context:'Manejo de unidades — Sistema Internacional',
+  story:'La placa de datos de una bomba centrífuga indica una potencia de 5 HP, una unidad de uso común en fichas técnicas de equipos pero que no pertenece al Sistema Internacional. Convierta esa potencia a kW para usarla en los balances de energía del curso.',
+  inputs:[
+    {key:'hp', label:'Potencia', unit:'HP', dtag:'d-in-1', def:'5'},
+  ],
+  hints:[
+    'El caballo de fuerza (HP) es una unidad de potencia fuera del SI, de uso extendido en placas de equipos en la industria.',
+    'El factor de conversión aceptado es 1 HP = 0.7457 kW.',
+    'Multiplica el valor en HP por ese factor para obtener la potencia en kW, la unidad que usarás en los balances de energía del curso.'
+  ],
+  answerFields:[
+    {key:'kw', label:'Potencia en kW', unit:'kW'},
+  ],
+  calc(v){
+    if(v.hp<0) return {error:'La potencia no puede ser negativa.'};
+    const kw = v.hp*0.7457;
+    return {
+      outputs:[{key:'kw',label:'Potencia en kW',value:fmt(kw,4),unit:'kW',raw:kw}],
+      diagram:{'d-out-1':fmt(kw,3)+' kW'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Factor de conversión HP → kW', f:`1 HP = 0.7457 kW`},
+        {t:'Conversión', f:`P = ${v.hp} HP × 0.7457 kW/HP = ${fmt(kw,4)} kW`}
+      ],
+      note:'El HP es una unidad muy común en fichas técnicas de motores y bombas en la industria, pero no pertenece al Sistema Internacional — siempre debe convertirse antes de usarla en un balance de energía en SI.'
+    };
+  }
+},
+{ id:'convPresion', num:'62', cat:'materia', chapter:2, sector:'No alimentaria', diagramKey:'conversionDiag', name:'Presión (bar → kPa)',
+  title:'Conversión de presión a unidades del SI',
+  context:'Manejo de unidades — Sistema Internacional',
+  story:'Un manómetro instalado en una línea de vapor marca 8 bar. El bar es una unidad de presión de uso muy extendido en la industria, pero no es la unidad base del Sistema Internacional. Exprese esa presión en kPa y en Pa (la unidad base del SI para presión).',
+  inputs:[
+    {key:'bar', label:'Presión', unit:'bar', dtag:'d-in-1', def:'8'},
+  ],
+  hints:[
+    'El pascal (Pa) es la unidad base de presión en el SI; el kilopascal (kPa) es un múltiplo de uso muy común en ingeniería de procesos.',
+    'El factor de conversión es 1 bar = 100 kPa = 100 000 Pa.',
+    'Multiplica el valor en bar por el factor correspondiente para cada unidad de destino.'
+  ],
+  answerFields:[
+    {key:'kpa', label:'Presión en kPa', unit:'kPa'},
+    {key:'pa', label:'Presión en Pa', unit:'Pa'},
+  ],
+  calc(v){
+    if(v.bar<0) return {error:'La presión no puede ser negativa.'};
+    const kpa = v.bar*100, pa = v.bar*100000;
+    return {
+      outputs:[
+        {key:'kpa',label:'Presión en kPa',value:fmt(kpa,2),unit:'kPa',raw:kpa},
+        {key:'pa',label:'Presión en Pa',value:fmt(pa,0),unit:'Pa',raw:pa}
+      ],
+      diagram:{'d-out-1':fmt(kpa,1)+' kPa'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Factor de conversión bar → kPa → Pa', f:`1 bar = 100 kPa = 100 000 Pa`},
+        {t:'Conversión', f:`P = ${v.bar} bar × 100 kPa/bar = ${fmt(kpa,2)} kPa\nP = ${v.bar} bar × 100 000 Pa/bar = ${fmt(pa,0)} Pa`}
+      ]
+    };
+  }
+},
+{ id:'convTemperatura', num:'63', cat:'materia', chapter:2, sector:'No alimentaria', diagramKey:'conversionDiag', name:'Temperatura (°C → K)',
+  title:'Conversión de temperatura a la unidad base del SI',
+  context:'Manejo de unidades — Sistema Internacional',
+  story:'A lo largo del curso, las temperaturas se han manejado en grados Celsius (°C) por ser la unidad más intuitiva en la práctica industrial. Sin embargo, la unidad base de temperatura en el Sistema Internacional es el kelvin (K). Convierta una lectura de 25°C a kelvin.',
+  inputs:[
+    {key:'C', label:'Temperatura', unit:'°C', dtag:'d-in-1', def:'25'},
+  ],
+  hints:[
+    'El kelvin es una escala absoluta: su cero corresponde al cero absoluto, no al punto de congelación del agua como el Celsius.',
+    'La relación entre ambas escalas es una simple suma (no hay factor multiplicativo, a diferencia de otras conversiones de unidades): T(K) = T(°C) + 273.15.',
+    'Aplica esa relación directamente al valor dado.'
+  ],
+  answerFields:[
+    {key:'K', label:'Temperatura en kelvin', unit:'K'},
+  ],
+  calc(v){
+    if(v.C<-273.15) return {error:'La temperatura no puede ser menor que el cero absoluto (−273.15°C).'};
+    const K = v.C+273.15;
+    return {
+      outputs:[{key:'K',label:'Temperatura en kelvin',value:fmt(K,2),unit:'K',raw:K}],
+      diagram:{'d-out-1':fmt(K,2)+' K'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Relación entre Celsius y kelvin', f:`T(K) = T(°C) + 273.15`},
+        {t:'Conversión', f:`T = ${v.C} + 273.15 = ${fmt(K,2)} K`}
+      ],
+      note:'A diferencia de la mayoría de conversiones de unidades (que son multiplicativas), la relación °C–K es aditiva: ambas escalas tienen el mismo tamaño de grado, solo cambia el punto de referencia del cero.'
+    };
+  }
+},
+{ id:'homogeneidadDimensional', num:'64', cat:'materia', chapter:2, sector:'No alimentaria', diagramKey:'conversionDiag', name:'Homogeneidad dimensional',
+  title:'Verificación de homogeneidad dimensional',
+  context:'Manejo de unidades — consistencia dimensional en el SI',
+  story:'La ecuación fundamental para hallar un flujo másico es ṁ = ρ·Q̇ (densidad por caudal volumétrico). Un ingeniero mide una densidad de 1050 kg/m³ y un caudal de 36 m³/h. Antes de reportar el resultado, debe expresar el caudal en unidades base del SI (m³/s) para que la ecuación sea dimensionalmente consistente y el resultado quede directamente en kg/s. Realice esa verificación y calcule el flujo másico.',
+  inputs:[
+    {key:'rho', label:'ρ — densidad', unit:'kg/m³', dtag:'d-in-1', def:'1050'},
+    {key:'Q', label:'Q̇ — caudal', unit:'m³/h', def:'36'},
+  ],
+  hints:[
+    'Revisa las unidades de cada variable de la ecuación ṁ=ρ·Q̇: si ρ está en kg/m³ y Q̇ en m³/h, el producto directo daría kg/h, no kg/s — la ecuación seguiría siendo válida, pero el resultado no estaría en la unidad base del SI.',
+    'Para que el resultado quede directamente en kg/s (unidad base de flujo másico en el SI), convierte primero el caudal de m³/h a m³/s (divide entre 3600).',
+    'Multiplica la densidad (ya en unidades base, kg/m³) por el caudal convertido (m³/s) para obtener el flujo másico en kg/s — así las unidades de ambos lados de la ecuación quedan consistentes.'
+  ],
+  answerFields:[
+    {key:'mdot', label:'ṁ — flujo másico', unit:'kg/s'},
+  ],
+  calc(v){
+    if(v.rho<=0) return {error:'La densidad debe ser mayor que cero.'};
+    if(v.Q<0) return {error:'El caudal no puede ser negativo.'};
+    const Q_m3s = v.Q/3600;
+    const mdot = v.rho*Q_m3s;
+    return {
+      outputs:[{key:'mdot',label:'ṁ — flujo másico',value:fmt(mdot,4),unit:'kg/s',raw:mdot}],
+      diagram:{'d-out-1':fmt(mdot,3)+' kg/s'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Revisión de unidades antes de sustituir (homogeneidad dimensional)', f:`[ṁ] = [ρ]·[Q̇] = (kg/m³)·(m³/s) = kg/s ✓ (correcto si Q̇ está en m³/s)`},
+        {t:'Conversión del caudal a unidades base del SI', f:`Q̇ = ${v.Q} m³/h × (1 h/3600 s) = ${fmt(Q_m3s,6)} m³/s`},
+        {t:'Cálculo del flujo másico con unidades consistentes', f:`ṁ = ρ·Q̇ = ${v.rho}×${fmt(Q_m3s,6)} = ${fmt(mdot,4)} kg/s`}
+      ],
+      note:'Revisar las unidades de cada término ANTES de sustituir números es el hábito que evita errores de homogeneidad dimensional — no basta con que la fórmula sea correcta, cada variable debe estar en la unidad que la ecuación espera.'
+    };
+  }
 }
 ];
 const CAT_LABEL = {materia:'MATERIA', energia:'ENERGÍA'};
@@ -3406,6 +3640,8 @@ async function registrarUso(op, pistasUsadas, verdicto){
 
 /* ============================= CAPÍTULOS DEL LIBRO ============================= */
 const CHAPTERS = [
+  {num:1, title:'Introducción al análisis de procesos agroindustriales'},
+  {num:2, title:'Conceptos fundamentales: unidades y homogeneidad dimensional'},
   {num:3, title:'Balance de materia sin reacción química (estado estacionario)'},
   {num:4, title:'Balance de materia con reacción química'},
   {num:5, title:'Balance de materia en estado transitorio'},
@@ -3445,7 +3681,7 @@ function renderChapters(){
   document.getElementById('chapterTitleBar').textContent = `Capítulo ${currentChapter} — ${chObj.title}`;
 }
 function chapterShort(n){
-  const map = {3:'Materia sin reacción',4:'Materia con reacción',5:'Materia transitorio',6:'Energía estable',7:'Energía con reacción',8:'Energía transitorio',9:'Materia + energía'};
+  const map = {1:'Introducción',2:'Unidades y dimensiones',3:'Materia sin reacción',4:'Materia con reacción',5:'Materia transitorio',6:'Energía estable',7:'Energía con reacción',8:'Energía transitorio',9:'Materia + energía'};
   return map[n] || '';
 }
 
@@ -3493,9 +3729,27 @@ function renderOp(){
   document.getElementById('opTitle').textContent = op.title;
   document.getElementById('caseContext').textContent = op.context;
   document.getElementById('caseText').textContent = op.story;
-  document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.diagramKey || op.id];
   document.getElementById('resultsBox').innerHTML = '';
   document.getElementById('errBox').innerHTML = '';
+
+  if(op.kind==='esquema'){
+    document.getElementById('schemWrap').style.display='none';
+    document.getElementById('datosWrap').style.display='none';
+    document.getElementById('hintWrap').style.display='none';
+    document.getElementById('answerWrap').style.display='none';
+    document.getElementById('calcBtn').style.display='none';
+    renderEsquemaQuiz(op);
+    return;
+  }
+
+  document.getElementById('schemWrap').style.display='';
+  document.getElementById('datosWrap').style.display='';
+  document.getElementById('hintWrap').style.display='';
+  document.getElementById('answerWrap').style.display='';
+  document.getElementById('calcBtn').style.display='';
+  document.getElementById('calcBtn').textContent='Verificar mi resultado';
+  document.getElementById('esquemaContainer').innerHTML='';
+  document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.diagramKey || op.id];
 
   const grid = document.getElementById('inputsGrid');
   grid.innerHTML = op.inputs.map(inp => `
@@ -3520,6 +3774,67 @@ function renderOp(){
 
   renderHints(op);
   document.getElementById('hintBtn').onclick = ()=>{ hintsShown++; renderHints(op); };
+}
+
+function renderEsquemaQuiz(op){
+  const box = document.getElementById('esquemaContainer');
+  let html = '<p class="sec-label">Antes de ver el esquema, respóndete</p>';
+  op.quiz.forEach((q, qi)=>{
+    html += `<div class="quiz-q" data-qi="${qi}">
+      <div class="qtext">${qi+1}. ${q.q}</div>
+      ${q.options.map((opt,oi)=>`
+        <label class="quiz-opt" data-oi="${oi}">
+          <input type="radio" name="quiz-${qi}" value="${oi}">
+          <span>${opt}</span>
+        </label>`).join('')}
+      <div class="quiz-explain" id="explain-${qi}">${esc(q.explain)}</div>
+    </div>`;
+  });
+  html += `<button class="calc-btn" id="quizCheckBtn">Verificar mis respuestas</button>
+    <div id="quizScoreBox"></div>
+    <div id="revealBox"></div>`;
+  box.innerHTML = html;
+
+  box.querySelectorAll('.quiz-opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const qBlock = el.closest('.quiz-q');
+      qBlock.querySelectorAll('.quiz-opt').forEach(o=>o.classList.remove('selected'));
+      el.classList.add('selected');
+      el.querySelector('input').checked = true;
+    });
+  });
+
+  document.getElementById('quizCheckBtn').addEventListener('click', ()=>{
+    let correctCount = 0;
+    op.quiz.forEach((q, qi)=>{
+      const qBlock = box.querySelector(`.quiz-q[data-qi="${qi}"]`);
+      const selected = qBlock.querySelector('input:checked');
+      const selIdx = selected ? parseInt(selected.value,10) : null;
+      qBlock.querySelectorAll('.quiz-opt').forEach((optEl,oi)=>{
+        optEl.classList.remove('correct','incorrect');
+        if(oi===q.correct) optEl.classList.add('correct');
+        else if(oi===selIdx) optEl.classList.add('incorrect');
+      });
+      document.getElementById('explain-'+qi).classList.add('show');
+      if(selIdx===q.correct) correctCount++;
+    });
+    document.getElementById('quizScoreBox').innerHTML =
+      `<div class="quiz-score">Respondiste correctamente ${correctCount} de ${op.quiz.length} preguntas de diagnóstico.</div>`;
+    if(!document.getElementById('revealSchemaBtn')){
+      document.getElementById('revealBox').innerHTML =
+        '<button class="reveal-btn" id="revealSchemaBtn">Ver el esquema correcto</button>';
+      document.getElementById('revealSchemaBtn').addEventListener('click', ()=>{
+        document.getElementById('schemWrap').style.display='';
+        document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.diagramKey || op.id];
+        document.getElementById('resultsBox').innerHTML = `
+          <div class="results">
+            <div class="results-head"><div class="stamp">VERIFI-<br>CADO</div><span class="sec-label" style="margin:0;">Explicación del esquema</span></div>
+            <div class="note">${esc(op.schemaExplain)}</div>
+          </div>`;
+        document.getElementById('revealSchemaBtn').style.display='none';
+      });
+    }
+  });
 }
 
 function evaluarRespuesta(studentVal, correctVal){
