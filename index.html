@@ -396,7 +396,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-g</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-h</p>
     </footer>
   </main>
 </div>
@@ -5192,6 +5192,7 @@ async function abrirPanelDocente(){
       <div id="docContent" class="loading">Cargando registro de uso…</div>
       <div class="panel-actions">
         <button class="btn-secondary" id="doc-exportar" style="display:none;">Exportar CSV</button>
+        <button class="btn-secondary" id="doc-borrar" style="display:none;color:var(--error);border-color:var(--error);">Borrar registros</button>
         <button class="btn-primary" id="doc-cerrar">Cerrar panel</button>
       </div>
     </div>
@@ -5327,9 +5328,56 @@ async function abrirPanelDocente(){
       });
       mostrarModalExportar(csv);
     };
+
+    const borrarBtn = document.getElementById('doc-borrar');
+    borrarBtn.style.display='inline-block';
+    borrarBtn.onclick = ()=>{
+      mostrarConfirmarBorrado(logs.length);
+    };
   }catch(err){
     content.innerHTML = `<div class="err-box">Ocurrió un error al construir el panel: ${esc(err.message)}. Envía este mensaje a tu desarrollador para diagnosticarlo.</div>`;
   }
+}
+
+function mostrarConfirmarBorrado(totalRegistros){
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="overlay">
+    <div class="modal">
+      <h3 style="color:var(--error);">Borrar todos los registros</h3>
+      <p>Esto borrará permanentemente los <b>${totalRegistros}</b> registros guardados en tu hoja de Google. No se puede deshacer. Si aún no exportaste el CSV de esta actividad, hazlo antes de continuar.</p>
+      <div id="borrado-err"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="borrado-cancel">Cancelar</button>
+        <button class="btn-primary" id="borrado-confirmar" style="background:var(--error);">Sí, borrar todo</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('borrado-cancel').addEventListener('click', ()=>{ root.innerHTML=''; });
+  document.getElementById('borrado-confirmar').addEventListener('click', async ()=>{
+    const btn = document.getElementById('borrado-confirmar');
+    btn.textContent = 'Borrando…'; btn.disabled = true;
+    try{
+      await fetch(SHEET_WEBAPP_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({reset:true, secret:DOCENTE_CODE})
+      });
+      await new Promise(r=>setTimeout(r,1200));
+      const check = await fetch(SHEET_WEBAPP_URL);
+      const nuevos = await check.json();
+      if(Array.isArray(nuevos) && nuevos.length===0){
+        root.innerHTML='';
+        abrirPanelDocente();
+      } else {
+        document.getElementById('borrado-err').innerHTML = '<div class="err-box">No se pudo confirmar el borrado. Revisa que el script de Apps Script tenga la versión más reciente publicada (con "Nueva versión") y vuelve a intentar.</div>';
+        btn.textContent = 'Sí, borrar todo'; btn.disabled = false;
+      }
+    }catch(e){
+      document.getElementById('borrado-err').innerHTML = '<div class="err-box">Error de conexión al intentar borrar. Intenta de nuevo.</div>';
+      btn.textContent = 'Sí, borrar todo'; btn.disabled = false;
+    }
+  });
 }
 
 function mostrarModalExportar(csv){
