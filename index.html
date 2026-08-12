@@ -396,7 +396,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-d</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-e</p>
     </footer>
   </main>
 </div>
@@ -1031,6 +1031,25 @@ serieDosOperacionesDiag: `<svg viewBox="0 0 320 150" class="schem">${ARROW_DEFS}
   <text x="14" y="65" class="d-label">Alimentación</text>
   <text x="155" y="65" class="d-label">Intermedio</text>
   <text x="255" y="30" class="d-label">Producto final</text>
+</svg>`,
+serieTresOperacionesDiag: `<svg viewBox="0 0 320 150" class="schem">${ARROW_DEFS}
+  <rect x="20" y="30" width="280" height="90" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="24" y="25" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+  <path class="pipe" d="M5,75 L45,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M5,75 L45,75"/><circle class="particle" r="1.8" cx="0" cy="0"><animateMotion dur="1.2s" repeatCount="indefinite" path="M5,75 L45,75"/></circle>
+  <rect x="45" y="50" width="68" height="50" rx="5" class="box-unit"/>
+  <text x="79" y="72" text-anchor="middle" class="unit-label" style="font-size:7.5px;">INTERC. 1</text>
+  <text x="79" y="83" text-anchor="middle" class="d-label" style="font-size:6.5px;">(calienta)</text>
+  <path class="pipe" d="M113,75 L143,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M113,75 L143,75"/><circle class="particle" r="1.8" cx="0" cy="0"><animateMotion dur="1.3s" repeatCount="indefinite" path="M113,75 L143,75"/></circle>
+  <rect x="143" y="50" width="68" height="50" rx="5" class="box-unit"/>
+  <text x="177" y="72" text-anchor="middle" class="unit-label" style="font-size:7.5px;">RETENCIÓN</text>
+  <text x="177" y="83" text-anchor="middle" class="d-label" style="font-size:6.5px;">(T cte.)</text>
+  <path class="pipe" d="M211,75 L241,75" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M211,75 L241,75"/><circle class="particle" r="1.8" cx="0" cy="0"><animateMotion dur="1.4s" repeatCount="indefinite" path="M211,75 L241,75"/></circle>
+  <rect x="241" y="50" width="68" height="50" rx="5" class="box-unit"/>
+  <text x="275" y="72" text-anchor="middle" class="unit-label" style="font-size:7.5px;">INTERC. 2</text>
+  <text x="275" y="83" text-anchor="middle" class="d-label" style="font-size:6.5px;">(enfría)</text>
+  <path class="pipe" d="M309,75 L318,75" marker-end="url(#arrow)"/>
+  <text x="14" y="42" class="d-label">Leche fría</text>
+  <text x="230" y="140" class="d-label">Leche fría (pasteurizada)</text>
 </svg>`
 };
 
@@ -4492,6 +4511,99 @@ const OPS = [
       steps:[{t:'Balance adiabático', f:`V = ${v.F}×${v.Cp}×(${v.T1}−${v.Tsat})/${v.hfg} = ${fmt(V,2)} kg/h · L = ${fmt(L,2)} kg/h`}]
     };
   }
+},
+{ id:'tallerEsquema1A', num:'90', cat:'materia', chapter:1, sector:'Alimentaria', kind:'esquema', taller:true, diagramKey:'formulacionDiag', name:'Taller — Formulación',
+  title:'Identifica el esquema — formulación de una premezcla',
+  context:'Taller de clase — capítulo 1',
+  story:'Una planta de helados combina cinco materias primas distintas (leche en polvo, grasa vegetal, glucosa, estabilizante y agua) en un mezclador, para obtener una premezcla con la composición exacta que exige la receta. No se pide ningún cálculo — identifica la estructura del proceso.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Cuántas corrientes de entrada tiene este sistema?', options:['2','3','5'], correct:2,
+      explain:'El enunciado menciona explícitamente cinco materias primas distintas que entran al mezclador — no hay que asumir solo 2 como en un mezclador simple.'},
+    {q:'¿Cuántas corrientes de salida tiene?', options:['1 (la premezcla)','2','5'], correct:0,
+      explain:'Todas las materias primas se combinan en una sola corriente de salida: la premezcla final.'},
+    {q:'¿Cuántas ecuaciones de balance por componente podrías plantear, como máximo, además del balance total de masa?', options:['1','Tantas como componentes tenga la premezcla (grasa, SNG, azúcar, estabilizante...)','5, una por cada materia prima'], correct:1,
+      explain:'Puedes plantear un balance por cada componente de interés en la formulación (grasa, sólidos no grasos, azúcar, estabilizante), no por cada materia prima — varias materias primas pueden aportar al mismo componente.'},
+    {q:'¿Este problema necesariamente requiere reacción química para resolverse?', options:['Sí, siempre','No, es un balance de materia sin reacción, solo con más corrientes de entrada de lo usual'], correct:1,
+      explain:'Combinar varias materias primas no implica reacción química — sigue siendo un balance de mezcla sin reacción, solo que con más de dos corrientes de entrada.'},
+    {q:'¿Qué necesitarías conocer, como mínimo, para resolver cuánto se necesita de cada materia prima?', options:['La composición de cada materia prima y la composición objetivo de la premezcla','Solo el precio de cada ingrediente','El color de cada materia prima'], correct:0,
+      explain:'Para plantear el sistema de ecuaciones (balance total + balances por componente) necesitas la composición de cada materia prima y la composición que se busca en el producto final.'}
+  ],
+  schemaExplain:'El esquema tiene cinco corrientes de entrada (una por cada materia prima, cada una con su propia composición) que convergen en un mezclador, y una sola corriente de salida (la premezcla). El volumen de control encierra el mezclador completo, cruzado por las seis corrientes. Se resuelve con un balance total de masa más un balance por cada componente de interés (no por cada materia prima).'
+},
+{ id:'tallerEsquema1B', num:'91', cat:'energia', chapter:1, sector:'Alimentaria', kind:'esquema', taller:true, diagramKey:'serieTresOperacionesDiag', name:'Taller — Pasteurización',
+  title:'Identifica el esquema — pasteurización con retención',
+  context:'Taller de clase — capítulo 1',
+  story:'En una planta láctea, la leche fría se calienta en un intercambiador de calor hasta la temperatura de pasteurización, luego pasa por un tubo de retención donde se mantiene esa temperatura durante un tiempo fijo (sin ganar ni perder calor), y finalmente se enfría en un segundo intercambiador antes de envasarse. No se pide ningún cálculo — identifica la estructura del proceso.',
+  inputs:[], answerFields:[], hints:[],
+  quiz:[
+    {q:'¿Cuántas operaciones unitarias distintas hay en este proceso?', options:['1','2','3 (calentar, retener, enfriar)'], correct:2,
+      explain:'Son tres etapas con función distinta: un intercambiador que calienta, un tubo de retención que mantiene la temperatura, y otro intercambiador que enfría.'},
+    {q:'¿Qué le pasa a la temperatura de la leche en el tubo de retención?', options:['Sigue subiendo','Se mantiene aproximadamente constante — no hay intercambio de calor significativo ahí','Baja bruscamente'], correct:1,
+      explain:'El tubo de retención no es un intercambiador: su función es solo mantener el tiempo suficiente a la temperatura ya alcanzada, sin ganar ni perder calor de forma significativa.'},
+    {q:'¿La leche cambia de composición en algún punto de este proceso?', options:['Sí, en el segundo intercambiador','No, en ningún punto — es puramente un proceso térmico', 'Sí, en el tubo de retención'], correct:1,
+      explain:'La pasteurización es un tratamiento térmico: no hay reacción química ni cambio de composición en ninguna etapa, solo cambios de temperatura.'},
+    {q:'Si quisieras calcular solo la energía total intercambiada entre la leche fría de entrada y la leche fría de salida (después de enfriarse), ¿qué conviene hacer?', options:['Analizar las tres etapas por separado obligatoriamente','Definir un volumen de control alrededor de todo el sistema (los tres equipos) y comparar la entrada con la salida final','Es imposible sin conocer la temperatura de retención'], correct:1,
+      explain:'Igual que en otros procesos de varias etapas, un volumen de control grande alrededor de todo el sistema te permite relacionar directamente la entrada y la salida final, sin necesidad de resolver cada etapa por separado.'},
+    {q:'¿Qué corriente(s) "internas" quedarían dentro de ese volumen de control grande?', options:['Ninguna, todas cruzan la frontera','La leche entre el primer intercambiador y el tubo de retención, y entre el tubo y el segundo intercambiador','Solo la leche de entrada'], correct:1,
+      explain:'Las corrientes que conectan una etapa con la siguiente (primer intercambiador → retención → segundo intercambiador) quedan "adentro" del volumen de control grande — no cruzan su frontera, solo la leche de entrada y la de salida final lo hacen.'}
+  ],
+  schemaExplain:'El esquema muestra tres bloques en serie: "INTERCAMBIADOR 1" (calienta la leche fría hasta la T de pasteurización), "RETENCIÓN" (mantiene esa temperatura un tiempo fijo, sin intercambio de calor), e "INTERCAMBIADOR 2" (enfría la leche antes de envasar). Las corrientes intermedias quedan dentro de un volumen de control que encierre todo el sistema.'
+},
+{ id:'tallerEnergiaCal2A', num:'92', cat:'materia', chapter:2, sector:'Alimentaria', taller:true, diagramKey:'conversionDiag', name:'Taller — Energía calórica',
+  title:'Conversión de energía calórica de un alimento',
+  context:'Taller de clase — capítulo 2',
+  story:'Una etiqueta nutricional indica que una porción de un producto aporta 250 kcal. Exprese ese valor energético en kJ, la unidad del Sistema Internacional.',
+  inputs:[
+    {key:'kcal', label:'Energía', unit:'kcal', dtag:'d-in-1', def:'250'},
+  ],
+  hints:[
+    'La caloría (cal) y la kilocaloría (kcal) no son unidades del SI, aunque se usan mucho en etiquetas nutricionales.',
+    'El factor de conversión aceptado es 1 kcal = 4.184 kJ.',
+    'Multiplica el valor en kcal por ese factor.'
+  ],
+  answerFields:[{key:'kJ', label:'Energía en kJ', unit:'kJ'}],
+  calc(v){
+    if(v.kcal<0) return {error:'La energía no puede ser negativa.'};
+    const kJ = v.kcal*4.184;
+    return {
+      outputs:[{key:'kJ',label:'Energía en kJ',value:fmt(kJ,2),unit:'kJ',raw:kJ}],
+      diagram:{'d-out-1':fmt(kJ,1)+' kJ'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Factor de conversión kcal → kJ', f:`1 kcal = 4.184 kJ`},
+        {t:'Conversión', f:`E = ${v.kcal} kcal × 4.184 kJ/kcal = ${fmt(kJ,2)} kJ`}
+      ]
+    };
+  }
+},
+{ id:'tallerFlujoMasico2B', num:'93', cat:'materia', chapter:2, sector:'Alimentaria', taller:true, diagramKey:'conversionDiag', name:'Taller — Flujo másico',
+  title:'Conversión de flujo volumétrico a másico — taller',
+  context:'Taller de clase — capítulo 2',
+  story:'Un medidor reporta un caudal de 600 L/min de un jarabe con densidad de 1.15 g/mL. Convierta el caudal a flujo másico en kg/s (unidades base del SI).',
+  inputs:[
+    {key:'Qvol', label:'Caudal', unit:'L/min', dtag:'d-in-1', def:'600'},
+    {key:'densidad', label:'Densidad', unit:'g/mL', def:'1.15'},
+  ],
+  hints:[
+    'Convierte el caudal a m³/s (litros entre 1000, minutos entre 60).',
+    'Convierte la densidad de g/mL a kg/m³ (multiplica por 1000).',
+    'El flujo másico es el producto de ambas cantidades ya convertidas.'
+  ],
+  answerFields:[{key:'masico', label:'Flujo másico', unit:'kg/s'}],
+  calc(v){
+    if(v.Qvol<0) return {error:'El caudal no puede ser negativo.'};
+    if(v.densidad<=0) return {error:'La densidad debe ser mayor que cero.'};
+    const Qvol_m3s = v.Qvol/1000/60, densidad_kgm3 = v.densidad*1000, masico = Qvol_m3s*densidad_kgm3;
+    return {
+      outputs:[{key:'masico',label:'Flujo másico',value:fmt(masico,3),unit:'kg/s',raw:masico}],
+      diagram:{'d-out-1':fmt(masico,3)+' kg/s'}, flows:['fo1','fo2'],
+      steps:[
+        {t:'Conversión del caudal a m³/s', f:`Qvol = ${v.Qvol}/1000/60 = ${fmt(Qvol_m3s,6)} m³/s`},
+        {t:'Conversión de la densidad a kg/m³', f:`ρ = ${v.densidad}×1000 = ${fmt(densidad_kgm3,1)} kg/m³`},
+        {t:'Flujo másico', f:`ṁ = ${fmt(Qvol_m3s,6)}×${fmt(densidad_kgm3,1)} = ${fmt(masico,3)} kg/s`}
+      ]
+    };
+  }
 }
 ];
 const CAT_LABEL = {materia:'MATERIA', energia:'ENERGÍA'};
@@ -5061,16 +5173,16 @@ async function abrirPanelDocente(){
     <div class="wrap">
       <div class="stat-card" style="margin:16px 0;">
         <p class="sec-label" style="margin-top:0;">Modo taller — generar código</p>
-        <div class="inputs-grid" style="margin-bottom:10px;">
-          <div class="field">
+        <div class="inputs-grid" style="margin-bottom:10px;grid-template-columns:1fr 1fr;">
+          <div class="field" style="min-width:0;">
             <label>Capítulo a activar</label>
-            <select id="taller-gen-cap" style="background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-family:var(--font-mono);font-size:14px;color:var(--ink);">
-              ${CHAPTERS.filter(c=>tallerOpsInChapter(c.num).length>0).map(c=>`<option value="${c.num}">Cap. ${c.num} — ${esc(c.title)}</option>`).join('')}
+            <select id="taller-gen-cap" style="width:100%;box-sizing:border-box;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 8px;font-family:var(--font-mono);font-size:12.5px;color:var(--ink);">
+              ${CHAPTERS.filter(c=>tallerOpsInChapter(c.num).length>0).map(c=>`<option value="${c.num}">Cap. ${c.num} — ${esc(chapterShort(c.num))}</option>`).join('')}
             </select>
           </div>
-          <div class="field">
-            <label>Duración (minutos)</label>
-            <input type="number" id="taller-gen-min" value="20" min="1" style="background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 10px;font-family:var(--font-mono);font-size:14px;color:var(--ink);">
+          <div class="field" style="min-width:0;">
+            <label>Duración (min)</label>
+            <input type="number" id="taller-gen-min" value="20" min="1" style="width:100%;box-sizing:border-box;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 8px;font-family:var(--font-mono);font-size:14px;color:var(--ink);">
           </div>
         </div>
         <button class="calc-btn" id="taller-gen-btn">Generar código</button>
