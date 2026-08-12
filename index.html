@@ -396,7 +396,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-f</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-g</p>
     </footer>
   </main>
 </div>
@@ -5197,11 +5197,60 @@ async function abrirPanelDocente(){
     </div>
   </div>`;
   document.getElementById('doc-cerrar').addEventListener('click', ()=>{ root.innerHTML=''; });
+  function fichaCompletaHTML(op){
+    let body = `<div style="margin-top:8px;">
+      <p style="font-size:11px;color:var(--ink-faint);margin:0 0 4px;">${esc(op.context)}</p>
+      <p style="font-size:12.5px;line-height:1.5;margin:0 0 10px;">${esc(op.story)}</p>`;
+
+    if(op.kind==='esquema'){
+      body += `<p style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--ocre-dark);text-transform:uppercase;margin:10px 0 6px;">Preguntas de diagnóstico (con la respuesta correcta marcada)</p>`;
+      op.quiz.forEach((q,qi)=>{
+        body += `<div style="font-size:12px;margin-bottom:8px;">
+          <b>${qi+1}. ${esc(q.q)}</b>
+          <ul style="margin:4px 0 0;padding-left:18px;">
+            ${q.options.map((opt,oi)=>`<li style="${oi===q.correct?'color:var(--correct,#4B7A52);font-weight:700;':'color:var(--ink-dim);'}">${esc(opt)}${oi===q.correct?' ✓':''}</li>`).join('')}
+          </ul>
+        </div>`;
+      });
+      body += `<p style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--ocre-dark);text-transform:uppercase;margin:10px 0 6px;">Esquema correcto</p>
+        <p style="font-size:12px;color:var(--ink-dim);line-height:1.5;">${esc(op.schemaExplain)}</p>`;
+    } else {
+      body += `<p style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--ocre-dark);text-transform:uppercase;margin:10px 0 6px;">Datos conocidos (precargados para el estudiante)</p>
+        <ul style="margin:0 0 8px;padding-left:18px;font-size:12px;">
+          ${op.inputs.map(i=>`<li>${esc(i.label)}: <b style="font-family:var(--font-mono);">${esc(i.def)} ${esc(i.unit)}</b></li>`).join('')}
+        </ul>
+        <p style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--ocre-dark);text-transform:uppercase;margin:10px 0 6px;">Pistas que verá el estudiante</p>
+        <ol style="margin:0 0 8px;padding-left:18px;font-size:12px;color:var(--ink-dim);">
+          ${op.hints.map(h=>`<li style="margin-bottom:4px;">${esc(h)}</li>`).join('')}
+        </ol>`;
+      try{
+        const vals={}; op.inputs.forEach(i=>vals[i.key]=parseFloat(i.def));
+        const res = op.calc(vals);
+        if(res.error){
+          body += `<p style="color:var(--error);font-size:12px;">Error al calcular con los valores por defecto: ${esc(res.error)}</p>`;
+        } else {
+          body += `<p style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:.08em;color:var(--vino);text-transform:uppercase;margin:10px 0 6px;">Respuesta correcta (con los datos por defecto)</p>
+            <ul style="margin:0;padding-left:18px;font-size:12.5px;">
+              ${res.outputs.map(o=>`<li><b style="color:var(--vino);">${esc(o.label)}: ${esc(o.value)} ${esc(o.unit)}</b></li>`).join('')}
+            </ul>`;
+        }
+      }catch(e){
+        body += `<p style="color:var(--error);font-size:12px;">No se pudo calcular la respuesta de referencia (${esc(e.message)}).</p>`;
+      }
+    }
+    body += `</div>`;
+    return `<details style="margin-top:10px;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--card);">
+      <summary style="cursor:pointer;font-family:var(--font-display);font-weight:700;font-size:13px;color:var(--vino);">${esc(op.name.replace(/^Taller\s*—\s*/,''))} — ${esc(op.title)}</summary>
+      ${body}
+    </details>`;
+  }
+
   function renderTallerPreview(){
     const cap = parseInt(document.getElementById('taller-gen-cap').value,10);
     const fichas = tallerOpsInChapter(cap);
     document.getElementById('taller-preview').innerHTML =
-      'Este capítulo incluye: ' + fichas.map(f=>esc(f.name.replace(/^Taller\s*—\s*/,''))).join(' · ');
+      '<p class="sec-label" style="margin:10px 0 4px;">Vista previa — así las verán los estudiantes</p>' +
+      fichas.map(f=>fichaCompletaHTML(f)).join('');
   }
   document.getElementById('taller-gen-cap').addEventListener('change', renderTallerPreview);
   renderTallerPreview();
@@ -5209,16 +5258,10 @@ async function abrirPanelDocente(){
     const cap = parseInt(document.getElementById('taller-gen-cap').value,10);
     const min = Math.max(1, parseFloat(document.getElementById('taller-gen-min').value)||20);
     const code = encodeTallerCode(cap, min);
-    const fichas = tallerOpsInChapter(cap);
-    const listaFichas = fichas.map(f=>`<li><b>${esc(f.name.replace(/^Taller\s*—\s*/,''))}</b> — ${esc(f.title)}</li>`).join('');
     document.getElementById('taller-gen-result').innerHTML = `
       <div class="note" style="margin-top:12px;text-align:center;">
         <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--vino);letter-spacing:.05em;">${code}</div>
         <div style="margin-top:4px;">Válido por ${min} minuto(s) desde ahora. Compártelo con los estudiantes ahora mismo — el reloj ya empezó a correr.</div>
-      </div>
-      <div class="note" style="margin-top:8px;text-align:left;">
-        <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--ocre-dark);text-transform:uppercase;margin-bottom:6px;">Este código habilita estas ${fichas.length} fichas</div>
-        <ul style="margin:0;padding-left:18px;">${listaFichas}</ul>
       </div>`;
   });
 
