@@ -272,6 +272,7 @@
 
   /* ---------- PANEL DOCENTE ---------- */
   .docente-link{ display:block;text-align:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em; color:var(--ink-dim); background:var(--card); border:1px solid var(--line); border-radius:8px; padding:10px; margin:6px 0 16px; cursor:pointer; }
+  .report-link{ text-align:center; font-size:11.5px; color:var(--ink-faint); margin-top:14px; cursor:pointer; text-decoration:underline; }
 
   .taller-bar{
     display:flex; justify-content:space-between; align-items:center; gap:10px;
@@ -387,6 +388,7 @@
         <button class="calc-btn" id="calcBtn">Verificar mi resultado</button>
         <div id="errBox"></div>
         <div id="resultsBox"></div>
+        <div class="report-link" id="openReporte">⚠️ Reportar un error en esta ficha</div>
       </div>
     </div>
 
@@ -396,7 +398,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-08-h</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-a</p>
     </footer>
   </main>
 </div>
@@ -4812,6 +4814,56 @@ async function registrarUso(op, pistasUsadas, verdicto){
   }catch(e){ /* si el registro falla, no se interrumpe el uso del simulador */ }
 }
 
+function abrirModalReporte(){
+  const op = OPS.find(o=>o.id===currentOp);
+  const root = document.getElementById('modalRoot');
+  root.innerHTML = `
+  <div class="overlay">
+    <div class="modal">
+      <h3>Reportar un error</h3>
+      <p>Ficha actual: <b>${esc(op.name)}</b> — ${esc(op.title)}. Cuéntanos qué encontraste (un enunciado confuso, un dato que no cuadra, una pista poco clara, etc.).</p>
+      <div class="field"><textarea id="reporte-texto" rows="4" style="width:100%;box-sizing:border-box;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:10px;font-family:inherit;font-size:13px;color:var(--ink);resize:vertical;" placeholder="Describe el problema..."></textarea></div>
+      <div id="reporte-err"></div>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="reporte-cancel">Cancelar</button>
+        <button class="btn-primary" id="reporte-enviar">Enviar</button>
+      </div>
+    </div>
+  </div>`;
+  document.getElementById('reporte-cancel').addEventListener('click', ()=>{ root.innerHTML=''; });
+  document.getElementById('reporte-enviar').addEventListener('click', async ()=>{
+    const mensaje = document.getElementById('reporte-texto').value.trim();
+    if(!mensaje){ document.getElementById('reporte-err').innerHTML = '<div class="err-box">Escribe una breve descripción antes de enviar.</div>'; return; }
+    if(!SHEET_WEBAPP_URL){ document.getElementById('reporte-err').innerHTML = '<div class="err-box">Tu docente aún no ha configurado el registro remoto — no se puede enviar por ahora.</div>'; return; }
+    const btn = document.getElementById('reporte-enviar');
+    btn.textContent = 'Enviando…'; btn.disabled = true;
+    try{
+      await fetch(SHEET_WEBAPP_URL, {
+        method:'POST', mode:'no-cors',
+        headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body: JSON.stringify({
+          tipo:'reporte',
+          nombre: perfil?perfil.nombre:'(sin identificar)',
+          codigo: perfil?perfil.codigo:'',
+          modulo: op.name,
+          mensaje,
+          fecha: new Date().toISOString()
+        })
+      });
+      root.innerHTML = `<div class="overlay"><div class="modal">
+        <h3>¡Gracias!</h3>
+        <p>Tu reporte fue enviado a tu docente.</p>
+        <div class="modal-actions"><button class="btn-primary" id="reporte-ok" style="width:100%;">Cerrar</button></div>
+      </div></div>`;
+      document.getElementById('reporte-ok').addEventListener('click', ()=>{ root.innerHTML=''; });
+    }catch(e){
+      document.getElementById('reporte-err').innerHTML = '<div class="err-box">No se pudo enviar. Revisa tu conexión e intenta de nuevo.</div>';
+      btn.textContent = 'Enviar'; btn.disabled = false;
+    }
+  });
+}
+document.getElementById('openReporte').addEventListener('click', abrirModalReporte);
+
 /* ============================= CAPÍTULOS DEL LIBRO ============================= */
 const CHAPTERS = [
   {num:1, title:'Introducción al análisis de procesos agroindustriales'},
@@ -5274,16 +5326,21 @@ async function abrirPanelDocente(){
   }
 
   let logs = [];
+  let reportes = [];
   try{
-    const r = await fetch(SHEET_WEBAPP_URL);
+    const [r, rRep] = await Promise.all([
+      fetch(SHEET_WEBAPP_URL),
+      fetch(SHEET_WEBAPP_URL + '?tipo=reportes')
+    ]);
     logs = await r.json();
     if(!Array.isArray(logs)) logs = [];
+    try{ reportes = await rRep.json(); if(!Array.isArray(reportes)) reportes = []; }catch(e2){ reportes = []; }
   }catch(e){
     content.innerHTML = '<div class="err-box">No se pudo cargar el registro. Verifica tu conexión y que la hoja de Google esté publicada como "Cualquier usuario con el enlace".</div>';
     return;
   }
 
-  if(logs.length===0){
+  if(logs.length===0 && reportes.length===0){
     content.innerHTML = '<div class="loading">Todavía no hay registros de uso del simulador.</div>';
     return;
   }
@@ -5300,6 +5357,37 @@ async function abrirPanelDocente(){
     const statsCards = OPS.map(op => `
       <div class="stat-card"><div class="sv">${contadores[op.id]||0}</div><div class="sl">${op.name}</div></div>`).join('');
 
+    // Analisis de dificultad por ficha: promedio de pistas usadas y % de respuestas incorrectas
+    const porModulo = {};
+    logs.forEach(l=>{
+      if(!l.modulo) return;
+      if(!porModulo[l.modulo]) porModulo[l.modulo] = {intentos:0, sumaPistas:0, nPistas:0, incorrectas:0, evaluadas:0};
+      const m = porModulo[l.modulo];
+      m.intentos++;
+      const pistas = parseInt(l.pistas,10);
+      if(!isNaN(pistas)){ m.sumaPistas += pistas; m.nPistas++; }
+      if(l.correcta==='Incorrecta'){ m.incorrectas++; m.evaluadas++; }
+      else if(l.correcta==='Correcta'||l.correcta==='Parcial'){ m.evaluadas++; }
+    });
+    const dificultad = Object.keys(porModulo).map(nombre=>{
+      const m = porModulo[nombre];
+      return {
+        nombre,
+        intentos: m.intentos,
+        pistasProm: m.nPistas ? m.sumaPistas/m.nPistas : null,
+        pctIncorrectas: m.evaluadas ? (m.incorrectas/m.evaluadas*100) : null
+      };
+    }).filter(d=>d.intentos>=2) // evita conclusiones con muestras muy pequeñas
+      .sort((a,b)=> (b.pctIncorrectas||0)-(a.pctIncorrectas||0) || (b.pistasProm||0)-(a.pistasProm||0));
+
+    const dificultadRows = dificultad.slice(0,15).map(d=>`
+      <tr>
+        <td>${esc(d.nombre)}</td>
+        <td style="text-align:center;">${d.intentos}</td>
+        <td style="text-align:center;">${d.pistasProm!==null?d.pistasProm.toFixed(1):'—'}</td>
+        <td style="text-align:center;${d.pctIncorrectas!==null&&d.pctIncorrectas>=40?'color:var(--error);font-weight:700;':''}">${d.pctIncorrectas!==null?d.pctIncorrectas.toFixed(0)+'%':'—'}</td>
+      </tr>`).join('');
+
     const recientes = logs.slice(0,1000);
     const rows = recientes.map(l => `
       <tr><td>${esc(l.nombre)}</td><td>${esc(l.codigo)}</td><td>${esc(l.modulo)}</td><td>${esc(l.pistas!==undefined&&l.pistas!==''?l.pistas:'—')}</td><td>${esc(l.correcta||'—')}</td><td>${new Date(l.fecha).toLocaleString('es-CO')}</td></tr>`).join('');
@@ -5311,11 +5399,27 @@ async function abrirPanelDocente(){
       </div>
       <p class="sec-label" style="margin-top:4px;">Uso por módulo</p>
       <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">${statsCards}</div>
+      <p class="sec-label" style="margin-top:16px;">Análisis de dificultad — fichas que más cuesta resolver</p>
+      <p style="font-size:11.5px;color:var(--ink-faint);margin:0 0 8px;">Ordenado por % de respuestas incorrectas, luego por pistas usadas. Solo incluye fichas con al menos 2 intentos registrados.</p>
+      <div class="table-wrap">
+        <table class="logtable">
+          <thead><tr><th>Ficha</th><th>Intentos</th><th>Pistas prom.</th><th>% incorrectas</th></tr></thead>
+          <tbody>${dificultadRows || '<tr><td colspan="4" style="text-align:center;color:var(--ink-faint);">Aún no hay suficientes datos</td></tr>'}</tbody>
+        </table>
+      </div>
       <p class="sec-label" style="margin-top:16px;">Actividad reciente (máx. 1000 de ${logs.length})</p>
       <div class="table-wrap">
         <table class="logtable">
           <thead><tr><th>Estudiante</th><th>Código</th><th>Módulo</th><th>Pistas</th><th>Correcta</th><th>Fecha y hora</th></tr></thead>
           <tbody>${rows || '<tr><td colspan="6" style="text-align:center;color:var(--ink-faint);">Sin registros individuales aún</td></tr>'}</tbody>
+        </table>
+      </div>
+      <p class="sec-label" style="margin-top:16px;">⚠️ Reportes de error enviados por estudiantes (${reportes.length})</p>
+      <div class="table-wrap">
+        <table class="logtable">
+          <thead><tr><th>Estudiante</th><th>Ficha</th><th>Mensaje</th><th>Fecha</th></tr></thead>
+          <tbody>${reportes.slice().sort((a,b)=> new Date(b.fecha)-new Date(a.fecha)).map(rp=>`
+            <tr><td>${esc(rp.nombre)}</td><td>${esc(rp.modulo)}</td><td>${esc(rp.mensaje)}</td><td>${new Date(rp.fecha).toLocaleString('es-CO')}</td></tr>`).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--ink-faint);">Sin reportes por ahora</td></tr>'}</tbody>
         </table>
       </div>`;
 
