@@ -398,7 +398,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-b</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-c</p>
     </footer>
   </main>
 </div>
@@ -4616,6 +4616,7 @@ let perfil = null;
 /* ============================= MODO TALLER ============================= */
 let tallerMode = null; // {chapterNum, expiryEpoch} o null
 let tallerInterval = null;
+let tallerVerificadas = {}; // {opId: true} — fichas ya verificadas en la sesión de taller actual
 
 function encodeTallerCode(chapterNum, minutos){
   const expiry = Math.floor(Date.now()/1000) + Math.round(minutos*60);
@@ -4664,6 +4665,7 @@ function abrirModalCodigoTaller(){
 
 function iniciarTaller(chapterNum, expiryEpoch){
   tallerMode = {chapterNum, expiryEpoch};
+  tallerVerificadas = {};
   currentChapter = chapterNum;
   const ops = tallerOpsInChapter(chapterNum);
   currentOp = ops.length ? ops[0].id : null;
@@ -4979,6 +4981,9 @@ function renderOp(){
   document.getElementById('answerWrap').style.display='';
   document.getElementById('calcBtn').style.display='';
   document.getElementById('calcBtn').textContent='Verificar mi resultado';
+  document.getElementById('calcBtn').disabled=false;
+  const notaPrevia = document.getElementById('tallerYaVerificado');
+  if(notaPrevia) notaPrevia.remove();
   document.getElementById('esquemaContainer').innerHTML='';
   document.getElementById('schemContainer').innerHTML = DIAGRAMS[op.diagramKey || op.id];
 
@@ -5009,6 +5014,10 @@ function renderOp(){
 
   renderHints(op);
   document.getElementById('hintBtn').onclick = ()=>{ hintsShown++; soundHint(); renderHints(op); };
+
+  if(tallerMode && tallerVerificadas[op.id]){
+    bloquearCalcBtnTaller();
+  }
 }
 
 function renderEsquemaQuiz(op){
@@ -5183,7 +5192,25 @@ async function runCalc(){
       soundError();
       if(resultsPanel) resultsPanel.classList.add('flash-error');
     }
+    if(tallerMode){
+      tallerVerificadas[op.id] = true;
+      bloquearCalcBtnTaller();
+    }
   }
+}
+
+function bloquearCalcBtnTaller(){
+  const btn = document.getElementById('calcBtn');
+  btn.disabled = true;
+  btn.textContent = 'Ya verificaste esta ficha ✓';
+  let nota = document.getElementById('tallerYaVerificado');
+  if(!nota){
+    nota = document.createElement('p');
+    nota.id = 'tallerYaVerificado';
+    nota.style.cssText = 'text-align:center;font-size:11.5px;color:var(--ink-faint);margin-top:8px;';
+    btn.insertAdjacentElement('afterend', nota);
+  }
+  nota.textContent = 'Tu respuesta para esta ficha ya quedó registrada. Puedes seguir revisando la solución, pero no puedes volver a verificar.';
 }
 
 document.getElementById('calcBtn').addEventListener('click', runCalc);
