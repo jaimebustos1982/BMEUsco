@@ -398,7 +398,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-c</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-d</p>
     </footer>
   </main>
 </div>
@@ -4618,6 +4618,8 @@ let tallerMode = null; // {chapterNum, expiryEpoch} o null
 let tallerInterval = null;
 let tallerVerificadas = {}; // {opId: true} — fichas ya verificadas en la sesión de taller actual
 
+const TALLER_MAX_MINUTOS = 240; // límite razonable para un taller de clase (4 h)
+
 function encodeTallerCode(chapterNum, minutos){
   const expiry = Math.floor(Date.now()/1000) + Math.round(minutos*60);
   return expiry.toString(36).toUpperCase() + '-' + chapterNum;
@@ -4629,6 +4631,11 @@ function decodeTallerCode(code){
   const chapterNum = parseInt(parts[1], 10);
   if(isNaN(expiry)||isNaN(chapterNum)) return null;
   if(!CHAPTERS.some(c=>c.num===chapterNum)) return null;
+  // Sanidad: un solo caracter mal tipeado en el codigo puede decodificar una fecha de vencimiento
+  // válida pero absurdamente lejana. Si supera el máximo razonable para un taller, se rechaza
+  // en vez de aceptar silenciosamente un tiempo corrupto.
+  const segundosRestantes = expiry - Math.floor(Date.now()/1000);
+  if(segundosRestantes > TALLER_MAX_MINUTOS*60) return null;
   return {expiryEpoch:expiry, chapterNum};
 }
 
@@ -4656,7 +4663,7 @@ function abrirModalCodigoTaller(){
   document.getElementById('taller-cancel').addEventListener('click', ()=>{ root.innerHTML=''; });
   document.getElementById('taller-entrar').addEventListener('click', ()=>{
     const decoded = decodeTallerCode(document.getElementById('taller-code').value);
-    if(!decoded){ document.getElementById('taller-err').innerHTML = '<div class="err-box">Código inválido.</div>'; return; }
+    if(!decoded){ document.getElementById('taller-err').innerHTML = '<div class="err-box">Código inválido. Revisa que lo hayas escrito exactamente igual — un solo carácter distinto lo invalida.</div>'; return; }
     if(decoded.expiryEpoch*1000 <= Date.now()){ document.getElementById('taller-err').innerHTML = '<div class="err-box">Este código ya expiró.</div>'; return; }
     root.innerHTML='';
     iniciarTaller(decoded.chapterNum, decoded.expiryEpoch);
@@ -5261,7 +5268,7 @@ async function abrirPanelDocente(){
           </div>
           <div class="field" style="min-width:0;">
             <label>Duración (min)</label>
-            <input type="number" id="taller-gen-min" value="20" min="1" style="width:100%;box-sizing:border-box;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 8px;font-family:var(--font-mono);font-size:14px;color:var(--ink);">
+            <input type="number" id="taller-gen-min" value="20" min="1" max="240" style="width:100%;box-sizing:border-box;background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:9px 8px;font-family:var(--font-mono);font-size:14px;color:var(--ink);">
           </div>
         </div>
         <button class="calc-btn" id="taller-gen-btn">Generar código</button>
@@ -5336,7 +5343,7 @@ async function abrirPanelDocente(){
   renderTallerPreview();
   document.getElementById('taller-gen-btn').addEventListener('click', ()=>{
     const cap = parseInt(document.getElementById('taller-gen-cap').value,10);
-    const min = Math.max(1, parseFloat(document.getElementById('taller-gen-min').value)||20);
+    const min = Math.min(TALLER_MAX_MINUTOS, Math.max(1, parseFloat(document.getElementById('taller-gen-min').value)||20));
     const code = encodeTallerCode(cap, min);
     document.getElementById('taller-gen-result').innerHTML = `
       <div class="note" style="margin-top:12px;text-align:center;">
