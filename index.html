@@ -398,7 +398,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-a</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-b</p>
     </footer>
   </main>
 </div>
@@ -5354,8 +5354,15 @@ async function abrirPanelDocente(){
       if(op) contadores[op.id] = (contadores[op.id]||0)+1;
     });
 
-    const statsCards = OPS.map(op => `
+    const statsCardsLibres = OPS.filter(op=>!op.taller).map(op => `
       <div class="stat-card"><div class="sv">${contadores[op.id]||0}</div><div class="sl">${op.name}</div></div>`).join('');
+    const statsCardsTaller = OPS.filter(op=>op.taller).map(op => `
+      <div class="stat-card" style="border-color:var(--vino);"><div class="sv" style="color:var(--vino);">${contadores[op.id]||0}</div><div class="sl">${op.name}</div></div>`).join('');
+
+    function tag(modulo){
+      const op = OPS.find(o=>o.name===modulo);
+      return op && op.taller ? ' <span style="font-family:var(--font-mono);font-size:8.5px;background:var(--vino);color:#fff;padding:1px 5px;border-radius:4px;letter-spacing:.04em;">TALLER</span>' : '';
+    }
 
     // Analisis de dificultad por ficha: promedio de pistas usadas y % de respuestas incorrectas
     const porModulo = {};
@@ -5382,7 +5389,7 @@ async function abrirPanelDocente(){
 
     const dificultadRows = dificultad.slice(0,15).map(d=>`
       <tr>
-        <td>${esc(d.nombre)}</td>
+        <td>${esc(d.nombre)}${tag(d.nombre)}</td>
         <td style="text-align:center;">${d.intentos}</td>
         <td style="text-align:center;">${d.pistasProm!==null?d.pistasProm.toFixed(1):'—'}</td>
         <td style="text-align:center;${d.pctIncorrectas!==null&&d.pctIncorrectas>=40?'color:var(--error);font-weight:700;':''}">${d.pctIncorrectas!==null?d.pctIncorrectas.toFixed(0)+'%':'—'}</td>
@@ -5390,15 +5397,17 @@ async function abrirPanelDocente(){
 
     const recientes = logs.slice(0,1000);
     const rows = recientes.map(l => `
-      <tr><td>${esc(l.nombre)}</td><td>${esc(l.codigo)}</td><td>${esc(l.modulo)}</td><td>${esc(l.pistas!==undefined&&l.pistas!==''?l.pistas:'—')}</td><td>${esc(l.correcta||'—')}</td><td>${new Date(l.fecha).toLocaleString('es-CO')}</td></tr>`).join('');
+      <tr><td>${esc(l.nombre)}</td><td>${esc(l.codigo)}</td><td>${esc(l.modulo)}${tag(l.modulo)}</td><td>${esc(l.pistas!==undefined&&l.pistas!==''?l.pistas:'—')}</td><td>${esc(l.correcta||'—')}</td><td>${new Date(l.fecha).toLocaleString('es-CO')}</td></tr>`).join('');
 
     content.innerHTML = `
       <div class="stats-grid">
         <div class="stat-card"><div class="sv">${logs.length}</div><div class="sl">Cálculos totales registrados</div></div>
         <div class="stat-card"><div class="sv">${new Set(logs.map(l=>l.codigo)).size}</div><div class="sl">Estudiantes distintos</div></div>
       </div>
-      <p class="sec-label" style="margin-top:4px;">Uso por módulo</p>
-      <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">${statsCards}</div>
+      <p class="sec-label" style="margin-top:4px;">🕒 Uso en modo taller (${OPS.filter(o=>o.taller).reduce((s,op)=>s+(contadores[op.id]||0),0)} registros)</p>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">${statsCardsTaller}</div>
+      <p class="sec-label" style="margin-top:16px;">Uso en práctica libre</p>
+      <div class="stats-grid" style="grid-template-columns:1fr 1fr 1fr;">${statsCardsLibres}</div>
       <p class="sec-label" style="margin-top:16px;">Análisis de dificultad — fichas que más cuesta resolver</p>
       <p style="font-size:11.5px;color:var(--ink-faint);margin:0 0 8px;">Ordenado por % de respuestas incorrectas, luego por pistas usadas. Solo incluye fichas con al menos 2 intentos registrados.</p>
       <div class="table-wrap">
