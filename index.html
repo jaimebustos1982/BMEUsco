@@ -398,7 +398,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-d</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-e</p>
     </footer>
   </main>
 </div>
@@ -419,7 +419,11 @@ function fmt(n, d=3){
   if(s==='-0') s='0';
   return s;
 }
-function num(v){ const n=parseFloat(v); return isNaN(n)?null:n; }
+function num(v){
+  if(typeof v==='string') v = v.trim().replace(',', '.');
+  const n=parseFloat(v);
+  return isNaN(n)?null:n;
+}
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
 /* ============================= SONIDO ============================= */
@@ -674,6 +678,56 @@ centrifuga: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <text x="14" y="76" class="d-label">L, xL</text><text x="14" y="100" class="d-val" id="d-in-1">—</text>
   <text x="205" y="48" class="d-label">M (crema)</text><text x="205" y="70" class="d-val computed" id="d-out-1">—</text>
   <text x="205" y="122" class="d-label">D (descremada)</text><text x="205" y="144" class="d-val computed" id="d-out-2">—</text>
+</svg>`,
+centrifugaMezcladorDiag: `<svg viewBox="0 0 400 220" class="schem">${ARROW_DEFS}
+  <rect x="15" y="15" width="370" height="185" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <text x="19" y="10" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
+
+  <path class="pipe" d="M0,105 L60,105" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M0,105 L60,105"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.4s" repeatCount="indefinite" path="M0,105 L60,105"/></circle>
+
+  <path class="box-unit" d="M60,75 L140,75 L140,135 L60,135 Z"/>
+  <g transform="translate(100,105)">
+    <g class="rotor">
+      <line x1="-11" y1="0" x2="11" y2="0" stroke="var(--vino)" stroke-width="1.8" stroke-linecap="round"/>
+      <line x1="0" y1="-11" x2="0" y2="11" stroke="var(--vino)" stroke-width="1.8" stroke-linecap="round"/>
+    </g>
+    <circle r="2.6" fill="var(--ocre)"/>
+  </g>
+  <text x="100" y="145" text-anchor="middle" class="unit-label" style="font-size:8px;">CENTRÍFUGA</text>
+
+  <path class="pipe" d="M100,75 L100,35 L230,35" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M100,75 L100,35 L230,35"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.6s" repeatCount="indefinite" path="M100,75 L100,35 L230,35"/></circle>
+  <path class="pipe" d="M140,105 L190,105" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo3" d="M140,105 L190,105"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.3s" repeatCount="indefinite" path="M140,105 L190,105"/></circle>
+
+  <circle cx="230" cy="35" r="3.5" fill="var(--ocre-dark)"/>
+  <path class="pipe" d="M230,35 L230,90" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo4" d="M230,35 L230,90"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.2s" repeatCount="indefinite" path="M230,35 L230,90"/></circle>
+  <path class="pipe" d="M230,35 L385,35" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo5" d="M230,35 L385,35"/>
+  <circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.8s" repeatCount="indefinite" path="M230,35 L385,35"/></circle>
+
+  <path class="box-unit" d="M190,90 L285,90 L285,160 L190,160 Z"/>
+  <g transform="translate(237,125)">
+    <g class="rotor">
+      <line x1="-13" y1="0" x2="13" y2="0" stroke="var(--vino)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="0" y1="-13" x2="0" y2="13" stroke="var(--vino)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-9" y1="-9" x2="9" y2="9" stroke="var(--vino)" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>
+      <line x1="-9" y1="9" x2="9" y2="-9" stroke="var(--vino)" stroke-width="1.4" stroke-linecap="round" opacity=".6"/>
+    </g>
+    <circle r="3" fill="var(--ocre)"/>
+  </g>
+  <text x="237" y="170" text-anchor="middle" class="unit-label" style="font-size:8px;">MEZCLADOR</text>
+
+  <path class="pipe" d="M285,125 L385,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo6" d="M285,125 L385,125"/>
+  <circle class="particle" r="2.2" cx="0" cy="0"><animateMotion dur="1.5s" repeatCount="indefinite" path="M285,125 L385,125"/></circle>
+
+  <text x="4" y="95" class="d-label">F, xF</text><text x="4" y="118" class="d-val" id="d-in-1">—</text>
+  <text x="235" y="28" class="d-label">P (crema total)</text><text x="150" y="28" class="d-val computed" id="d-out-3">—</text>
+  <text x="145" y="118" class="d-label">L (descremada)</text><text x="145" y="140" class="d-val computed" id="d-out-4">—</text>
+  <text x="195" y="82" class="d-label">Pm (parte usada)</text>
+  <text x="290" y="30" class="d-label">Crema sobrante</text><text x="290" y="48" class="d-val computed" id="d-out-2">—</text>
+  <text x="290" y="118" class="d-label">S (estandarizada)</text><text x="290" y="140" class="d-val computed" id="d-out-1">—</text>
 </svg>`,
 dilucionEnergia: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <rect x="88" y="25" width="90" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
@@ -1756,56 +1810,55 @@ const OPS = [
     };
   }
 },
-{ id:'centrifugaMezclador', num:'18', cat:'materia', chapter:3, sector:'Alimentaria', name:'Centrífuga + mezclador', diagramKey:'centrifuga',
+{ id:'centrifugaMezclador', num:'18', cat:'materia', chapter:3, sector:'Alimentaria', name:'Centrífuga + mezclador', diagramKey:'centrifugaMezcladorDiag',
   title:'Estandarización combinando centrífuga y mezclador',
   context:'Planta láctea — Ejercicio de clase (Clase Ej. 10) del libro del curso',
-  story:'Una planta procesadora requiere estandarizar 100 kg de leche entera (4% de grasa) a 3% de grasa usando una centrífuga, que separa la leche estandarizada (3%) de una corriente de crema (35% de grasa). Adicionalmente, esa leche estandarizada puede pensarse como si proviniera de mezclar una corriente de leche descremada (1% de grasa) con una segunda corriente de crema (también 35% de grasa). Determine la leche estandarizada y la crema principal, y luego la leche descremada y la crema de la mezcla interna.',
+  story:'Una planta procesadora recibe 100 kg de leche entera con 4% de grasa. Primero pasa por una centrífuga, que la separa completamente en dos corrientes: leche descremada (1% de grasa) y crema de leche (35% de grasa). Luego, toda la leche descremada y solo una parte de esa crema se combinan en un mezclador para obtener leche estandarizada con 3% de grasa. El resto de la crema (la que no entra al mezclador) sale como un producto aparte. Determine la leche descremada y la crema que salen de la centrífuga, cuánta crema entra al mezclador, la leche estandarizada resultante, y la crema que sobra.',
   inputs:[
     {key:'F', label:'F — leche entera alimentada', unit:'kg', dtag:'d-in-1', def:'100'},
     {key:'xF', label:'xF — fracción de grasa en F', unit:'0–1', def:'0.04'},
-    {key:'xS', label:'xS — fracción de grasa objetivo (estandarizada)', unit:'0–1', def:'0.03'},
+    {key:'xL', label:'xL — fracción de grasa en la leche descremada', unit:'0–1', def:'0.01'},
     {key:'xP', label:'xP — fracción de grasa en la crema', unit:'0–1', def:'0.35'},
-    {key:'xL', label:'xL — fracción de grasa en descremada (mezcla interna)', unit:'0–1', def:'0.01'},
+    {key:'xS', label:'xS — fracción de grasa objetivo (estandarizada)', unit:'0–1', def:'0.03'},
   ],
   hints:[
-    'Empieza por la centrífuga principal: balance total y balance de grasa entre F (entera), S (estandarizada) y P (crema), igual que en un separador de dos corrientes.',
-    'Para la segunda parte, piensa que S no es una corriente física nueva, sino el resultado de "mezclar" una leche descremada (L, 1% grasa) con otra crema (N, 35% grasa) — mismo tipo de balance, aplicado ahora a S como si fuera la salida de un mezclador.',
-    'La crema total del sistema es la suma de las dos corrientes de crema que aparecieron: la de la centrífuga (P) y la de la mezcla interna (N).'
+    'Empieza por la centrífuga: es un separador de dos corrientes. Plantea el balance total de masa y el balance de grasa entre la leche entera (F), la descremada (L) y la crema (P) para hallar L y P.',
+    'Ahora el mezclador: entra TODA la leche descremada (L) más SOLO UNA PARTE de la crema (llámala Pm, con la misma composición xP). Sale la leche estandarizada (S). Plantea el balance total y el de grasa para ese mezclador — la incógnita es cuánta crema (Pm) hace falta agregar.',
+    'La crema que sobra (no entra al mezclador) es simplemente la diferencia entre toda la crema que salió de la centrífuga (P) y la que sí se usó (Pm).'
   ],
   answerFields:[
-    {key:'S', label:'S — leche estandarizada', unit:'kg'},
-    {key:'P', label:'P — crema (centrífuga)', unit:'kg'},
-    {key:'L', label:'L — leche descremada (interna)', unit:'kg'},
-    {key:'N', label:'N — crema (mezcla interna)', unit:'kg'},
-    {key:'M', label:'M — crema total del sistema', unit:'kg'}
+    {key:'L', label:'L — leche descremada (de la centrífuga)', unit:'kg'},
+    {key:'P', label:'P — crema total (de la centrífuga)', unit:'kg'},
+    {key:'Pm', label:'Pm — crema usada en el mezclador', unit:'kg'},
+    {key:'S', label:'S — leche estandarizada (producto final)', unit:'kg'},
+    {key:'Psobra', label:'Crema sobrante (producto aparte)', unit:'kg'}
   ],
   calc(v){
     if(v.F<0) return {error:'F no puede ser negativo.'};
-    for(const k of ['xF','xS','xP','xL']){ if(v[k]<0||v[k]>1) return {error:'Todas las fracciones deben estar entre 0 y 1.'}; }
-    if(!(v.xF>v.xS)) return {error:'xF debe ser mayor que xS para que la centrífuga concentre grasa en la crema.'};
-    if(!(v.xP>v.xS)) return {error:'xP debe ser mayor que xS.'};
-    const P = (v.F*v.xF - v.F*v.xS)/(v.xP-v.xS);
-    const S = v.F-P;
-    if(!(v.xP>v.xS && v.xS>v.xL)) return {error:'Se requiere xP > xS > xL para la segunda parte (mezcla interna).'};
-    const N = S*(v.xS-v.xL)/(v.xP-v.xL);
-    const L = S-N;
-    const M = N+P;
+    for(const k of ['xF','xL','xP','xS']){ if(v[k]<0||v[k]>1) return {error:'Todas las fracciones deben estar entre 0 y 1.'}; }
+    if(!(v.xP>v.xF && v.xF>v.xL)) return {error:'Se requiere xP > xF > xL para que la centrífuga separe correctamente la leche entera.'};
+    if(!(v.xP>v.xS && v.xS>v.xL)) return {error:'Se requiere xP > xS > xL para que el mezclador pueda alcanzar la composición objetivo.'};
+    const P = v.F*(v.xF-v.xL)/(v.xP-v.xL);
+    const L = v.F-P;
+    const Pm = L*(v.xS-v.xL)/(v.xP-v.xS);
+    const S = L+Pm;
+    const Psobra = P-Pm;
+    if(Pm>P) return {error:'La crema necesaria para el mezclador supera la crema disponible de la centrífuga — revisa los datos.'};
     return {
       outputs:[
-        {key:'S',label:'S — leche estandarizada',value:fmt(S),unit:'kg',raw:S},
-        {key:'P',label:'P — crema (centrífuga)',value:fmt(P),unit:'kg',raw:P},
-        {key:'L',label:'L — leche descremada (interna)',value:fmt(L),unit:'kg',raw:L},
-        {key:'N',label:'N — crema (mezcla interna)',value:fmt(N),unit:'kg',raw:N},
-        {key:'M',label:'M — crema total del sistema',value:fmt(M),unit:'kg',raw:M}
+        {key:'L',label:'L — leche descremada (de la centrífuga)',value:fmt(L),unit:'kg',raw:L},
+        {key:'P',label:'P — crema total (de la centrífuga)',value:fmt(P),unit:'kg',raw:P},
+        {key:'Pm',label:'Pm — crema usada en el mezclador',value:fmt(Pm),unit:'kg',raw:Pm},
+        {key:'S',label:'S — leche estandarizada (producto final)',value:fmt(S),unit:'kg',raw:S},
+        {key:'Psobra',label:'Crema sobrante (producto aparte)',value:fmt(Psobra),unit:'kg',raw:Psobra}
       ],
-      diagram:{'d-out-1':fmt(S)+' kg','d-out-2':fmt(P)+' kg crema'}, flows:['fo1','fo2','fo3'],
+      diagram:{'d-out-1':fmt(S)+' kg','d-out-2':fmt(Psobra)+' kg','d-out-3':fmt(P)+' kg','d-out-4':fmt(L)+' kg'}, flows:['fo1','fo2','fo3','fo4','fo5','fo6'],
       steps:[
-        {t:'Balance total y de grasa en la centrífuga principal', f:`F = S + P\nF·xF = S·xS + P·xP`},
-        {t:'Se resuelve para P y S', f:`P = F·(xF−xS)/(xP−xS) = ${v.F}×(${v.xF}−${v.xS})/(${v.xP}−${v.xS}) = ${fmt(P,4)} kg\nS = F − P = ${fmt(S,4)} kg`},
-        {t:'Balance total y de grasa en la mezcla interna (L + N = S)', f:`L + N = S\nL·xL + N·xP = S·xS`},
-        {t:'Se resuelve para N y L', f:`N = S·(xS−xL)/(xP−xL) = ${fmt(N,4)} kg\nL = S − N = ${fmt(L,4)} kg`},
-        {t:'Crema total del sistema', f:`M = N + P = ${fmt(N,4)} + ${fmt(P,4)} = ${fmt(M,4)} kg`}
-      ]
+        {t:'Centrífuga — balance total y de grasa (separador de dos corrientes)', f:`F = L + P\nF·xF = L·xL + P·xP\n\nP = F·(xF−xL)/(xP−xL) = ${v.F}×(${v.xF}−${v.xL})/(${v.xP}−${v.xL}) = ${fmt(P)} kg\nL = F − P = ${fmt(L)} kg`},
+        {t:'Mezclador — balance total y de grasa (entra L completa + Pm de la crema)', f:`L + Pm = S\nL·xL + Pm·xP = S·xS\n\nPm = L·(xS−xL)/(xP−xS) = ${fmt(L)}×(${v.xS}−${v.xL})/(${v.xP}−${v.xS}) = ${fmt(Pm)} kg\nS = L + Pm = ${fmt(S)} kg`},
+        {t:'Crema sobrante (no entró al mezclador)', f:`Psobra = P − Pm = ${fmt(P)} − ${fmt(Pm)} = ${fmt(Psobra)} kg`}
+      ],
+      note:'Verificación: el sistema completo (F → S + crema sobrante) también debe cumplir el balance global — S·xS + Psobra·xP debe ser igual a F·xF, sin importar que internamente se haya separado y vuelto a mezclar.'
     };
   }
 },
@@ -4998,7 +5051,7 @@ function renderOp(){
   grid.innerHTML = op.inputs.map(inp => `
     <div class="field">
       <label>${inp.label} <span class="unit-hint">(${inp.unit})</span></label>
-      <input type="number" step="any" inputmode="decimal" id="in-${inp.key}" value="${inp.def}">
+      <input type="text" inputmode="decimal" id="in-${inp.key}" value="${inp.def}">
     </div>`).join('');
 
   op.inputs.forEach(inp=>{
@@ -5013,7 +5066,7 @@ function renderOp(){
   ansGrid.innerHTML = op.answerFields.map(af => `
     <div class="field">
       <label>${af.label} <span class="unit-hint">(${af.unit})</span></label>
-      <input type="number" step="any" inputmode="decimal" id="ans-${af.key}" placeholder="—">
+      <input type="text" inputmode="decimal" id="ans-${af.key}" placeholder="—">
     </div>`).join('');
   ansGrid.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener('input', soundKey);
