@@ -173,6 +173,14 @@
   .field .unit-hint{color:var(--ink-faint);font-size:10px;}
   .field input{ background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:9px 10px; color:var(--ink); font-family:var(--font-mono); font-size:14px; width:100%; }
   .field input:focus{outline:none;border-color:var(--vino);}
+  .input-sign{ display:flex; gap:6px; align-items:stretch; }
+  .input-sign input{ flex:1; min-width:0; }
+  .sign-btn{
+    flex:0 0 auto; width:38px; border:1px solid var(--line); border-radius:6px;
+    background:var(--card); color:var(--vino); font-family:var(--font-mono); font-size:16px; font-weight:700;
+    cursor:pointer; padding:0;
+  }
+  .sign-btn:active{ background:var(--vino-soft); }
 
   /* ---------- PISTAS ---------- */
   .hint-box{ background:var(--card); border:1px dashed var(--ocre); border-radius:8px; padding:12px 13px; margin-bottom:16px; }
@@ -398,7 +406,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-a</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-b</p>
     </footer>
   </main>
 </div>
@@ -420,9 +428,28 @@ function fmt(n, d=3){
   return s;
 }
 function num(v){
-  if(typeof v==='string') v = v.trim().replace(',', '.');
+  if(typeof v==='string') v = v.trim().replace(/[−–—]/g, '-').replace(/\s+/g,'').replace(',', '.');
   const n=parseFloat(v);
   return isNaN(n)?null:n;
+}
+// Campos que pueden necesitar signo negativo (temperaturas): se les agrega un botón ±,
+// porque el teclado numérico de muchos celulares no trae la tecla "−".
+function needsSign(unit){ return unit==='°C'; }
+function fieldInputHTML(id, value, placeholder, unit){
+  const attrs = `type="text" inputmode="decimal" id="${id}"${value!==undefined?` value="${value}"`:''}${placeholder?` placeholder="${placeholder}"`:''}`;
+  if(!needsSign(unit)) return `<input ${attrs}>`;
+  return `<div class="input-sign"><button type="button" class="sign-btn" data-target="${id}" aria-label="Cambiar signo">±</button><input ${attrs}></div>`;
+}
+function wireSignButtons(container){
+  container.querySelectorAll('.sign-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const inp = document.getElementById(btn.dataset.target);
+      const s = (inp.value||'').trim();
+      inp.value = s.startsWith('-') ? s.slice(1) : '-' + s;
+      inp.dispatchEvent(new Event('input'));
+      inp.focus();
+    });
+  });
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -1988,7 +2015,7 @@ const OPS = [
 { id:'vinagreSalida', num:'22', cat:'materia', chapter:4, sector:'Alimentaria', name:'Vinagre (desde salida)', diagramKey:'fermentadorVinagre',
   title:'Fermentación de vinagre — a partir de la corriente de salida',
   context:'Planta de vinagre — fermentación con células inmovilizadas, ejercicio del libro del curso',
-  story:'En un proceso de fermentación continua de vinagre con células inmovilizadas, la producción de ácido acético es de 2 kg/h y la concentración máxima de ácido acético tolerada por las células es del 12%. Se bombea aire al fermentador con un flujo de 200 mol/h (21% O₂, 79% N₂). La reacción es C₂H₅OH + O₂ → CH₃COOH + H₂O. Determine el etanol y el agua mínimos necesarios por hora, y el flujo y composición del aire de salida.',
+  story:'En un proceso de fermentación continua de vinagre con células inmovilizadas, la producción de ácido acético es de 2 kg/h y la concentración máxima de ácido acético tolerada por las células es del 12%. Se bombea aire al fermentador con un flujo de 200 mol/h (21% O₂, 79% N₂). La reacción es C₂H₅OH + O₂ → CH₃COOH + H₂O. Determine el etanol y el agua mínimos necesarios por hora, el flujo másico del aire de salida, y la composición de O₂ en ese aire, tanto en base molar como en base másica.',
   inputs:[
     {key:'P_AC', label:'Producción de ácido acético', unit:'kg/h', dtag:'d-in-1', def:'2'},
     {key:'xPmax', label:'Concentración máxima tolerada', unit:'0–1', def:'0.12'},
@@ -1998,13 +2025,15 @@ const OPS = [
   hints:[
     'La corriente de salida tiene más información que la de entrada: comienza por ahí. Si el 12% de esa corriente es ácido acético y ya sabes cuántos kg/h son, puedes hallar el flujo total de salida P.',
     'La salida está compuesta solo por ácido acético y agua. Con P y la producción de ácido acético, obtienes el agua que sale.',
-    'Con la estequiometría 1:1 de la reacción (mol a mol), el etanol que entra es igual al ácido acético que se genera, expresado en base molar y convertido a masa. El agua que entra es el agua que sale menos la que genera la reacción.'
+    'Con la estequiometría 1:1 de la reacción (mol a mol), el etanol que entra es igual al ácido acético que se genera, expresado en base molar y convertido a masa. El agua que entra es el agua que sale menos la que genera la reacción. Para el aire: O₂ que sale = O₂ que entra − O₂ consumido; el N₂ no reacciona.',
+    'Cuidado con la base de la composición: el % másico se calcula con kg (O₂ sale / aire sale), pero el % molar requiere pasar primero cada gas a kmol (O₂/32 y N₂/28) y luego dividir. Dan resultados distintos porque O₂ y N₂ tienen masas molares diferentes.'
   ],
   answerFields:[
     {key:'etanolEntra', label:'Etanol mínimo necesario', unit:'kg/h'},
     {key:'aguaEntra', label:'Agua mínima necesaria', unit:'kg/h'},
     {key:'Asalida', label:'Flujo de aire de salida', unit:'kg/h'},
-    {key:'pO2sale', label:'% molar de O₂ en el aire de salida', unit:'%'}
+    {key:'pO2sale', label:'% molar de O₂ en el aire de salida', unit:'%'},
+    {key:'pO2saleMasa', label:'% másico de O₂ en el aire de salida', unit:'%'}
   ],
   calc(v){
     if(v.P_AC<0||v.aireEntrada<0) return {error:'Los flujos no pueden ser negativos.'};
@@ -2025,13 +2054,16 @@ const OPS = [
     if(O2sale<0) return {error:'El aire alimentado no trae suficiente O₂ para producir esa cantidad de ácido acético.'};
     const N2sale = N2entra;
     const Asalida = O2sale+N2sale;
-    const pO2sale = (O2sale/MW.O2)/((O2sale/MW.O2)+(N2sale/MW.N2))*100;
+    const molO2 = O2sale/MW.O2, molN2 = N2sale/MW.N2;
+    const pO2sale = molO2/(molO2+molN2)*100;
+    const pO2saleMasa = O2sale/Asalida*100;
     return {
       outputs:[
         {key:'etanolEntra',label:'Etanol mínimo necesario',value:fmt(etanolEntra,3),unit:'kg/h',raw:etanolEntra},
         {key:'aguaEntra',label:'Agua mínima necesaria',value:fmt(aguaEntra,3),unit:'kg/h',raw:aguaEntra},
         {key:'Asalida',label:'Flujo de aire de salida',value:fmt(Asalida,3),unit:'kg/h',raw:Asalida},
-        {key:'pO2sale',label:'% molar de O₂ en el aire de salida',value:fmt(pO2sale,1),unit:'%',raw:pO2sale}
+        {key:'pO2sale',label:'% molar de O₂ en el aire de salida',value:fmt(pO2sale,2),unit:'%',raw:pO2sale},
+        {key:'pO2saleMasa',label:'% másico de O₂ en el aire de salida',value:fmt(pO2saleMasa,2),unit:'%',raw:pO2saleMasa}
       ],
       diagram:{'d-out-1':fmt(etanolEntra,2)+' kg/h etanol'}, flows:['fo1','fo2'],
       steps:[
@@ -2039,8 +2071,11 @@ const OPS = [
         {t:'Aire de entrada en base másica', f:`N₂ entra = ${fmt(N2entra,3)} kg/h · O₂ entra = ${fmt(O2entra,3)} kg/h`},
         {t:'Balance de ácido acético y etanol (estequiometría 1:1)', f:`Ácido acético generado = ${v.P_AC} kg/h = ${fmt(acidoMol,5)} kmol/h\nEtanol entra = ${fmt(acidoMol,5)}×46 = ${fmt(etanolEntra,3)} kg/h`},
         {t:'Balance de agua', f:`Agua generada = ${fmt(acidoMol,5)}×18 = ${fmt(aguaGenera,3)} kg/h\nAgua entra = W − agua generada = ${fmt(aguaEntra,3)} kg/h`},
-        {t:'Balance de O₂ y N₂ (el N₂ no reacciona)', f:`O₂ consumido = ${fmt(acidoMol,5)}×32 = ${fmt(O2consume,3)} kg/h\nO2 sale = ${fmt(O2entra,3)} − ${fmt(O2consume,3)} = ${fmt(O2sale,3)} kg/h\nN2 sale = N₂ entra = ${fmt(N2sale,3)} kg/h`}
-      ]
+        {t:'Balance de O₂ y N₂ (el N₂ no reacciona)', f:`O₂ consumido = ${fmt(acidoMol,5)}×32 = ${fmt(O2consume,3)} kg/h\nO₂ sale = ${fmt(O2entra,3)} − ${fmt(O2consume,3)} = ${fmt(O2sale,3)} kg/h\nN₂ sale = N₂ entra = ${fmt(N2sale,3)} kg/h\nAire sale = ${fmt(Asalida,3)} kg/h`},
+        {t:'Composición másica del aire de salida', f:`% másico O₂ = O₂ sale / aire sale × 100 = ${fmt(O2sale,3)} / ${fmt(Asalida,3)} × 100 = ${fmt(pO2saleMasa,2)} %`},
+        {t:'Composición molar del aire de salida (primero pasar a kmol)', f:`O₂ = ${fmt(O2sale,4)}/32 = ${fmt(molO2,5)} kmol/h · N₂ = ${fmt(N2sale,4)}/28 = ${fmt(molN2,5)} kmol/h\n% molar O₂ = ${fmt(molO2,5)} / ${fmt(molO2+molN2,5)} × 100 = ${fmt(pO2sale,2)} %`}
+      ],
+      note:'El % molar y el % másico no coinciden porque el O₂ (32 kg/kmol) es más pesado que el N₂ (28 kg/kmol): en masa, el O₂ "pesa" proporcionalmente más que en moles.'
     };
   }
 },
@@ -2368,7 +2403,7 @@ const OPS = [
   ],
   hints:[
     'El gas es una mezcla de varios componentes: su calor específico efectivo es el promedio ponderado de los Cp de cada componente (N₂=1.04, CO₂=0.88, H₂O=1.93, O₂=1.04 kJ/kg·°C), usando las fracciones másicas como peso.',
-    'Toma como base de cálculo 1 kg de gas. El calor cedido por ese kilogramo al enfriarse de la temperatura de entrada a la de salida es el "calor recuperado por kg de gas".',
+    'Toma como base de cálculo 1 kg de gas. El calor cedido por ese kilogramo al enfriarse de la temperatura de entrada a la de salida es el "calor recuperado por kg de gas" — repórtalo como valor positivo (es la cantidad de calor que se aprovecha), aunque en la convención de signos el gas lo pierde.',
     'Ese mismo calor lo gana el aire. Con el Cp del aire (1.0085 kJ/kg·°C) y su cambio de temperatura, despeja cuántos kg de aire se precalientan por cada kg de gas.'
   ],
   answerFields:[
@@ -2383,8 +2418,8 @@ const OPS = [
     if(v.TAout<=v.TAin) return {error:'El aire debe calentarse (T de salida mayor que la de entrada).'};
     const CN2=1.04,CCO2=0.88,CH2O=1.93,CO2c=1.04,CAire=1.0085;
     const Cgas = v.yN2*CN2+v.yCO2*CCO2+v.yH2O*CH2O+v.yO2*CO2c;
-    const Qgas = Cgas*(v.Tgout-v.Tgin);
-    const mA = (Cgas*(v.Tgout-v.Tgin))/(CAire*(v.TAin-v.TAout));
+    const Qgas = Cgas*(v.Tgin-v.Tgout);           // calor cedido por el gas (magnitud positiva)
+    const mA = Qgas/(CAire*(v.TAout-v.TAin));      // ese mismo calor lo gana el aire
     return {
       outputs:[
         {key:'Cgas',label:'Cp efectivo del gas',value:fmt(Cgas,4),unit:'kJ/kg·°C',raw:Cgas},
@@ -2393,10 +2428,11 @@ const OPS = [
       ],
       diagram:{'d-out-1':fmt(mA,2)+' kg aire/kg gas'}, flows:['fo1','fo2'],
       steps:[
-        {t:'Calor específico efectivo del gas (promedio ponderado)', f:`Cgas = yN2·CN2 + yCO2·CCO2 + yH2O·CH2O + yO2·CO₂\nCgas = ${v.yN2}×1,04 + ${v.yCO2}×0,88 + ${v.yH2O}×1,93 + ${v.yO2}×1,04 = ${fmt(Cgas,4)} kJ/kg·°C`},
-        {t:'Calor recuperado por kg de gas (base de cálculo = 1 kg de gas)', f:`Q/kg gas = Cgas·(Tgs − Tge) = ${fmt(Cgas,4)}×(${v.Tgout} − ${v.Tgin}) = ${fmt(Qgas,2)} kJ/kg`},
-        {t:'Masa de aire precalentada por kg de gas', f:`mA = [Cgas·(Tgs−Tge)] / [CAire·(TAe−TAs)]\nmA = ${fmt(Qgas,2)} / (${CAire}×(${v.TAin} − ${v.TAout})) = ${fmt(mA,3)} kg aire/kg gas`}
-      ]
+        {t:'Calor específico efectivo del gas (promedio ponderado)', f:`Cgas = yN₂·Cp,N₂ + yCO₂·Cp,CO₂ + yH₂O·Cp,H₂O + yO₂·Cp,O₂\nCgas = ${v.yN2}×1,04 + ${v.yCO2}×0,88 + ${v.yH2O}×1,93 + ${v.yO2}×1,04 = ${fmt(Cgas,4)} kJ/kg·°C`},
+        {t:'Calor recuperado por kg de gas (base de cálculo = 1 kg de gas)', f:`Q/kg gas = Cgas·(Tge − Tgs) = ${fmt(Cgas,4)}×(${v.Tgin} − ${v.Tgout}) = ${fmt(Qgas,2)} kJ/kg`},
+        {t:'Masa de aire precalentada por kg de gas (calor cedido = calor ganado)', f:`mA = Q / [CAire·(TAs−TAe)]\nmA = ${fmt(Qgas,2)} / (${CAire}×(${v.TAout} − ${v.TAin})) = ${fmt(mA,3)} kg aire/kg gas`}
+      ],
+      note:'Se reporta la magnitud del calor (positiva). En la convención de signos del balance, el cambio de entalpía del gas es negativo (−'+fmt(Qgas,2)+' kJ/kg), porque el gas pierde ese calor; el aire gana exactamente la misma cantidad.'
     };
   }
 },
@@ -5059,8 +5095,9 @@ function renderOp(){
   grid.innerHTML = op.inputs.map(inp => `
     <div class="field">
       <label>${inp.label} <span class="unit-hint">(${inp.unit})</span></label>
-      <input type="text" inputmode="decimal" id="in-${inp.key}" value="${inp.def}">
+      ${fieldInputHTML('in-'+inp.key, inp.def, null, inp.unit)}
     </div>`).join('');
+  wireSignButtons(grid);
 
   op.inputs.forEach(inp=>{
     if(inp.dtag){ const el=document.getElementById(inp.dtag); if(el) el.textContent=inp.def; }
@@ -5074,8 +5111,9 @@ function renderOp(){
   ansGrid.innerHTML = op.answerFields.map(af => `
     <div class="field">
       <label>${af.label} <span class="unit-hint">(${af.unit})</span></label>
-      <input type="text" inputmode="decimal" id="ans-${af.key}" placeholder="—">
+      ${fieldInputHTML('ans-'+af.key, undefined, '—', af.unit)}
     </div>`).join('');
+  wireSignButtons(ansGrid);
   ansGrid.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener('input', soundKey);
   });
