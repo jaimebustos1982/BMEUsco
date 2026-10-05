@@ -406,7 +406,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-c</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-d</p>
     </footer>
   </main>
 </div>
@@ -5376,7 +5376,7 @@ async function abrirPanelDocente(){
       </div>
       <div id="docContent" class="loading">Cargando registro de uso…</div>
       <div class="panel-actions">
-        <button class="btn-secondary" id="doc-exportar" style="display:none;">Exportar CSV</button>
+        <button class="btn-secondary" id="doc-exportar" style="display:none;">Exportar datos</button>
         <button class="btn-secondary" id="doc-borrar" style="display:none;color:var(--error);border-color:var(--error);">Borrar registros</button>
         <button class="btn-primary" id="doc-cerrar">Cerrar panel</button>
       </div>
@@ -5568,7 +5568,7 @@ async function abrirPanelDocente(){
     const exportBtn = document.getElementById('doc-exportar');
     exportBtn.style.display='inline-block';
     exportBtn.onclick = ()=>{
-      mostrarModalExportar(construirCSVCompleto(logs, reportes));
+      mostrarModalExportar(construirSecciones(logs, reportes));
     };
 
     const borrarBtn = document.getElementById('doc-borrar');
@@ -5587,7 +5587,7 @@ function mostrarConfirmarBorrado(totalRegistros){
   <div class="overlay">
     <div class="modal">
       <h3 style="color:var(--error);">Borrar todos los registros</h3>
-      <p>Esto borrará permanentemente los <b>${totalRegistros}</b> registros guardados en tu hoja de Google. No se puede deshacer. Si aún no exportaste el CSV de esta actividad, hazlo antes de continuar.</p>
+      <p>Esto borrará permanentemente los <b>${totalRegistros}</b> registros guardados en tu hoja de Google. No se puede deshacer. Si aún no exportaste los datos de esta actividad, hazlo antes de continuar.</p>
       <div id="borrado-err"></div>
       <div class="modal-actions">
         <button class="btn-secondary" id="borrado-cancel">Cancelar</button>
@@ -5622,11 +5622,13 @@ function mostrarConfirmarBorrado(totalRegistros){
   });
 }
 
-/* ---------- Exportación CSV completa (todas las estadísticas del panel) ---------- */
-function construirCSVCompleto(logs, reportes){
-  const q = v => '"' + String(v===undefined||v===null?'':v).replace(/"/g,'""') + '"';
-  const fila = arr => arr.map(q).join(',') + '\n';
-  const n1 = x => (x===null||x===undefined||isNaN(x)) ? '' : (Math.round(x*10)/10).toString();
+/* ---------- Exportación de datos del panel docente ----------
+   Las estadísticas se construyen una sola vez como "secciones" (tablas) y de ahí salen:
+   - un archivo Excel (.xlsx) con una hoja por sección (generado aquí mismo, sin librerías externas,
+     para que la app siga funcionando sin internet);
+   - un CSV de respaldo con las secciones una debajo de otra (para copiar/pegar si la descarga falla). */
+function construirSecciones(logs, reportes){
+  const n1 = x => (x===null||x===undefined||isNaN(x)) ? '' : Math.round(x*10)/10;
   const fechaLocal = f => {
     const d = new Date(f); if(isNaN(d)) return String(f||'');
     const p = x => String(x).padStart(2,'0');
@@ -5642,23 +5644,22 @@ function construirCSVCompleto(logs, reportes){
     const p = parseInt(l.pistas,10); if(!isNaN(p)){ m.sumaPistas+=p; m.nPistas++; }
     if(veredictos.includes(l.correcta)) m[l.correcta]++;
   };
-
-  let csv = '';
+  const secciones = [];
 
   // 1. Resumen general
   const global = nuevoConteo(); logs.forEach(l=>acumular(global,l));
   const enTaller = logs.filter(l=>tipoDe(l.modulo)==='Taller').length;
-  csv += fila(['RESUMEN GENERAL']);
-  csv += fila(['Indicador','Valor']);
-  csv += fila(['Fecha de exportación', fechaLocal(new Date())]);
-  csv += fila(['Registros totales', logs.length]);
-  csv += fila(['Estudiantes distintos', new Set(logs.map(l=>String(l.codigo))).size]);
-  csv += fila(['Registros en modo taller', enTaller]);
-  csv += fila(['Registros en práctica libre', logs.length-enTaller]);
-  veredictos.forEach(v=>csv += fila(['Respuestas: '+v, global[v]]));
-  csv += fila(['Pistas usadas en promedio', n1(global.nPistas?global.sumaPistas/global.nPistas:null)]);
-  csv += fila(['Reportes de error', reportes.length]);
-  csv += '\n';
+  secciones.push({nombre:'Resumen', titulo:'RESUMEN GENERAL', anchos:[34,22], filtro:false, filas:[
+    ['Indicador','Valor'],
+    ['Fecha de exportación', fechaLocal(new Date())],
+    ['Registros totales', logs.length],
+    ['Estudiantes distintos', new Set(logs.map(l=>String(l.codigo))).size],
+    ['Registros en modo taller', enTaller],
+    ['Registros en práctica libre', logs.length-enTaller],
+    ...veredictos.map(v=>['Respuestas: '+v, global[v]]),
+    ['Pistas usadas en promedio', n1(global.nPistas?global.sumaPistas/global.nPistas:null)],
+    ['Reportes de error', reportes.length]
+  ]});
 
   // 2. Resumen por estudiante
   const porEst = {};
@@ -5668,23 +5669,22 @@ function construirCSVCompleto(logs, reportes){
     acumular(porEst[k], l); porEst[k].fichas.add(l.modulo);
     if(tipoDe(l.modulo)==='Taller') porEst[k].taller++;
   });
-  csv += fila(['RESUMEN POR ESTUDIANTE']);
-  csv += fila(['Estudiante','Codigo','Registros','Fichas distintas','Correctas','Parciales','Incorrectas','Sin respuesta','% correctas (sobre las evaluadas)','Pistas promedio','Registros en taller']);
-  Object.values(porEst).sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es')).forEach(e=>{
-    const evaluadas = e.Correcta+e.Parcial+e.Incorrecta;
-    csv += fila([e.nombre, e.codigo, e.intentos, e.fichas.size, e.Correcta, e.Parcial, e.Incorrecta, e['Sin respuesta'],
-      n1(evaluadas? e.Correcta/evaluadas*100 : null), n1(e.nPistas? e.sumaPistas/e.nPistas : null), e.taller]);
-  });
-  csv += '\n';
+  secciones.push({nombre:'Por estudiante', titulo:'RESUMEN POR ESTUDIANTE', anchos:[30,13,10,10,11,10,11,13,18,13,13], filas:[
+    ['Estudiante','Código','Registros','Fichas distintas','Correctas','Parciales','Incorrectas','Sin respuesta','% correctas (sobre evaluadas)','Pistas promedio','Registros en taller'],
+    ...Object.values(porEst).sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es')).map(e=>{
+      const evaluadas = e.Correcta+e.Parcial+e.Incorrecta;
+      return [String(e.nombre||''), String(e.codigo||''), e.intentos, e.fichas.size, e.Correcta, e.Parcial, e.Incorrecta, e['Sin respuesta'],
+        n1(evaluadas? e.Correcta/evaluadas*100 : null), n1(e.nPistas? e.sumaPistas/e.nPistas : null), e.taller];
+    })
+  ]});
 
   // 3. Uso por ficha (todas, incluidas las que no se han usado)
   const usos = {}; logs.forEach(l=>{ usos[l.modulo]=(usos[l.modulo]||0)+1; });
-  csv += fila(['USO POR FICHA']);
-  csv += fila(['Capitulo','Ficha','Titulo','Tipo','Usos']);
-  OPS.slice().sort((a,b)=> (a.taller?1:0)-(b.taller?1:0) || a.chapter-b.chapter).forEach(op=>{
-    csv += fila([op.chapter, op.name, op.title, op.taller?'Taller':'Práctica libre', usos[op.name]||0]);
-  });
-  csv += '\n';
+  secciones.push({nombre:'Uso por ficha', titulo:'USO POR FICHA', anchos:[10,32,58,15,8], filas:[
+    ['Capítulo','Ficha','Título','Tipo','Usos'],
+    ...OPS.slice().sort((a,b)=> (a.taller?1:0)-(b.taller?1:0) || a.chapter-b.chapter)
+      .map(op=>[op.chapter, op.name, op.title, op.taller?'Taller':'Práctica libre', usos[op.name]||0])
+  ]});
 
   // 4. Análisis de dificultad (todas las fichas con al menos un intento)
   const porFicha = {}; logs.forEach(l=>{ if(!l.modulo) return; if(!porFicha[l.modulo]) porFicha[l.modulo]=nuevoConteo(); acumular(porFicha[l.modulo], l); });
@@ -5692,49 +5692,180 @@ function construirCSVCompleto(logs, reportes){
     const m = porFicha[nombre]; const evaluadas = m.Correcta+m.Parcial+m.Incorrecta;
     return {nombre, m, pctInc: evaluadas? m.Incorrecta/evaluadas*100 : null, pistasProm: m.nPistas? m.sumaPistas/m.nPistas : null};
   }).sort((a,b)=> (b.pctInc||0)-(a.pctInc||0) || (b.pistasProm||0)-(a.pistasProm||0));
-  csv += fila(['ANALISIS DE DIFICULTAD (ordenado por % de incorrectas)']);
-  csv += fila(['Capitulo','Ficha','Tipo','Intentos','Pistas promedio','Correctas','Parciales','Incorrectas','Sin respuesta','% incorrectas (sobre las evaluadas)']);
-  dif.forEach(d=> csv += fila([capDe(d.nombre), d.nombre, tipoDe(d.nombre), d.m.intentos, n1(d.pistasProm), d.m.Correcta, d.m.Parcial, d.m.Incorrecta, d.m['Sin respuesta'], n1(d.pctInc)]));
-  csv += '\n';
+  secciones.push({nombre:'Dificultad', titulo:'ANÁLISIS DE DIFICULTAD (ordenado por % de incorrectas)', anchos:[10,32,15,9,13,10,10,11,13,18], filas:[
+    ['Capítulo','Ficha','Tipo','Intentos','Pistas promedio','Correctas','Parciales','Incorrectas','Sin respuesta','% incorrectas (sobre evaluadas)'],
+    ...dif.map(d=>[capDe(d.nombre), d.nombre, tipoDe(d.nombre), d.m.intentos, n1(d.pistasProm), d.m.Correcta, d.m.Parcial, d.m.Incorrecta, d.m['Sin respuesta'], n1(d.pctInc)])
+  ]});
 
   // 5. Registro de actividad completo
-  csv += fila(['REGISTRO DE ACTIVIDAD']);
-  csv += fila(['Estudiante','Codigo','Ficha','Tipo','Capitulo','Pistas','Correcta','Fecha']);
-  logs.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha)).forEach(l=>{
-    csv += fila([l.nombre, l.codigo, l.modulo, tipoDe(l.modulo), capDe(l.modulo), (l.pistas!==undefined&&l.pistas!==null)?l.pistas:'', l.correcta, fechaLocal(l.fecha)]);
-  });
-  csv += '\n';
+  secciones.push({nombre:'Actividad', titulo:'REGISTRO DE ACTIVIDAD', anchos:[30,13,32,15,10,8,14,20], filas:[
+    ['Estudiante','Código','Ficha','Tipo','Capítulo','Pistas','Resultado','Fecha'],
+    ...logs.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha)).map(l=>{
+      const p = parseInt(l.pistas,10);
+      return [String(l.nombre||''), String(l.codigo||''), String(l.modulo||''), tipoDe(l.modulo), capDe(l.modulo), isNaN(p)?'':p, String(l.correcta||''), fechaLocal(l.fecha)];
+    })
+  ]});
 
   // 6. Reportes de error
-  csv += fila(['REPORTES DE ERROR']);
-  csv += fila(['Estudiante','Codigo','Ficha','Mensaje','Fecha']);
-  reportes.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha)).forEach(r=>{
-    csv += fila([r.nombre, r.codigo, r.modulo, r.mensaje, fechaLocal(r.fecha)]);
-  });
-  return csv;
+  secciones.push({nombre:'Reportes', titulo:'REPORTES DE ERROR', anchos:[30,13,30,70,20], ajustarCol:3, filas:[
+    ['Estudiante','Código','Ficha','Mensaje','Fecha'],
+    ...reportes.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha))
+      .map(r=>[String(r.nombre||''), String(r.codigo||''), String(r.modulo||''), String(r.mensaje||''), fechaLocal(r.fecha)])
+  ]});
+
+  return secciones;
 }
 
-function mostrarModalExportar(csv){
+function seccionesACSV(secciones){
+  const q = v => '"' + String(v===undefined||v===null?'':v).replace(/"/g,'""') + '"';
+  return secciones.map(s => q(s.titulo) + '\n' + s.filas.map(f=>f.map(q).join(',')).join('\n') + '\n').join('\n');
+}
+
+/* --- Generador mínimo de .xlsx (Office Open XML empaquetado en ZIP sin compresión) --- */
+function _xmlEsc(s){
+  return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g,'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function _colName(i){ let s=''; i++; while(i>0){ const m=(i-1)%26; s=String.fromCharCode(65+m)+s; i=Math.floor((i-1)/26); } return s; }
+function _utf8(str){
+  if(typeof TextEncoder!=='undefined') return new TextEncoder().encode(str);
+  const b = unescape(encodeURIComponent(str)); const a = new Uint8Array(b.length);
+  for(let i=0;i<b.length;i++) a[i]=b.charCodeAt(i);
+  return a;
+}
+const _CRC_TABLE = (()=>{ const t=new Uint32Array(256); for(let n=0;n<256;n++){ let c=n; for(let k=0;k<8;k++) c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1); t[n]=c>>>0; } return t; })();
+function _crc32(bytes){ let c=0xFFFFFFFF; for(let i=0;i<bytes.length;i++) c=_CRC_TABLE[(c^bytes[i])&0xFF]^(c>>>8); return (c^0xFFFFFFFF)>>>0; }
+function _zipStore(files){
+  const parts=[], central=[]; let offset=0;
+  files.forEach(f=>{
+    const nameB=_utf8(f.name), data=f.data, crc=_crc32(data), size=data.length;
+    const lh=new Uint8Array(30+nameB.length), dv=new DataView(lh.buffer);
+    dv.setUint32(0,0x04034b50,true); dv.setUint16(4,20,true); dv.setUint16(6,0x0800,true); dv.setUint16(8,0,true);
+    dv.setUint16(10,0,true); dv.setUint16(12,0x21,true);
+    dv.setUint32(14,crc,true); dv.setUint32(18,size,true); dv.setUint32(22,size,true);
+    dv.setUint16(26,nameB.length,true); dv.setUint16(28,0,true); lh.set(nameB,30);
+    parts.push(lh, data);
+    const ch=new Uint8Array(46+nameB.length), cv=new DataView(ch.buffer);
+    cv.setUint32(0,0x02014b50,true); cv.setUint16(4,20,true); cv.setUint16(6,20,true); cv.setUint16(8,0x0800,true); cv.setUint16(10,0,true);
+    cv.setUint16(12,0,true); cv.setUint16(14,0x21,true); cv.setUint32(16,crc,true); cv.setUint32(20,size,true); cv.setUint32(24,size,true);
+    cv.setUint16(28,nameB.length,true); cv.setUint32(42,offset,true); ch.set(nameB,46);
+    central.push(ch);
+    offset += lh.length + size;
+  });
+  const cdSize = central.reduce((s,c)=>s+c.length,0);
+  const end=new Uint8Array(22), ev=new DataView(end.buffer);
+  ev.setUint32(0,0x06054b50,true); ev.setUint16(8,files.length,true); ev.setUint16(10,files.length,true);
+  ev.setUint32(12,cdSize,true); ev.setUint32(16,offset,true);
+  const out=new Uint8Array(offset+cdSize+22); let p=0;
+  parts.concat(central,[end]).forEach(a=>{ out.set(a,p); p+=a.length; });
+  return out;
+}
+function construirXLSX(secciones){
+  const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
+  const HEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
+  const files = [];
+  const hojas = secciones.map((s,i)=>{
+    const nCols = Math.max(...s.filas.map(f=>f.length));
+    const ultimaCol = _colName(nCols-1), nFilas = s.filas.length;
+    const cols = s.anchos.map((w,j)=>`<col min="${j+1}" max="${j+1}" width="${w}" customWidth="1"/>`).join('');
+    const filasXML = s.filas.map((fila,ri)=>{
+      const celdas = fila.map((v,ci)=>{
+        if(v===''||v===null||v===undefined) return '';
+        const ref = _colName(ci)+(ri+1);
+        const estilo = ri===0 ? ' s="1"' : (s.ajustarCol===ci ? ' s="2"' : '');
+        if(typeof v==='number' && isFinite(v)) return `<c r="${ref}"${estilo}><v>${v}</v></c>`;
+        return `<c r="${ref}"${estilo} t="inlineStr"><is><t xml:space="preserve">${_xmlEsc(v)}</t></is></c>`;
+      }).join('');
+      return `<row r="${ri+1}">${celdas}</row>`;
+    }).join('');
+    const conFiltro = s.filtro!==false && nFilas>1;
+    const xml = HEAD + `<worksheet ${NS}>`
+      + `<sheetViews><sheetView workbookViewId="0"${i===0?' tabSelected="1"':''}><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
+      + `<sheetFormatPr defaultRowHeight="15"/><cols>${cols}</cols><sheetData>${filasXML}</sheetData>`
+      + (conFiltro ? `<autoFilter ref="A1:${ultimaCol}${nFilas}"/>` : '')
+      + `</worksheet>`;
+    files.push({name:`xl/worksheets/sheet${i+1}.xml`, data:_utf8(xml)});
+    return {nombre:s.nombre, rango: conFiltro ? `'${s.nombre}'!$A$1:$${ultimaCol}$${nFilas}` : null};
+  });
+  const definidos = hojas.map((h,i)=> h.rango ? `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">${_xmlEsc(h.rango)}</definedName>` : '').join('');
+  files.unshift(
+    {name:'[Content_Types].xml', data:_utf8(HEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
+      + '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>'
+      + '<Default Extension="xml" ContentType="application/xml"/>'
+      + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
+      + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+      + hojas.map((h,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')
+      + '</Types>')},
+    {name:'_rels/.rels', data:_utf8(HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+      + '</Relationships>')},
+    {name:'xl/workbook.xml', data:_utf8(HEAD + `<workbook ${NS}><sheets>`
+      + hojas.map((h,i)=>`<sheet name="${_xmlEsc(h.nombre)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')
+      + `</sheets>${definidos?`<definedNames>${definidos}</definedNames>`:''}</workbook>`)},
+    {name:'xl/_rels/workbook.xml.rels', data:_utf8(HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+      + hojas.map((h,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')
+      + `<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`
+      + '</Relationships>')},
+    {name:'xl/styles.xml', data:_utf8(HEAD + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+      + '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
+      + '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FF6D1B2B"/><bgColor indexed="64"/></patternFill></fill></fills>'
+      + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
+      + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
+      + '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
+      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs>'
+      + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
+      + '</styleSheet>')}
+  );
+  return _zipStore(files);
+}
+
+function descargarBytes(bytes, nombre, mime){
+  const blob = new Blob([bytes], {type:mime});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nombre; a.style.display='none';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+}
+
+function mostrarModalExportar(secciones){
   const root = document.getElementById('modalRoot');
-  // El BOM (﻿) hace que Excel reconozca UTF-8 y muestre bien las tildes y la ñ.
-  const dataUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent('﻿' + csv);
+  const csv = seccionesACSV(secciones);
   const hoy = new Date(); const p = x=>String(x).padStart(2,'0');
-  const nombreArchivo = `seguimiento_BMEUsco_${hoy.getFullYear()}-${p(hoy.getMonth()+1)}-${p(hoy.getDate())}.csv`;
+  const base = `seguimiento_BMEUsco_${hoy.getFullYear()}-${p(hoy.getMonth()+1)}-${p(hoy.getDate())}`;
+  // El BOM (U+FEFF) hace que Excel reconozca UTF-8 en el CSV y muestre bien tildes y ñ.
+  const csvUri = 'data:text/csv;charset=utf-8,' + encodeURIComponent(String.fromCharCode(0xFEFF) + csv);
   root.innerHTML = `
   <div class="overlay">
     <div class="modal">
-      <h3>Exportar CSV completo</h3>
-      <p>Incluye, en este orden: resumen general, resumen por estudiante, uso por ficha, análisis de dificultad, registro de actividad y reportes de error. Si el botón de descarga no funciona en tu navegador, copia el texto de abajo — ya está seleccionado — y pégalo en Excel, Google Sheets o un archivo nuevo con extensión .csv.</p>
-      <textarea id="csv-text" readonly style="width:100%;height:150px;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);box-sizing:border-box;">${esc(csv)}</textarea>
-      <div class="modal-actions">
-        <button class="btn-secondary" id="csv-copiar">Copiar al portapapeles</button>
-        <a class="btn-primary" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;" href="${dataUri}" download="${nombreArchivo}">Intentar descargar</a>
-      </div>
+      <h3>Exportar datos</h3>
+      <p>El archivo de Excel trae cada sección en su propia hoja: <b>${secciones.map(s=>esc(s.nombre)).join(' · ')}</b>. Las hojas tienen encabezados fijos y filtros, y se abren en Excel, Google Sheets o LibreOffice.</p>
+      <button class="calc-btn" id="xlsx-descargar" style="margin-top:4px;">Descargar Excel (.xlsx)</button>
+      <div id="xlsx-estado" style="font-size:12px;color:var(--ink-faint);margin-top:6px;text-align:center;"></div>
+      <details style="margin-top:12px;">
+        <summary style="cursor:pointer;font-size:12.5px;color:var(--ink-dim);">¿No se descarga? Copiar como CSV</summary>
+        <p style="font-size:12px;margin:8px 0;">Las secciones van una debajo de otra. Copia el texto y pégalo en Excel, Google Sheets o un archivo nuevo con extensión .csv.</p>
+        <textarea id="csv-text" readonly style="width:100%;height:130px;font-family:'JetBrains Mono',monospace;font-size:10.5px;padding:8px;border:1px solid var(--line);border-radius:6px;background:var(--paper);color:var(--ink);box-sizing:border-box;">${esc(csv)}</textarea>
+        <div class="modal-actions">
+          <button class="btn-secondary" id="csv-copiar">Copiar al portapapeles</button>
+          <a class="btn-secondary" style="text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;" href="${csvUri}" download="${base}.csv">Descargar CSV</a>
+        </div>
+      </details>
       <div class="modal-actions"><button class="btn-secondary" id="csv-cerrar" style="width:100%;">Cerrar</button></div>
     </div>
   </div>`;
+  document.getElementById('xlsx-descargar').addEventListener('click', ()=>{
+    const estado = document.getElementById('xlsx-estado');
+    try{
+      descargarBytes(construirXLSX(secciones), base+'.xlsx', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      estado.textContent = 'Descarga iniciada: ' + base + '.xlsx';
+    }catch(e){
+      estado.textContent = 'No se pudo generar el archivo de Excel (' + e.message + '). Usa la opción de CSV.';
+    }
+  });
   const ta = document.getElementById('csv-text');
-  ta.focus(); ta.select();
   document.getElementById('csv-copiar').addEventListener('click', async ()=>{
     const btn = document.getElementById('csv-copiar');
     try{
