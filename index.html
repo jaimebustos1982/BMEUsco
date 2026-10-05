@@ -398,7 +398,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-08-09-e</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-a</p>
     </footer>
   </main>
 </div>
@@ -2417,8 +2417,8 @@ const OPS = [
   ],
   hints:[
     'Empieza por el balance de masa, igual que en cualquier evaporador: balance de sólidos para hallar el producto concentrado L, y balance global para hallar el agua evaporada A.',
-    'El balance de energía compara la entalpía que entra (alimentación + vapor de calentamiento como gas saturado) con la que sale (vapor evaporado + concentrado + vapor de calentamiento ya condensado como líquido saturado).',
-    'El vapor de calentamiento solo cede su calor latente de condensación (hg−hf a su propia presión). Ese calor debe cubrir la evaporación del agua (A·hfg a la presión del evaporador) más el calentamiento sensible de la alimentación hasta la temperatura de ebullición.'
+    'Para el balance de energía, toma como temperatura de referencia la temperatura de ebullición del evaporador (TL). Así la entalpía del concentrado L es cero (sale justo a TL) y la del vapor generado A es su calor latente hfg a la presión del evaporador.',
+    'El vapor de calentamiento solo cede su calor latente de condensación (hg−hf a su propia presión). Ese calor debe cubrir dos cosas: calentar TODA la alimentación desde TF hasta TL (calor sensible, F·Cp·(TL−TF)) y evaporar el agua A (calor latente, A·hfg).'
   ],
   answerFields:[
     {key:'A', label:'A — agua evaporada', unit:'kg/h'},
@@ -2431,7 +2431,10 @@ const OPS = [
     if(v.xL<=v.xF) return {error:'xL debe ser mayor que xF.'};
     if(v.hg<=v.hf) return {error:'hg debe ser mayor que hf.'};
     const L = v.F*v.xF/v.xL, A = v.F-L;
-    const mv = (A*v.hfg + L*v.Cp*v.TL - v.F*v.Cp*v.TF)/(v.hg-v.hf);
+    const Qsens = v.F*v.Cp*(v.TL-v.TF);
+    const Qlat = A*v.hfg;
+    const lambdaS = v.hg-v.hf;
+    const mv = (Qsens + Qlat)/lambdaS;
     if(mv<0) return {error:'Con estos datos el vapor de calentamiento resulta negativo — revisa los valores de tabla ingresados.'};
     return {
       outputs:[
@@ -2442,10 +2445,11 @@ const OPS = [
       diagram:{'d-out-1':fmt(A)+' kg/h vapor evap.','d-out-2':fmt(mv,1)+' kg/h condensado'}, flows:['fo1','fo2','fo3','fo4','fo5'],
       steps:[
         {t:'Balance de sólidos y balance global de masa', f:`L = F·xF/xL = ${v.F}×${v.xF}/${v.xL} = ${fmt(L)} kg/h\nA = F − L = ${fmt(A)} kg/h`},
-        {t:'Balance de energía (el vapor de calentamiento solo cede calor latente)', f:`mv·(hg−hf) = A·hfg + L·Cp·TL − F·Cp·TF`},
-        {t:'Se despeja el vapor de calentamiento necesario', f:`mv = [${fmt(A)}×${v.hfg} + ${fmt(L)}×${v.Cp}×${v.TL} − ${v.F}×${v.Cp}×${v.TF}] / (${v.hg} − ${v.hf})\nmv = ${fmt(mv,2)} kg/h = ${fmt(mv/3600,4)} kg/s`}
+        {t:'Referencia: temperatura del evaporador (TL)', f:`hL = 0 (el concentrado sale a TL)\nhA = hfg = ${v.hfg} kJ/kg (vapor saturado a TL)\nhF = Cp·(TF − TL)`},
+        {t:'Balance de energía', f:`mv·(hg−hf) = F·Cp·(TL−TF) + A·hfg\nCalor sensible = ${v.F}×${v.Cp}×(${v.TL}−${v.TF}) = ${fmt(Qsens,0)} kJ/h\nCalor latente = ${fmt(A)}×${v.hfg} = ${fmt(Qlat,0)} kJ/h`},
+        {t:'Se despeja el vapor de calentamiento', f:`mv = (${fmt(Qsens,0)} + ${fmt(Qlat,0)}) / (${v.hg} − ${v.hf})\nmv = ${fmt(mv,2)} kg/h = ${fmt(mv/3600,4)} kg/s`}
       ],
-      note:'Los valores de hg, hf y hfg se obtienen de tablas de agua saturada (por ejemplo, Çengel y Boles) según la presión de cada corriente de vapor.'
+      note:'La referencia es arbitraria, pero debe ser la misma para todas las corrientes. Con referencia en TL se usa hfg para el vapor generado y no se necesita el Cp del concentrado. Si se usa referencia 0 °C, el vapor generado debe llevar hg (no hfg) y el concentrado CpL·TL; mezclar hfg con referencia 0 °C omite el término A·Cp·TL. Valores de hg, hf y hfg: tablas de agua saturada.'
     };
   }
 },
@@ -2469,7 +2473,7 @@ const OPS = [
     {key:'eficiencia', label:'Eficiencia de combustión', unit:'0–1', def:'0.75'},
   ],
   hints:[
-    'El evaporador se resuelve igual que cualquier otro: balance de sólidos para el concentrado L, balance global para el vapor evaporado V, y luego el balance de energía te da el vapor de calentamiento mv (igual que en el ejercicio anterior).',
+    'El evaporador se resuelve igual que el ejercicio anterior: balance de sólidos para L, balance global para V, y balance de energía con referencia en la temperatura del evaporador (TL): mv·(hg−hf) = F·Cp·(TL−TF) + V·hfg.',
     'La caldera es un sistema aparte: recibe agua líquida a Tagua y debe entregarla como vapor saturado a la temperatura de saturación de la presión de trabajo. Eso implica dos calores: uno para calentar el agua líquida (sensible) y otro para evaporarla (latente, hfg a esa misma presión).',
     'El calor que debe entregar la caldera (Q) se cubre quemando diésel: divide Q entre el poder calorífico del diésel y entre la eficiencia de combustión (porque no toda la energía del combustible se aprovecha).'
   ],
@@ -2487,7 +2491,9 @@ const OPS = [
     if(v.hg<=v.hf) return {error:'hg debe ser mayor que hf.'};
     if(v.PC<=0||v.eficiencia<=0||v.eficiencia>1) return {error:'El poder calorífico debe ser mayor que cero y la eficiencia debe estar entre 0 y 1.'};
     const L = v.F*v.xF/v.xL, V = v.F-L;
-    const mv = (V*v.hfg + L*v.Cp*v.TL - v.F*v.Cp*v.TF)/(v.hg-v.hf);
+    const Qsens = v.F*v.Cp*(v.TL-v.TF);
+    const Qlat = V*v.hfg;
+    const mv = (Qsens + Qlat)/(v.hg-v.hf);
     if(mv<0) return {error:'Con estos datos el vapor de calentamiento resulta negativo — revisa los valores de tabla ingresados.'};
     const hfgCaldera = v.hg-v.hf;
     const Q = mv*(4.18*(v.TsatCaldera-v.Tagua)+hfgCaldera);
@@ -2503,11 +2509,11 @@ const OPS = [
       diagram:{'d-out-1':fmt(V)+' kg/h','d-out-2':fmt(mdiesel,1)+' kg/h'}, flows:['fo1','fo2','fo3','fo4','fo5','fo6','fo7'],
       steps:[
         {t:'Balance de masa en el evaporador', f:`L = F·xF/xL = ${fmt(L)} kg/h\nV = F − L = ${fmt(V)} kg/h`},
-        {t:'Balance de energía en el evaporador (vapor de calentamiento cede calor latente)', f:`mv = [V·hfg + L·Cp·TL − F·Cp·TF] / (hg−hf)\nmv = ${fmt(mv,2)} kg/h`},
+        {t:'Balance de energía en el evaporador (referencia: TL; hL = 0, hV = hfg)', f:`mv·(hg−hf) = F·Cp·(TL−TF) + V·hfg\nCalor sensible = ${v.F}×${v.Cp}×(${v.TL}−${v.TF}) = ${fmt(Qsens,0)} kJ/h\nCalor latente = ${fmt(V)}×${v.hfg} = ${fmt(Qlat,0)} kJ/h\nmv = ${fmt(Qsens+Qlat,0)} / ${fmt(v.hg-v.hf,2)} = ${fmt(mv,2)} kg/h`},
         {t:'Balance de energía en la caldera (calentar el agua + evaporarla)', f:`Q = mv·[4,18·(Tsat_caldera − Tagua) + hfg_caldera]\nQ = ${fmt(mv,2)}×[4,18×(${v.TsatCaldera}−${v.Tagua}) + ${fmt(hfgCaldera,2)}] = ${fmt(Q,0)} kJ/h`},
         {t:'Consumo de diésel (considerando la eficiencia de combustión)', f:`mdiesel = Q / (PC×eficiencia) = ${fmt(Q,0)} / (${v.PC}×${v.eficiencia}) = ${fmt(mdiesel,2)} kg/h`}
       ],
-      note:'Los valores de hg, hf y hfg se obtienen de tablas de agua saturada según la presión de cada corriente de vapor.'
+      note:'Con referencia en la temperatura del evaporador, el concentrado no aporta entalpía y el vapor generado lleva hfg; así no se necesita el Cp del concentrado. Mezclar hfg para el vapor con referencia 0 °C para los líquidos omite el término V·Cp·TL y subestima el vapor de calentamiento. Valores de hg, hf y hfg: tablas de agua saturada.'
     };
   }
 },
@@ -3419,7 +3425,7 @@ const OPS = [
   hints:[
     'Empieza por el balance global de sólidos entre F y el producto final del 2.º efecto (L2) — el vapor no lleva sólidos, sin importar en cuántos efectos se elimine.',
     'Con L2 conocido, el balance global de masa te da el vapor total (V1+V2). Usando la condición V1=V2, despeja cada uno.',
-    'El balance de energía se plantea solo alrededor del primer efecto (que es el que recibe el vapor de la caldera): la alimentación F entra a TF, se calienta hasta TL, y de ahí sale V1 como vapor y L1 como líquido hacia el segundo efecto. Con ese balance despejas el vapor de calentamiento mv, y de ahí sigue igual que en el evaporador simple: balance de energía en la caldera y consumo de diésel.'
+    'El balance de energía se plantea solo alrededor del primer efecto (el que recibe el vapor de la caldera), con referencia en TL: L1 sale a TL (entalpía cero) y V1 lleva hfg. Así, mv·(hg−hf) = F·Cp·(TL−TF) + V1·hfg. De ahí sigue igual que en el evaporador simple: balance de energía en la caldera y consumo de diésel.'
   ],
   answerFields:[
     {key:'L2', label:'L2 — producto final concentrado', unit:'kg/h'},
@@ -3439,7 +3445,9 @@ const OPS = [
     if(Vtotal<0) return {error:'xL2 produce un vapor total negativo — revisa los datos.'};
     const V1 = Vtotal/2, V2=V1;
     const L1 = v.F-V1;
-    const mv = (V1*v.hfg + L1*v.Cp*v.TL - v.F*v.Cp*v.TF)/(v.hg-v.hf);
+    const Qsens = v.F*v.Cp*(v.TL-v.TF);
+    const Qlat = V1*v.hfg;
+    const mv = (Qsens + Qlat)/(v.hg-v.hf);
     if(mv<0) return {error:'Con estos datos el vapor de calentamiento resulta negativo — revisa los valores de tabla ingresados.'};
     const hfgCaldera = v.hg-v.hf;
     const Q = mv*(4.18*(v.TsatCaldera-v.Tagua)+hfgCaldera);
@@ -3457,10 +3465,10 @@ const OPS = [
         {t:'Balance de sólidos en todo el sistema (dos efectos)', f:`F·xF = L2·xL2\nL2 = ${v.F}×${v.xF}/${v.xL2} = ${fmt(L2)} kg/h`},
         {t:'Balance global de masa, con V1=V2', f:`F = L2 + V1 + V2 = L2 + 2V1\nV1 = (F−L2)/2 = ${fmt(V1)} kg/h = V2`},
         {t:'Balance de masa del primer efecto', f:`L1 = F − V1 = ${v.F} − ${fmt(V1)} = ${fmt(L1)} kg/h`},
-        {t:'Balance de energía del primer efecto (calentado por el vapor de la caldera)', f:`mv = [V1·hfg + L1·Cp·TL − F·Cp·TF] / (hg−hf) = ${fmt(mv,2)} kg/h`},
+        {t:'Balance de energía del primer efecto (referencia: TL; hL1 = 0, hV1 = hfg)', f:`mv·(hg−hf) = F·Cp·(TL−TF) + V1·hfg\nCalor sensible = ${v.F}×${v.Cp}×(${v.TL}−${v.TF}) = ${fmt(Qsens,0)} kJ/h\nCalor latente = ${fmt(V1)}×${v.hfg} = ${fmt(Qlat,0)} kJ/h\nmv = ${fmt(Qsens+Qlat,0)} / ${fmt(v.hg-v.hf,2)} = ${fmt(mv,2)} kg/h`},
         {t:'Balance de energía en la caldera y consumo de diésel', f:`Q = mv·[4,18·(Tsat_caldera−Tagua) + hfg_caldera] = ${fmt(Q,0)} kJ/h\nmdiesel = Q / (PC×eficiencia) = ${fmt(mdiesel,2)} kg/h`}
       ],
-      note:'Corrección importante frente al desarrollo del libro: para el balance de energía de la caldera se debe usar la temperatura de saturación del vapor a SU PROPIA presión (Tsat a 1000 kPa = 179,88°C), no la temperatura de ebullición del evaporador (69,09°C). El libro usa por error esta última, lo que subestima el consumo real de diésel — vale la pena corregirlo en el manuscrito.'
+      note:'Dos correcciones frente al desarrollo del libro: (1) en el primer efecto se usa referencia TL de forma consistente (calor sensible de toda la alimentación hasta TL + calor latente de V1); el libro mezcla hfg con referencia 0 °C y omite el término V1·Cp·TL. (2) En la caldera se usa la temperatura de saturación del vapor a su propia presión (179,88 °C a 1000 kPa), no la del evaporador (69,09 °C). Ambas llevan el libro a subestimar el vapor y el diésel.'
     };
   }
 },
