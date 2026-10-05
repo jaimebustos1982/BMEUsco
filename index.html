@@ -406,7 +406,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-d</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-e</p>
     </footer>
   </main>
 </div>
@@ -5624,9 +5624,14 @@ function mostrarConfirmarBorrado(totalRegistros){
 
 /* ---------- Exportación de datos del panel docente ----------
    Las estadísticas se construyen una sola vez como "secciones" (tablas) y de ahí salen:
-   - un archivo Excel (.xlsx) con una hoja por sección (generado aquí mismo, sin librerías externas,
-     para que la app siga funcionando sin internet);
-   - un CSV de respaldo con las secciones una debajo de otra (para copiar/pegar si la descarga falla). */
+   - un archivo Excel (.xlsx) con una hoja por sección, tablas auxiliares y gráficas nativas de Excel
+     (generado aquí mismo, sin librerías externas, para que la app siga funcionando sin internet);
+   - un CSV de respaldo con las tablas principales una debajo de otra. */
+
+// Paleta de las gráficas (validada contra daltonismo y contraste).
+const COLORES_RESULTADO = {'Correcta':'#2E8540','Parcial':'#D29A1E','Incorrecta':'#C0392B','Sin respuesta':'#8A8378'};
+const COLOR_TALLER = '#A13448', COLOR_LIBRE = '#3E6DB5', COLOR_SERIE = '#A13448';
+
 function construirSecciones(logs, reportes){
   const n1 = x => (x===null||x===undefined||isNaN(x)) ? '' : Math.round(x*10)/10;
   const fechaLocal = f => {
@@ -5644,12 +5649,15 @@ function construirSecciones(logs, reportes){
     const p = parseInt(l.pistas,10); if(!isNaN(p)){ m.sumaPistas+=p; m.nPistas++; }
     if(veredictos.includes(l.correcta)) m[l.correcta]++;
   };
+  const coloresRes = veredictos.map(v=>COLORES_RESULTADO[v]);
   const secciones = [];
 
-  // 1. Resumen general
+  // 1. Resumen general  (+ tablas auxiliares: resultados y uso por capítulo)
   const global = nuevoConteo(); logs.forEach(l=>acumular(global,l));
   const enTaller = logs.filter(l=>tipoDe(l.modulo)==='Taller').length;
-  secciones.push({nombre:'Resumen', titulo:'RESUMEN GENERAL', anchos:[34,22], filtro:false, filas:[
+  const capLibre = {}, capTaller = {};
+  logs.forEach(l=>{ const op = opDe(l.modulo); if(!op) return; const t = op.taller ? capTaller : capLibre; t[op.chapter]=(t[op.chapter]||0)+1; });
+  const filasResumen = [
     ['Indicador','Valor'],
     ['Fecha de exportación', fechaLocal(new Date())],
     ['Registros totales', logs.length],
@@ -5659,7 +5667,22 @@ function construirSecciones(logs, reportes){
     ...veredictos.map(v=>['Respuestas: '+v, global[v]]),
     ['Pistas usadas en promedio', n1(global.nPistas?global.sumaPistas/global.nPistas:null)],
     ['Reportes de error', reportes.length]
-  ]});
+  ];
+  const auxResultados = [['Resultado','Registros'], ...veredictos.map(v=>[v, global[v]])];
+  const auxCapitulos = [['Capítulo','Práctica libre','Taller'], ...CHAPTERS.map(c=>['Cap. '+c.num, capLibre[c.num]||0, capTaller[c.num]||0])];
+  secciones.push({nombre:'Resumen', titulo:'RESUMEN GENERAL', anchos:[34,22], filtro:false, filas:filasResumen,
+    aux:[{col:3, row:0, anchos:[16,14], filas:auxResultados},
+         {col:3, row:7, anchos:[16,14,10], filas:auxCapitulos}],
+    graficas:[
+      {tipo:'bar', titulo:'Resultado de las respuestas verificadas', subtitulo:`Registros según el resultado (n = ${logs.length})`,
+       cat:{col:3, r1:1, r2:4}, series:[{nombreCelda:{col:4,row:0}, col:4, r1:1, r2:4, color:COLOR_SERIE, coloresPunto:coloresRes}],
+       etiquetas:true, tituloEje:'Registros', anchor:{col:7,row:1}, size:{w:600,h:300}},
+      {tipo:'col', apilado:true, titulo:'Uso del simulador por capítulo', subtitulo:'Registros en práctica libre y en modo taller',
+       cat:{col:3, r1:8, r2:7+CHAPTERS.length},
+       series:[{nombreCelda:{col:4,row:7}, col:4, r1:8, r2:7+CHAPTERS.length, color:COLOR_LIBRE},
+               {nombreCelda:{col:5,row:7}, col:5, r1:8, r2:7+CHAPTERS.length, color:COLOR_TALLER}],
+       tituloEje:'Registros', anchor:{col:7,row:18}, size:{w:600,h:320}}
+    ]});
 
   // 2. Resumen por estudiante
   const porEst = {};
@@ -5669,49 +5692,94 @@ function construirSecciones(logs, reportes){
     acumular(porEst[k], l); porEst[k].fichas.add(l.modulo);
     if(tipoDe(l.modulo)==='Taller') porEst[k].taller++;
   });
+  const est = Object.values(porEst).sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es'));
   secciones.push({nombre:'Por estudiante', titulo:'RESUMEN POR ESTUDIANTE', anchos:[30,13,10,10,11,10,11,13,18,13,13], filas:[
-    ['Estudiante','Código','Registros','Fichas distintas','Correctas','Parciales','Incorrectas','Sin respuesta','% correctas (sobre evaluadas)','Pistas promedio','Registros en taller'],
-    ...Object.values(porEst).sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es')).map(e=>{
+    ['Estudiante','Código','Registros','Fichas distintas','Correcta','Parcial','Incorrecta','Sin respuesta','% correctas (sobre evaluadas)','Pistas promedio','Registros en taller'],
+    ...est.map(e=>{
       const evaluadas = e.Correcta+e.Parcial+e.Incorrecta;
       return [String(e.nombre||''), String(e.codigo||''), e.intentos, e.fichas.size, e.Correcta, e.Parcial, e.Incorrecta, e['Sin respuesta'],
         n1(evaluadas? e.Correcta/evaluadas*100 : null), n1(e.nPistas? e.sumaPistas/e.nPistas : null), e.taller];
     })
-  ]});
+  ], graficas: est.length ? [
+    {tipo:'bar', apilado:true, titulo:'Resultados por estudiante', subtitulo:'Número de verificaciones según el resultado',
+     cat:{col:0, r1:1, r2:est.length},
+     series:veredictos.map((v,j)=>({nombreCelda:{col:4+j,row:0}, col:4+j, r1:1, r2:est.length, color:COLORES_RESULTADO[v]})),
+     sigueFiltro:true, tituloEje:'Verificaciones', anchor:{col:12,row:1}, size:{w:640, h:Math.max(320, 120+26*est.length)}}
+  ] : []});
 
-  // 3. Uso por ficha (todas, incluidas las que no se han usado)
+  // 3. Uso por ficha (todas, incluidas las que no se han usado) + las 10 más usadas
   const usos = {}; logs.forEach(l=>{ usos[l.modulo]=(usos[l.modulo]||0)+1; });
+  const top = OPS.filter(op=>usos[op.name]>0).sort((a,b)=>usos[b.name]-usos[a.name]).slice(0,10);
   secciones.push({nombre:'Uso por ficha', titulo:'USO POR FICHA', anchos:[10,32,58,15,8], filas:[
     ['Capítulo','Ficha','Título','Tipo','Usos'],
     ...OPS.slice().sort((a,b)=> (a.taller?1:0)-(b.taller?1:0) || a.chapter-b.chapter)
       .map(op=>[op.chapter, op.name, op.title, op.taller?'Taller':'Práctica libre', usos[op.name]||0])
-  ]});
+  ], aux: top.length ? [{col:6, row:0, anchos:[32,8], filas:[['Fichas más usadas','Usos'], ...top.map(op=>[op.name, usos[op.name]])]}] : [],
+  graficas: top.length ? [
+    {tipo:'bar', titulo:'Las fichas más usadas', subtitulo:`Top ${top.length} por número de registros`,
+     cat:{col:6, r1:1, r2:top.length}, series:[{nombreCelda:{col:7,row:0}, col:7, r1:1, r2:top.length, color:COLOR_SERIE}],
+     etiquetas:true, tituloEje:'Registros', anchor:{col:9,row:1}, size:{w:600, h:Math.max(260, 120+28*top.length)}}
+  ] : []});
 
-  // 4. Análisis de dificultad (todas las fichas con al menos un intento)
+  // 4. Análisis de dificultad (todas las fichas con al menos un intento; las que no tienen respuestas evaluadas van al final)
   const porFicha = {}; logs.forEach(l=>{ if(!l.modulo) return; if(!porFicha[l.modulo]) porFicha[l.modulo]=nuevoConteo(); acumular(porFicha[l.modulo], l); });
   const dif = Object.keys(porFicha).map(nombre=>{
     const m = porFicha[nombre]; const evaluadas = m.Correcta+m.Parcial+m.Incorrecta;
     return {nombre, m, pctInc: evaluadas? m.Incorrecta/evaluadas*100 : null, pistasProm: m.nPistas? m.sumaPistas/m.nPistas : null};
-  }).sort((a,b)=> (b.pctInc||0)-(a.pctInc||0) || (b.pistasProm||0)-(a.pistasProm||0));
+  }).sort((a,b)=> ((a.pctInc===null)-(b.pctInc===null)) || (b.pctInc||0)-(a.pctInc||0) || (b.pistasProm||0)-(a.pistasProm||0));
+  // Para la gráfica solo cuentan fichas con suficientes respuestas evaluadas (una sola respuesta mala daría 100 %).
+  const evaluadasDe = d => d.m.Correcta+d.m.Parcial+d.m.Incorrecta;
+  let minEval = 3; if(dif.filter(d=>evaluadasDe(d)>=3).length<3) minEval = 2;
+  const difGraf = dif.filter(d=>d.pctInc!==null && evaluadasDe(d)>=minEval)
+    .sort((a,b)=> b.pctInc-a.pctInc || evaluadasDe(b)-evaluadasDe(a)).slice(0,15);
+  const kDif = difGraf.length;
   secciones.push({nombre:'Dificultad', titulo:'ANÁLISIS DE DIFICULTAD (ordenado por % de incorrectas)', anchos:[10,32,15,9,13,10,10,11,13,18], filas:[
-    ['Capítulo','Ficha','Tipo','Intentos','Pistas promedio','Correctas','Parciales','Incorrectas','Sin respuesta','% incorrectas (sobre evaluadas)'],
+    ['Capítulo','Ficha','Tipo','Intentos','Pistas promedio','Correcta','Parcial','Incorrecta','Sin respuesta','% incorrectas (sobre evaluadas)'],
     ...dif.map(d=>[capDe(d.nombre), d.nombre, tipoDe(d.nombre), d.m.intentos, n1(d.pistasProm), d.m.Correcta, d.m.Parcial, d.m.Incorrecta, d.m['Sin respuesta'], n1(d.pctInc)])
-  ]});
+  ], aux: kDif ? [{col:11, row:0, anchos:[36,14], filas:[['Ficha (n = respuestas evaluadas)','% incorrectas'],
+      ...difGraf.map(d=>[`${d.nombre} (n=${evaluadasDe(d)})`, n1(d.pctInc)])]}] : [],
+  graficas: kDif ? [
+    {tipo:'bar', titulo:'Fichas con mayor proporción de respuestas incorrectas', subtitulo:`% sobre las respuestas evaluadas (mínimo ${minEval} por ficha)`,
+     cat:{col:11, r1:1, r2:kDif}, series:[{nombreCelda:{col:12,row:0}, col:12, r1:1, r2:kDif, color:COLOR_SERIE}],
+     etiquetas:true, formatoEtiqueta:'0"%"', formatoEje:'0"%"', ejeMax:100, tituloEje:'% de respuestas incorrectas',
+     anchor:{col:14,row:1}, size:{w:640, h:Math.max(260, 120+28*kDif)}}
+  ] : []});
 
-  // 5. Registro de actividad completo
+  // 5. Registro de actividad completo (+ tabla auxiliar: resultado según pistas consultadas)
+  const porPistas = {};
+  logs.forEach(l=>{ const p = parseInt(l.pistas,10); if(isNaN(p)||!veredictos.includes(l.correcta)) return;
+    if(!porPistas[p]) porPistas[p] = {Correcta:0, Parcial:0, Incorrecta:0, 'Sin respuesta':0}; porPistas[p][l.correcta]++; });
+  const maxP = Math.max(3, ...Object.keys(porPistas).map(Number));
+  const hayPistas = Object.keys(porPistas).length>0;
+  const auxPistas = [['Pistas consultadas',...veredictos]];
+  for(let p=0;p<=maxP;p++){ const c = porPistas[p]||{}; auxPistas.push([p===1?'1 pista':p+' pistas', ...veredictos.map(v=>c[v]||0)]); }
   secciones.push({nombre:'Actividad', titulo:'REGISTRO DE ACTIVIDAD', anchos:[30,13,32,15,10,8,14,20], filas:[
     ['Estudiante','Código','Ficha','Tipo','Capítulo','Pistas','Resultado','Fecha'],
     ...logs.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha)).map(l=>{
       const p = parseInt(l.pistas,10);
       return [String(l.nombre||''), String(l.codigo||''), String(l.modulo||''), tipoDe(l.modulo), capDe(l.modulo), isNaN(p)?'':p, String(l.correcta||''), fechaLocal(l.fecha)];
     })
-  ]});
+  ], aux: hayPistas ? [{col:9, row:0, anchos:[18,10,10,11,13], filas:auxPistas}] : [],
+  graficas: hayPistas ? [
+    {tipo:'col', apilado:true, porcentaje:true, titulo:'Resultado según las pistas consultadas', subtitulo:'Proporción de cada resultado según las pistas pedidas',
+     cat:{col:9, r1:1, r2:maxP+1},
+     series:veredictos.map((v,j)=>({nombreCelda:{col:10+j,row:0}, col:10+j, r1:1, r2:maxP+1, color:COLORES_RESULTADO[v]})),
+     formatoEje:'0%', tituloEje:'% de las verificaciones', anchor:{col:15,row:1}, size:{w:600,h:340}}
+  ] : []});
 
-  // 6. Reportes de error
+  // 6. Reportes de error (+ tabla auxiliar: reportes por ficha)
+  const repFicha = {}; reportes.forEach(r=>{ const k = String(r.modulo||'(sin ficha)'); repFicha[k]=(repFicha[k]||0)+1; });
+  const repOrden = Object.keys(repFicha).sort((a,b)=>repFicha[b]-repFicha[a]).slice(0,15);
   secciones.push({nombre:'Reportes', titulo:'REPORTES DE ERROR', anchos:[30,13,30,70,20], ajustarCol:3, filas:[
     ['Estudiante','Código','Ficha','Mensaje','Fecha'],
     ...reportes.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha))
       .map(r=>[String(r.nombre||''), String(r.codigo||''), String(r.modulo||''), String(r.mensaje||''), fechaLocal(r.fecha)])
-  ]});
+  ], aux: repOrden.length ? [{col:6, row:0, anchos:[30,10], filas:[['Ficha','Reportes'], ...repOrden.map(k=>[k, repFicha[k]])]}] : [],
+  graficas: repOrden.length ? [
+    {tipo:'bar', titulo:'Reportes de error por ficha', subtitulo:`${reportes.length} reporte(s) enviados por estudiantes`,
+     cat:{col:6, r1:1, r2:repOrden.length}, series:[{nombreCelda:{col:7,row:0}, col:7, r1:1, r2:repOrden.length, color:COLOR_SERIE}],
+     etiquetas:true, tituloEje:'Reportes', anchor:{col:9,row:1}, size:{w:560, h:Math.max(240, 120+28*repOrden.length)}}
+  ] : []});
 
   return secciones;
 }
@@ -5760,33 +5828,136 @@ function _zipStore(files){
   parts.concat(central,[end]).forEach(a=>{ out.set(a,p); p+=a.length; });
   return out;
 }
+
+/* --- Gráficas nativas de Excel (DrawingML), vinculadas a las celdas de la hoja --- */
+function _refCelda(hoja, c1, r1, c2, r2){
+  const q = "'" + String(hoja).replace(/'/g,"''") + "'";
+  return `${q}!$${_colName(c1)}$${r1+1}` + (c2!==undefined ? `:$${_colName(c2)}$${r2+1}` : '');
+}
+function _chartXML(g, hoja, grid){
+  const val = (r,c) => { const fila = grid.get(r); const celda = fila && fila.get(c); return celda ? celda.v : ''; };
+  const hex = h => h.replace('#','');
+  const fill = h => `<a:solidFill><a:srgbClr val="${hex(h)}"/></a:solidFill>`;
+  const sp = h => `<c:spPr>${fill(h)}<a:ln w="19050">${fill('#FFFFFF')}</a:ln></c:spPr>`;   // borde blanco = separación entre barras
+  const txPr = (sz,color,b,rot) => `<c:txPr><a:bodyPr${rot?` rot="${rot}" vert="horz"`:''}/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="${sz}"${b?' b="1"':' b="0"'}>${fill(color)}<a:latin typeface="Calibri"/></a:defRPr></a:pPr><a:endParaRPr lang="es-CO"/></a:p></c:txPr>`;
+  const strCache = vals => `<c:strCache><c:ptCount val="${vals.length}"/>${vals.map((v,i)=>`<c:pt idx="${i}"><c:v>${_xmlEsc(v)}</c:v></c:pt>`).join('')}</c:strCache>`;
+  const numCache = vals => `<c:numCache><c:formatCode>General</c:formatCode><c:ptCount val="${vals.length}"/>${vals.map((v,i)=> (typeof v==='number') ? `<c:pt idx="${i}"><c:v>${v}</c:v></c:pt>` : '').join('')}</c:numCache>`;
+  const n = g.cat.r2 - g.cat.r1 + 1;
+  const catVals = []; for(let i=0;i<n;i++) catVals.push(String(val(g.cat.r1+i, g.cat.col)));
+  const horizontal = g.tipo==='bar';
+  let maxVal = 0; const sumas = new Array(n).fill(0);
+  const seriesXML = g.series.map((s,k)=>{
+    const vals = []; for(let i=0;i<n;i++){ const v = val(s.r1+i, s.col); vals.push(v); if(typeof v==='number'){ sumas[i]+=v; maxVal = Math.max(maxVal, v); } }
+    const nombre = String(val(s.nombreCelda.row, s.nombreCelda.col));
+    let x = `<c:ser><c:idx val="${k}"/><c:order val="${k}"/>`
+      + `<c:tx><c:strRef><c:f>${_xmlEsc(_refCelda(hoja, s.nombreCelda.col, s.nombreCelda.row))}</c:f>${strCache([nombre])}</c:strRef></c:tx>`
+      + sp(s.color) + `<c:invertIfNegative val="0"/>`;
+    if(s.coloresPunto) x += s.coloresPunto.map((c,i)=>`<c:dPt><c:idx val="${i}"/><c:invertIfNegative val="0"/><c:bubble3D val="0"/>${sp(c)}</c:dPt>`).join('');
+    if(g.etiquetas) x += `<c:dLbls>${g.formatoEtiqueta?`<c:numFmt formatCode="${_xmlEsc(g.formatoEtiqueta)}" sourceLinked="0"/>`:''}`
+      + `<c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>${txPr(900,'#2A2521',true)}<c:dLblPos val="outEnd"/>`
+      + `<c:showLegendKey val="0"/><c:showVal val="1"/><c:showCatName val="0"/><c:showSerName val="0"/><c:showPercent val="0"/><c:showBubbleSize val="0"/></c:dLbls>`;
+    x += `<c:cat><c:strRef><c:f>${_xmlEsc(_refCelda(hoja, g.cat.col, g.cat.r1, g.cat.col, g.cat.r2))}</c:f>${strCache(catVals)}</c:strRef></c:cat>`
+      + `<c:val><c:numRef><c:f>${_xmlEsc(_refCelda(hoja, s.col, s.r1, s.col, s.r2))}</c:f>${numCache(vals)}</c:numRef></c:val></c:ser>`;
+    return x;
+  }).join('');
+  if(g.apilado) maxVal = Math.max(0, ...sumas);
+  const majorUnit = (!g.ejeMax && !g.porcentaje && maxVal>0 && maxVal<=10) ? 1 : null;   // evita marcas fraccionarias en conteos pequeños
+  const titulo = `<c:title><c:tx><c:rich><a:bodyPr/><a:lstStyle/>`
+    + `<a:p><a:pPr><a:defRPr sz="1300" b="1"/></a:pPr><a:r><a:rPr lang="es-CO" sz="1300" b="1">${fill('#2A2521')}<a:latin typeface="Calibri"/></a:rPr><a:t>${_xmlEsc(g.titulo)}</a:t></a:r></a:p>`
+    + (g.subtitulo ? `<a:p><a:pPr><a:defRPr sz="950" b="0"/></a:pPr><a:r><a:rPr lang="es-CO" sz="950" b="0">${fill('#6B6358')}<a:latin typeface="Calibri"/></a:rPr><a:t>${_xmlEsc(g.subtitulo)}</a:t></a:r></a:p>` : '')
+    + `</c:rich></c:tx><c:overlay val="0"/></c:title>`;
+  const tituloEje = g.tituloEje ? `<c:title><c:tx><c:rich><a:bodyPr${horizontal?'':' rot="-5400000" vert="horz"'}/><a:lstStyle/><a:p><a:pPr><a:defRPr sz="900" b="0"/></a:pPr><a:r><a:rPr lang="es-CO" sz="900" b="0">${fill('#5A534A')}</a:rPr><a:t>${_xmlEsc(g.tituloEje)}</a:t></a:r></a:p></c:rich></c:tx><c:overlay val="0"/></c:title>` : '';
+  const barra = `<c:barChart><c:barDir val="${horizontal?'bar':'col'}"/><c:grouping val="${g.porcentaje?'percentStacked':(g.apilado?'stacked':'clustered')}"/><c:varyColors val="0"/>${seriesXML}`
+    + `<c:gapWidth val="${g.apilado?55:45}"/>${g.apilado?'<c:overlap val="100"/>':''}<c:axId val="500000001"/><c:axId val="500000002"/></c:barChart>`;
+  // En barras horizontales la primera categoría va arriba (orden invertido) y el eje de valores abajo.
+  const ejeCat = `<c:catAx><c:axId val="500000001"/><c:scaling><c:orientation val="${horizontal?'maxMin':'minMax'}"/></c:scaling><c:delete val="0"/>`
+    + `<c:axPos val="${horizontal?'l':'b'}"/><c:numFmt formatCode="General" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/>`
+    + `<c:spPr><a:ln w="9525">${fill('#C9BFA8')}</a:ln></c:spPr>${txPr(900,'#3A342D',false)}<c:crossAx val="500000002"/><c:crosses val="autoZero"/>`
+    + `<c:auto val="1"/><c:lblAlgn val="ctr"/><c:lblOffset val="100"/><c:noMultiLvlLbl val="0"/></c:catAx>`;
+  const ejeVal = `<c:valAx><c:axId val="500000002"/><c:scaling><c:orientation val="minMax"/>${g.ejeMax!==undefined?`<c:max val="${g.ejeMax}"/>`:''}<c:min val="0"/></c:scaling>`
+    + `<c:delete val="0"/><c:axPos val="${horizontal?'b':'l'}"/><c:majorGridlines><c:spPr><a:ln w="6350">${fill('#E8E2D6')}</a:ln></c:spPr></c:majorGridlines>${tituloEje}`
+    + `<c:numFmt formatCode="${_xmlEsc(g.formatoEje||'General')}" sourceLinked="0"/><c:majorTickMark val="none"/><c:minorTickMark val="none"/><c:tickLblPos val="nextTo"/>`
+    + `<c:spPr><a:ln><a:noFill/></a:ln></c:spPr>${txPr(900,'#5A534A',false)}<c:crossAx val="500000001"/><c:crosses val="${horizontal?'max':'autoZero'}"/>`
+    + `<c:crossBetween val="between"/>${majorUnit?`<c:majorUnit val="${majorUnit}"/>`:''}</c:valAx>`;
+  const leyenda = g.series.length>1 ? `<c:legend><c:legendPos val="b"/><c:overlay val="0"/>${txPr(900,'#3A342D',false)}</c:legend>` : '';
+  return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n'
+    + `<c:chartSpace xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">`
+    + `<c:roundedCorners val="0"/><c:chart>${titulo}<c:autoTitleDeleted val="0"/><c:plotArea><c:layout/>${barra}${ejeCat}${ejeVal}`
+    + `<c:spPr><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr></c:plotArea>${leyenda}<c:plotVisOnly val="${g.sigueFiltro?1:0}"/><c:dispBlanksAs val="gap"/></c:chart>`
+    + `<c:spPr>${fill('#FFFFFF')}<a:ln w="9525">${fill('#E0D8C8')}</a:ln></c:spPr>${txPr(900,'#3A342D',false)}</c:chartSpace>`;
+}
+function _graficaTieneDatos(g, grid){
+  const val = (r,c) => { const fila = grid.get(r); const celda = fila && fila.get(c); return celda ? celda.v : ''; };
+  return g.series.some(s=>{ for(let r=s.r1;r<=s.r2;r++){ const v=val(r,s.col); if(typeof v==='number' && v>0) return true; } return false; });
+}
+
 function construirXLSX(secciones){
   const NS = 'xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"';
   const HEAD = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
-  const files = [];
+  const RELS = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const files = [], ctOverrides = [];
+  let nChart = 0, nDrawing = 0;
+
   const hojas = secciones.map((s,i)=>{
+    // Cuadrícula dispersa: tabla principal + tablas auxiliares (para las gráficas)
+    const grid = new Map(); const anchos = {};
+    const poner = (r,c,v,est) => { if(v===''||v===null||v===undefined) return; if(!grid.has(r)) grid.set(r,new Map()); grid.get(r).set(c,{v,est}); };
+    s.filas.forEach((fila,ri)=>fila.forEach((v,ci)=>poner(ri,ci,v, ri===0 ? 1 : (s.ajustarCol===ci ? 2 : 0))));
+    (s.anchos||[]).forEach((w,j)=>anchos[j]=w);
+    (s.aux||[]).forEach(b=>{
+      b.filas.forEach((fila,ri)=>fila.forEach((v,ci)=>poner(b.row+ri, b.col+ci, v, ri===0 ? 1 : 0)));
+      (b.anchos||[]).forEach((w,j)=>anchos[b.col+j]=w);
+    });
     const nCols = Math.max(...s.filas.map(f=>f.length));
     const ultimaCol = _colName(nCols-1), nFilas = s.filas.length;
-    const cols = s.anchos.map((w,j)=>`<col min="${j+1}" max="${j+1}" width="${w}" customWidth="1"/>`).join('');
-    const filasXML = s.filas.map((fila,ri)=>{
-      const celdas = fila.map((v,ci)=>{
-        if(v===''||v===null||v===undefined) return '';
-        const ref = _colName(ci)+(ri+1);
-        const estilo = ri===0 ? ' s="1"' : (s.ajustarCol===ci ? ' s="2"' : '');
-        if(typeof v==='number' && isFinite(v)) return `<c r="${ref}"${estilo}><v>${v}</v></c>`;
-        return `<c r="${ref}"${estilo} t="inlineStr"><is><t xml:space="preserve">${_xmlEsc(v)}</t></is></c>`;
+    const cols = Object.keys(anchos).map(Number).sort((a,b)=>a-b).map(j=>`<col min="${j+1}" max="${j+1}" width="${anchos[j]}" customWidth="1"/>`).join('');
+    const filasXML = [...grid.keys()].sort((a,b)=>a-b).map(r=>{
+      const celdas = [...grid.get(r).keys()].sort((a,b)=>a-b).map(c=>{
+        const {v,est} = grid.get(r).get(c); const ref = _colName(c)+(r+1); const st = est ? ` s="${est}"` : '';
+        if(typeof v==='number' && isFinite(v)) return `<c r="${ref}"${st}><v>${v}</v></c>`;
+        return `<c r="${ref}"${st} t="inlineStr"><is><t xml:space="preserve">${_xmlEsc(v)}</t></is></c>`;
       }).join('');
-      return `<row r="${ri+1}">${celdas}</row>`;
+      return `<row r="${r+1}">${celdas}</row>`;
     }).join('');
     const conFiltro = s.filtro!==false && nFilas>1;
+
+    // Gráficas de la hoja (solo las que tienen datos)
+    const graficas = (s.graficas||[]).filter(g=>_graficaTieneDatos(g, grid));
+    let drawingTag = '';
+    if(graficas.length){
+      nDrawing++;
+      const anclas = graficas.map((g,k)=>{
+        nChart++;
+        files.push({name:`xl/charts/chart${nChart}.xml`, data:_utf8(_chartXML(g, s.nombre, grid))});
+        ctOverrides.push(`<Override PartName="/xl/charts/chart${nChart}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>`);
+        const cx = Math.round(g.size.w*9525), cy = Math.round(g.size.h*9525);
+        return {rel:`<Relationship Id="rId${k+1}" Type="${RELS}/chart" Target="../charts/chart${nChart}.xml"/>`,
+          xml:`<xdr:oneCellAnchor><xdr:from><xdr:col>${g.anchor.col}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${g.anchor.row}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:from>`
+            + `<xdr:ext cx="${cx}" cy="${cy}"/><xdr:graphicFrame macro=""><xdr:nvGraphicFramePr><xdr:cNvPr id="${k+2}" name="Gráfico ${k+1}"/><xdr:cNvGraphicFramePr/></xdr:nvGraphicFramePr>`
+            + `<xdr:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/></xdr:xfrm><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/chart">`
+            + `<c:chart xmlns:c="http://schemas.openxmlformats.org/drawingml/2006/chart" r:id="rId${k+1}"/></a:graphicData></a:graphic></xdr:graphicFrame><xdr:clientData/></xdr:oneCellAnchor>`};
+      });
+      files.push({name:`xl/drawings/drawing${nDrawing}.xml`, data:_utf8(HEAD
+        + `<xdr:wsDr xmlns:xdr="http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${RELS}">`
+        + anclas.map(a=>a.xml).join('') + `</xdr:wsDr>`)});
+      files.push({name:`xl/drawings/_rels/drawing${nDrawing}.xml.rels`, data:_utf8(HEAD
+        + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' + anclas.map(a=>a.rel).join('') + '</Relationships>')});
+      files.push({name:`xl/worksheets/_rels/sheet${i+1}.xml.rels`, data:_utf8(HEAD
+        + `<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="${RELS}/drawing" Target="../drawings/drawing${nDrawing}.xml"/></Relationships>`)});
+      ctOverrides.push(`<Override PartName="/xl/drawings/drawing${nDrawing}.xml" ContentType="application/vnd.openxmlformats-officedocument.drawing+xml"/>`);
+      drawingTag = '<drawing r:id="rId1"/>';
+    }
+
     const xml = HEAD + `<worksheet ${NS}>`
       + `<sheetViews><sheetView workbookViewId="0"${i===0?' tabSelected="1"':''}><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
       + `<sheetFormatPr defaultRowHeight="15"/><cols>${cols}</cols><sheetData>${filasXML}</sheetData>`
       + (conFiltro ? `<autoFilter ref="A1:${ultimaCol}${nFilas}"/>` : '')
+      + drawingTag
       + `</worksheet>`;
     files.push({name:`xl/worksheets/sheet${i+1}.xml`, data:_utf8(xml)});
     return {nombre:s.nombre, rango: conFiltro ? `'${s.nombre}'!$A$1:$${ultimaCol}$${nFilas}` : null};
   });
+
   const definidos = hojas.map((h,i)=> h.rango ? `<definedName name="_xlnm._FilterDatabase" localSheetId="${i}" hidden="1">${_xmlEsc(h.rango)}</definedName>` : '').join('');
   files.unshift(
     {name:'[Content_Types].xml', data:_utf8(HEAD + '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">'
@@ -5795,16 +5966,17 @@ function construirXLSX(secciones){
       + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>'
       + '<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
       + hojas.map((h,i)=>`<Override PartName="/xl/worksheets/sheet${i+1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')
+      + ctOverrides.join('')
       + '</Types>')},
     {name:'_rels/.rels', data:_utf8(HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-      + '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>'
+      + `<Relationship Id="rId1" Type="${RELS}/officeDocument" Target="xl/workbook.xml"/>`
       + '</Relationships>')},
     {name:'xl/workbook.xml', data:_utf8(HEAD + `<workbook ${NS}><sheets>`
       + hojas.map((h,i)=>`<sheet name="${_xmlEsc(h.nombre)}" sheetId="${i+1}" r:id="rId${i+1}"/>`).join('')
       + `</sheets>${definidos?`<definedNames>${definidos}</definedNames>`:''}</workbook>`)},
     {name:'xl/_rels/workbook.xml.rels', data:_utf8(HEAD + '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-      + hojas.map((h,i)=>`<Relationship Id="rId${i+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')
-      + `<Relationship Id="rId${hojas.length+1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/>`
+      + hojas.map((h,i)=>`<Relationship Id="rId${i+1}" Type="${RELS}/worksheet" Target="worksheets/sheet${i+1}.xml"/>`).join('')
+      + `<Relationship Id="rId${hojas.length+1}" Type="${RELS}/styles" Target="styles.xml"/>`
       + '</Relationships>')},
     {name:'xl/styles.xml', data:_utf8(HEAD + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
       + '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
@@ -5841,7 +6013,7 @@ function mostrarModalExportar(secciones){
   <div class="overlay">
     <div class="modal">
       <h3>Exportar datos</h3>
-      <p>El archivo de Excel trae cada sección en su propia hoja: <b>${secciones.map(s=>esc(s.nombre)).join(' · ')}</b>. Las hojas tienen encabezados fijos y filtros, y se abren en Excel, Google Sheets o LibreOffice.</p>
+      <p>El archivo de Excel trae cada sección en su propia hoja: <b>${secciones.map(s=>esc(s.nombre)).join(' · ')}</b>. Cada hoja incluye gráficas nativas de Excel (editables y vinculadas a los datos), encabezados fijos y filtros. Se abre en Excel, Google Sheets o LibreOffice.</p>
       <button class="calc-btn" id="xlsx-descargar" style="margin-top:4px;">Descargar Excel (.xlsx)</button>
       <div id="xlsx-estado" style="font-size:12px;color:var(--ink-faint);margin-top:6px;text-align:center;"></div>
       <details style="margin-top:12px;">
