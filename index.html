@@ -406,7 +406,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-e</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-f</p>
     </footer>
   </main>
 </div>
@@ -2023,8 +2023,7 @@ const OPS = [
     {key:'yO2', label:'yO2 — fracción molar de O₂ en el aire', unit:'0–1', def:'0.21'},
   ],
   hints:[
-    'La corriente de salida tiene más información que la de entrada: comienza por ahí. Si el 12% de esa corriente es ácido acético y ya sabes cuántos kg/h son, puedes hallar el flujo total de salida P.',
-    'La salida está compuesta solo por ácido acético y agua. Con P y la producción de ácido acético, obtienes el agua que sale.',
+    'La corriente de salida tiene más información que la de entrada: comienza por ahí. Si el 12% de esa corriente es ácido acético y ya sabes cuántos kg/h son, puedes hallar el flujo total de salida P. Como la salida es solo ácido acético y agua, con P obtienes también el agua que sale.',
     'Con la estequiometría 1:1 de la reacción (mol a mol), el etanol que entra es igual al ácido acético que se genera, expresado en base molar y convertido a masa. El agua que entra es el agua que sale menos la que genera la reacción. Para el aire: O₂ que sale = O₂ que entra − O₂ consumido; el N₂ no reacciona.',
     'Cuidado con la base de la composición: el % másico se calcula con kg (O₂ sale / aire sale), pero el % molar requiere pasar primero cada gas a kmol (O₂/32 y N₂/28) y luego dividir. Dan resultados distintos porque O₂ y N₂ tienen masas molares diferentes.'
   ],
@@ -4906,6 +4905,13 @@ function renderUserbar(){
 }
 
 /* ============================= REGISTRO DE USO (para el docente, vía Google Sheets) ============================= */
+// Pistas que el estudiante realmente vio: nunca más de las que tiene la ficha.
+// (Versiones anteriores podían registrar clics de más; esto los corrige al analizar.)
+function pistasVistas(l){
+  const p = parseInt(l.pistas,10); if(isNaN(p)) return null;
+  const op = OPS.find(o=>o.name===l.modulo);
+  return (op && op.hints) ? Math.min(Math.max(p,0), op.hints.length) : p;
+}
 async function registrarUso(op, pistasUsadas, verdicto){
   if(!perfil) return;
   if(!SHEET_WEBAPP_URL) return; // el docente aún no configuró la URL de Google Sheets
@@ -5119,7 +5125,11 @@ function renderOp(){
   });
 
   renderHints(op);
-  document.getElementById('hintBtn').onclick = ()=>{ hintsShown++; soundHint(); renderHints(op); };
+  document.getElementById('hintBtn').onclick = ()=>{
+    if(hintsShown >= op.hints.length) return;   // evita contar clics de más (p. ej. Enter sobre el botón ya oculto)
+    hintsShown++; soundHint(); renderHints(op);
+    if(hintsShown >= op.hints.length) document.getElementById('hintBtn').blur();
+  };
 
   if(tallerMode && tallerVerificadas[op.id]){
     bloquearCalcBtnTaller();
@@ -5281,7 +5291,7 @@ async function runCalc(){
   if(res.error){ soundError(); }
   if(!res.error){
     const verdicto = verdictoGlobal(res, studentAnswers);
-    registrarUso(op, hintsShown, verdicto);
+    registrarUso(op, Math.min(hintsShown, op.hints.length), verdicto);
     if(verdicto==='Correcta' || verdicto==='Parcial'){
       guardarProgreso(op.id, verdicto);
       renderChapters();
@@ -5504,8 +5514,8 @@ async function abrirPanelDocente(){
       if(!porModulo[l.modulo]) porModulo[l.modulo] = {intentos:0, sumaPistas:0, nPistas:0, incorrectas:0, evaluadas:0};
       const m = porModulo[l.modulo];
       m.intentos++;
-      const pistas = parseInt(l.pistas,10);
-      if(!isNaN(pistas)){ m.sumaPistas += pistas; m.nPistas++; }
+      const pistas = pistasVistas(l);
+      if(pistas!==null){ m.sumaPistas += pistas; m.nPistas++; }
       if(l.correcta==='Incorrecta'){ m.incorrectas++; m.evaluadas++; }
       else if(l.correcta==='Correcta'||l.correcta==='Parcial'){ m.evaluadas++; }
     });
@@ -5530,7 +5540,7 @@ async function abrirPanelDocente(){
 
     const recientes = logs.slice(0,1000);
     const rows = recientes.map(l => `
-      <tr><td>${esc(l.nombre)}</td><td>${esc(l.codigo)}</td><td>${esc(l.modulo)}${tag(l.modulo)}</td><td>${esc(l.pistas!==undefined&&l.pistas!==''?l.pistas:'—')}</td><td>${esc(l.correcta||'—')}</td><td>${new Date(l.fecha).toLocaleString('es-CO')}</td></tr>`).join('');
+      <tr><td>${esc(l.nombre)}</td><td>${esc(l.codigo)}</td><td>${esc(l.modulo)}${tag(l.modulo)}</td><td>${(()=>{ const p = pistasVistas(l); return p===null ? '—' : p; })()}</td><td>${esc(l.correcta||'—')}</td><td>${new Date(l.fecha).toLocaleString('es-CO')}</td></tr>`).join('');
 
     content.innerHTML = `
       <div class="stats-grid">
@@ -5646,7 +5656,7 @@ function construirSecciones(logs, reportes){
   const nuevoConteo = () => ({intentos:0, sumaPistas:0, nPistas:0, Correcta:0, Parcial:0, Incorrecta:0, 'Sin respuesta':0});
   const acumular = (m, l) => {
     m.intentos++;
-    const p = parseInt(l.pistas,10); if(!isNaN(p)){ m.sumaPistas+=p; m.nPistas++; }
+    const p = pistasVistas(l); if(p!==null){ m.sumaPistas+=p; m.nPistas++; }
     if(veredictos.includes(l.correcta)) m[l.correcta]++;
   };
   const coloresRes = veredictos.map(v=>COLORES_RESULTADO[v]);
@@ -5747,7 +5757,7 @@ function construirSecciones(logs, reportes){
 
   // 5. Registro de actividad completo (+ tabla auxiliar: resultado según pistas consultadas)
   const porPistas = {};
-  logs.forEach(l=>{ const p = parseInt(l.pistas,10); if(isNaN(p)||!veredictos.includes(l.correcta)) return;
+  logs.forEach(l=>{ const p = pistasVistas(l); if(p===null||!veredictos.includes(l.correcta)) return;
     if(!porPistas[p]) porPistas[p] = {Correcta:0, Parcial:0, Incorrecta:0, 'Sin respuesta':0}; porPistas[p][l.correcta]++; });
   const maxP = Math.max(3, ...Object.keys(porPistas).map(Number));
   const hayPistas = Object.keys(porPistas).length>0;
@@ -5756,8 +5766,8 @@ function construirSecciones(logs, reportes){
   secciones.push({nombre:'Actividad', titulo:'REGISTRO DE ACTIVIDAD', anchos:[30,13,32,15,10,8,14,20], filas:[
     ['Estudiante','Código','Ficha','Tipo','Capítulo','Pistas','Resultado','Fecha'],
     ...logs.slice().sort((a,b)=> new Date(a.fecha)-new Date(b.fecha)).map(l=>{
-      const p = parseInt(l.pistas,10);
-      return [String(l.nombre||''), String(l.codigo||''), String(l.modulo||''), tipoDe(l.modulo), capDe(l.modulo), isNaN(p)?'':p, String(l.correcta||''), fechaLocal(l.fecha)];
+      const p = pistasVistas(l);
+      return [String(l.nombre||''), String(l.codigo||''), String(l.modulo||''), tipoDe(l.modulo), capDe(l.modulo), p===null?'':p, String(l.correcta||''), fechaLocal(l.fecha)];
     })
   ], aux: hayPistas ? [{col:9, row:0, anchos:[18,10,10,11,13], filas:auxPistas}] : [],
   graficas: hayPistas ? [
