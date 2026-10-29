@@ -173,6 +173,8 @@
   .field .unit-hint{color:var(--ink-faint);font-size:10px;}
   .field input{ background:var(--paper); border:1px solid var(--line); border-radius:6px; padding:9px 10px; color:var(--ink); font-family:var(--font-mono); font-size:14px; width:100%; }
   .field input:focus{outline:none;border-color:var(--vino);}
+  .field select{ background:var(--card); border:1px solid var(--line); border-radius:6px; padding:9px 10px; color:var(--ink); font-family:var(--font-body); font-size:14px; width:100%; }
+  .field select:focus{outline:none;border-color:var(--vino);}
   .input-sign{ display:flex; gap:6px; align-items:stretch; }
   .input-sign input{ flex:1; min-width:0; }
   .sign-btn{
@@ -406,7 +408,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-05-f</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-29-b</p>
     </footer>
   </main>
 </div>
@@ -439,6 +441,10 @@ function fieldInputHTML(id, value, placeholder, unit){
   const attrs = `type="text" inputmode="decimal" id="${id}"${value!==undefined?` value="${value}"`:''}${placeholder?` placeholder="${placeholder}"`:''}`;
   if(!needsSign(unit)) return `<input ${attrs}>`;
   return `<div class="input-sign"><button type="button" class="sign-btn" data-target="${id}" aria-label="Cambiar signo">±</button><input ${attrs}></div>`;
+}
+// Respuesta de opción (p. ej. Sí/No): el valor guardado es el índice de la opción (0, 1, ...).
+function opcionesHTML(id, opciones){
+  return `<select id="${id}"><option value="">— elige —</option>${opciones.map((o,i)=>`<option value="${i}">${o}</option>`).join('')}</select>`;
 }
 function wireSignButtons(container){
   container.querySelectorAll('.sign-btn').forEach(btn=>{
@@ -646,10 +652,11 @@ exchanger: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <text x="124" y="25" style="font-size:8px;font-family:var(--font-mono);fill:var(--ocre-dark);letter-spacing:.05em;">V.C.</text>
   <path class="pipe" d="M10,45 L300,45" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo1" d="M10,45 L300,45"/><circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.3s" repeatCount="indefinite" path="M10,45 L300,45"/></circle>
   <path class="pipe" d="M300,125 L10,125" marker-end="url(#arrow)"/><path class="flow-overlay" id="fo2" d="M300,125 L10,125"/><circle class="particle" r="2" cx="0" cy="0"><animateMotion dur="1.5s" repeatCount="indefinite" path="M300,125 L10,125"/></circle>
-  <text x="14" y="36" class="d-label">CALIENTE T1e</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
-  <text x="230" y="36" class="d-label">T1s</text><text x="230" y="60" class="d-val" id="d-in-2">—</text>
-  <text x="14" y="150" class="d-label">FRÍA T2e</text><text x="14" y="115" class="d-val" id="d-in-3">—</text>
-  <text x="230" y="150" class="d-label">T2s (calculada)</text><text x="230" y="115" class="d-val computed" id="d-out-1">—</text>
+  <text x="160" y="89" text-anchor="middle" class="d-label" style="font-size:8px;">CONTRACORRIENTE</text>
+  <text x="14" y="36" class="d-label">CALIENTE entra</text><text x="14" y="60" class="d-val" id="d-in-1">—</text>
+  <text x="230" y="36" class="d-label">CALIENTE sale</text><text x="230" y="60" class="d-val" id="d-in-2">—</text>
+  <text x="230" y="150" class="d-label">FRÍA entra</text><text x="230" y="115" class="d-val" id="d-in-3">—</text>
+  <text x="14" y="150" class="d-label">FRÍA sale</text><text x="14" y="115" class="d-val" id="d-out-1">—</text>
 </svg>`,
 adiabatic: `<svg viewBox="0 0 320 170" class="schem">${ARROW_DEFS}
   <rect x="88" y="25" width="90" height="120" fill="none" stroke="var(--ocre-dark)" stroke-width="1.5" stroke-dasharray="4 3"/>
@@ -1137,6 +1144,16 @@ serieTresOperacionesDiag: `<svg viewBox="0 0 320 150" class="schem">${ARROW_DEFS
 };
 
 /* ============================= OPERACIONES ============================= */
+// Intercambiador a contracorriente: la corriente fría nunca puede salir más caliente que la entrada
+// de la corriente caliente, ni entrar más caliente que la salida de la caliente (el calor solo fluye de caliente a frío).
+function chequeoContracorriente(TcalE, TcalS, TfriE, TfriS, cal, fri){
+  const Fri = fri.charAt(0).toUpperCase()+fri.slice(1);
+  const delFri = fri.replace(/^el /,'del ').replace(/^la /,'de la ');
+  if(TfriE >= TcalS) return `${Fri} debe entrar más fría (${TfriE} °C) que la temperatura a la que sale ${cal} (${TcalS} °C); de lo contrario no puede retirarle calor en ese extremo del equipo.`;
+  if(TfriS >= TcalE) return `Con estos datos ${fri} saldría a ${fmt(TfriS,2)} °C, más caliente que ${cal} que entra a ${TcalE} °C. Eso es imposible: el calor solo pasa del fluido caliente al frío. Aumenta el flujo ${delFri} o revisa las temperaturas.`;
+  return null;
+}
+
 const OPS = [
 { id:'mixer', num:'01', cat:'materia', chapter:3, sector:'Alimentaria', name:'Mezclador',
   title:'Mezclador de dos corrientes',
@@ -1327,7 +1344,7 @@ const OPS = [
 { id:'exchanger', num:'06', cat:'energia', chapter:6, sector:'No alimentaria', name:'Intercambiador',
   title:'Intercambiador de calor',
   context:'Destilería de alcohol carburante — enfriamiento del mosto',
-  story:'En una destilería de alcohol carburante a partir de caña, el mosto sale de la cocción a 95 °C y debe enfriarse a 30 °C antes de entrar a los tanques de fermentación, para no afectar la levadura. El enfriamiento se realiza con 1200 kg/h de agua a 18 °C en un intercambiador de calor. Si el flujo de mosto es de 1000 kg/h, determine la temperatura de salida del agua de enfriamiento.',
+  story:'En una destilería de alcohol carburante a partir de caña, el mosto sale de la cocción a 95 °C y debe enfriarse a 30 °C antes de entrar a los tanques de fermentación, para no afectar la levadura. El enfriamiento se realiza con 1200 kg/h de agua a 18 °C en un intercambiador de calor a contracorriente. Si el flujo de mosto es de 1000 kg/h, determine la temperatura de salida del agua de enfriamiento.',
   inputs:[
     {key:'m1', label:'m1 — flujo de mosto (caliente)', unit:'kg/h', def:'1000'},
     {key:'Cp1', label:'Cp1 — calor esp. del mosto', unit:'kJ/kg·°C', def:'3.8'},
@@ -1350,7 +1367,10 @@ const OPS = [
     if(v.m1<0||v.m2<0) return {error:'Los flujos no pueden ser negativos.'};
     if(v.Cp1<=0||v.Cp2<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
     if(v.m2*v.Cp2===0) return {error:'m2·Cp2 no puede ser cero.'};
+    if(v.T1out>=v.T1in) return {error:'El mosto debe enfriarse (T de salida menor que la de entrada).'};
     const Q=v.m1*v.Cp1*(v.T1in-v.T1out), T2out=v.T2in+Q/(v.m2*v.Cp2);
+    const errFis = chequeoContracorriente(v.T1in, v.T1out, v.T2in, T2out, 'el mosto', 'el agua');
+    if(errFis) return {error:errFis};
     return {
       outputs:[
         {key:'Q',label:'Q — calor intercambiado',value:fmt(Q),unit:'kJ/h',raw:Q},
@@ -1360,7 +1380,8 @@ const OPS = [
       steps:[
         {t:'Balance de energía (calor cedido = calor ganado, sin pérdidas)', f:`Q_mosto = Q_agua`},
         {t:'Calor cedido por el mosto', f:`Q = m1·Cp1·(T1e − T1s)\nQ = ${v.m1}×${v.Cp1}×(${v.T1in} − ${v.T1out}) = ${fmt(Q)} kJ/h`},
-        {t:'Temperatura de salida del agua de enfriamiento', f:`T2s = T2e + Q / (m2·Cp2)\nT2s = ${v.T2in} + ${fmt(Q)} / (${v.m2}×${v.Cp2})\nT2s = ${fmt(T2out)} °C`}
+        {t:'Temperatura de salida del agua de enfriamiento', f:`T2s = T2e + Q / (m2·Cp2)\nT2s = ${v.T2in} + ${fmt(Q)} / (${v.m2}×${v.Cp2})\nT2s = ${fmt(T2out)} °C`},
+        {t:'Verificación física (contracorriente)', f:`El agua sale a ${fmt(T2out,2)} °C < el mosto entra a ${v.T1in} °C ✓\nEl agua entra a ${v.T2in} °C < el mosto sale a ${v.T1out} °C ✓`}
       ]
     };
   }
@@ -2347,20 +2368,20 @@ const OPS = [
 { id:'intercambiadorLecheAgua', num:'29', cat:'energia', chapter:6, sector:'Alimentaria', name:'Intercambiador leche/agua', diagramKey:'exchanger',
   title:'Intercambiador de calor — enfriamiento de leche',
   context:'Planta láctea — ejemplo del libro del curso',
-  story:'En un intercambiador de calor se enfría leche desde 38°C hasta 3°C, con un flujo másico de 2 kg/s y calor específico de 3.8 kJ/(kg·°C). El calor cedido por la leche se transfiere a una corriente de agua que entra a 1°C, con flujo másico de 1.5 kg/s y calor específico de 4.1 kJ/(kg·°C). Determine la temperatura de salida del agua y la potencia térmica transferida.',
+  story:'En un intercambiador de calor a contracorriente se enfría leche desde 38°C hasta 3°C, con un flujo másico de 2 kg/s y calor específico de 3.8 kJ/(kg·°C). El calor cedido por la leche se transfiere a una corriente de agua helada que entra a 1°C, con flujo másico de 2.5 kg/s y calor específico de 4.1 kJ/(kg·°C). Determine la temperatura de salida del agua y la potencia térmica transferida.',
   inputs:[
-    {key:'mL', label:'mL — flujo de leche', unit:'kg/s', dtag:'d-in-1', def:'2'},
+    {key:'mL', label:'mL — flujo de leche', unit:'kg/s', def:'2'},
     {key:'CL', label:'CL — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.8'},
-    {key:'TLin', label:'TL entrada (leche)', unit:'°C', def:'38'},
-    {key:'TLout', label:'TL salida (leche)', unit:'°C', def:'3'},
-    {key:'mA', label:'mA — flujo de agua', unit:'kg/s', dtag:'d-in-2', def:'1.5'},
+    {key:'TLin', label:'TL entrada (leche)', unit:'°C', dtag:'d-in-1', def:'38'},
+    {key:'TLout', label:'TL salida (leche)', unit:'°C', dtag:'d-in-2', def:'3'},
+    {key:'mA', label:'mA — flujo de agua', unit:'kg/s', def:'2.5'},
     {key:'CA', label:'CA — calor esp. del agua', unit:'kJ/kg·°C', def:'4.1'},
-    {key:'TAin', label:'TA entrada (agua)', unit:'°C', def:'1'},
+    {key:'TAin', label:'TA entrada (agua)', unit:'°C', dtag:'d-in-3', def:'1'},
   ],
   hints:[
     'Sin pérdidas de calor al ambiente, el calor que cede la leche al enfriarse es igual al que gana el agua al calentarse. Calcula primero ese calor usando los datos completos de la leche (flujo, Cp, y sus dos temperaturas).',
     'Con ese calor y los datos del agua (flujo y Cp), despeja cuánto debe subir su temperatura.',
-    'Súmale esa subida a la temperatura de entrada del agua para obtener su temperatura de salida.'
+    'Súmale esa subida a la temperatura de entrada del agua para obtener su temperatura de salida. Comprueba el resultado: el agua nunca puede salir más caliente que la leche que entra.'
   ],
   answerFields:[
     {key:'TAout', label:'TA salida (agua)', unit:'°C'},
@@ -2372,6 +2393,8 @@ const OPS = [
     if(v.TLout>=v.TLin) return {error:'La leche debe enfriarse (T de salida menor que la de entrada).'};
     const Q = v.mL*v.CL*(v.TLin-v.TLout);
     const TAout = v.TAin + Q/(v.mA*v.CA);
+    const errFis = chequeoContracorriente(v.TLin, v.TLout, v.TAin, TAout, 'la leche', 'el agua');
+    if(errFis) return {error:errFis};
     return {
       outputs:[
         {key:'TAout',label:'TA salida (agua)',value:fmt(TAout,2),unit:'°C',raw:TAout},
@@ -2381,8 +2404,70 @@ const OPS = [
       steps:[
         {t:'Calor cedido por la leche', f:`Q = mL·CL·(TLe − TLs)\nQ = ${v.mL}×${v.CL}×(${v.TLin} − ${v.TLout}) = ${fmt(Q,1)} kW`},
         {t:'Balance de energía (calor cedido = calor ganado)', f:`Q = mA·CA·(TAs − TAe)`},
-        {t:'Se despeja la temperatura de salida del agua', f:`TAs = TAe + Q/(mA·CA) = ${v.TAin} + ${fmt(Q,1)}/(${v.mA}×${v.CA})\nTAs = ${fmt(TAout,2)} °C`}
+        {t:'Se despeja la temperatura de salida del agua', f:`TAs = TAe + Q/(mA·CA) = ${v.TAin} + ${fmt(Q,1)}/(${v.mA}×${v.CA})\nTAs = ${fmt(TAout,2)} °C`},
+        {t:'Verificación física (contracorriente)', f:`El agua sale a ${fmt(TAout,2)} °C < la leche entra a ${v.TLin} °C ✓\nEl agua entra a ${v.TAin} °C < la leche sale a ${v.TLout} °C ✓`}
       ]
+    };
+  }
+},
+{ id:'intercambiadorEsPosible', num:'94', cat:'energia', chapter:6, sector:'Alimentaria', name:'¿Es posible? (intercambiador)', diagramKey:'exchanger',
+  title:'¿Es posible? — la segunda ley en un intercambiador',
+  context:'Planta láctea — discusión: primera y segunda ley',
+  story:'Un compañero planteó este problema: en un intercambiador a contracorriente se quiere enfriar leche desde 42°C hasta 4°C (1.5 kg/s, Cp=3.9 kJ/kg·°C) con agua helada que entra a 2°C, a razón de 1.2 kg/s (Cp=4.18 kJ/kg·°C). Aplicó el balance de energía y reportó la temperatura de salida del agua. a) Repite su cálculo. b) ¿Es físicamente posible ese resultado? c) Con ese flujo de agua, ¿hasta qué temperatura se puede enfriar realmente la leche? d) ¿Qué flujo mínimo de agua haría falta para llevar la leche hasta 4°C?',
+  inputs:[
+    {key:'mL', label:'mL — flujo de leche', unit:'kg/s', def:'1.5'},
+    {key:'CL', label:'CL — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.9'},
+    {key:'TLin', label:'TL entrada (leche)', unit:'°C', dtag:'d-in-1', def:'42'},
+    {key:'TLout', label:'TL salida deseada (leche)', unit:'°C', dtag:'d-in-2', def:'4'},
+    {key:'mA', label:'mA — flujo de agua', unit:'kg/s', def:'1.2'},
+    {key:'CA', label:'CA — calor esp. del agua', unit:'kJ/kg·°C', def:'4.18'},
+    {key:'TAin', label:'TA entrada (agua)', unit:'°C', dtag:'d-in-3', def:'2'},
+  ],
+  hints:[
+    'Empieza como en cualquier intercambiador: el calor que cede la leche es igual al que gana el agua. Calcula ese calor con los datos de la leche y despeja la temperatura de salida del agua.',
+    'Ahora compara: ¿puede el agua salir más caliente que la leche que entra? A contracorriente, el agua sale por el extremo donde entra la leche, y para seguir calentándose necesitaría tocar leche más caliente que ella. En el mejor caso (área infinita) el agua sale a la temperatura de entrada de la leche, nunca por encima.',
+    'El calor máximo lo limita la corriente con menor m·Cp: Qmáx = (m·Cp)mín·(TLe − TAe). Con Qmáx halla la temperatura más baja que puede alcanzar la leche. Para el flujo mínimo, despeja mA de Q = mA·CA·(TLe − TAe), con el calor que exige llevar la leche hasta 4°C.'
+  ],
+  answerFields:[
+    {key:'TAout', label:'TA salida según el balance de energía', unit:'°C'},
+    {key:'posible', label:'¿Es físicamente posible ese resultado?', unit:'', opciones:['No','Sí']},
+    {key:'TLmin', label:'T más baja posible para la leche', unit:'°C'},
+    {key:'mAmin', label:'Flujo mínimo de agua', unit:'kg/s'}
+  ],
+  calc(v){
+    if(v.mL<=0||v.mA<=0) return {error:'Los flujos deben ser mayores que cero.'};
+    if(v.CL<=0||v.CA<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
+    if(v.TLout>=v.TLin) return {error:'La leche debe enfriarse (T de salida menor que la de entrada).'};
+    if(v.TAin>=v.TLout) return {error:'El agua debe entrar más fría que la temperatura final que se quiere para la leche; si no, ningún flujo de agua lo logra.'};
+    const K = 273.15;
+    const CLt = v.mL*v.CL, CAt = v.mA*v.CA;               // capacidades caloríficas de flujo, kW/°C
+    const Q = CLt*(v.TLin-v.TLout);                        // calor que exige enfriar la leche
+    const TAout = v.TAin + Q/CAt;                          // lo que "da" la primera ley
+    const posible = TAout < v.TLin;
+    const Cmin = Math.min(CLt, CAt), quienMin = CAt<=CLt ? 'del agua' : 'de la leche';
+    const Qmax = Cmin*(v.TLin-v.TAin);                     // área infinita (contracorriente)
+    const TLmin = v.TLin - Qmax/CLt;
+    const mAmin = Q/(v.CA*(v.TLin-v.TAin));
+    const Sgen = (CLt*Math.log((v.TLout+K)/(v.TLin+K)) + CAt*Math.log((TAout+K)/(v.TAin+K)))*1000;   // W/K
+    return {
+      outputs:[
+        {key:'TAout',label:'TA salida según el balance de energía',value:fmt(TAout,2),unit:'°C',raw:TAout},
+        {key:'posible',label:'¿Es físicamente posible ese resultado?',value:posible?'Sí':'No',unit:'',raw:posible?1:0,opciones:['No','Sí']},
+        {key:'TLmin',label:'T más baja posible para la leche',value:fmt(TLmin,2),unit:'°C',raw:TLmin},
+        {key:'mAmin',label:'Flujo mínimo de agua',value:fmt(mAmin,3),unit:'kg/s',raw:mAmin}
+      ],
+      diagram:{'d-out-1': fmt(TAout,2)+' °C'+(posible?'':' ✗')}, flows:['fo1','fo2'],
+      steps:[
+        {t:'a) Balance de energía (primera ley)', f:`Q = mL·CL·(TLe − TLs) = ${v.mL}×${v.CL}×(${v.TLin} − ${v.TLout}) = ${fmt(Q,2)} kW\nTAs = TAe + Q/(mA·CA) = ${v.TAin} + ${fmt(Q,2)}/(${v.mA}×${v.CA}) = ${fmt(TAout,2)} °C`},
+        {t:'b) Verificación con la segunda ley', f: posible
+          ? `El agua sale a ${fmt(TAout,2)} °C < la leche entra a ${v.TLin} °C ✓\nEl resultado es físicamente posible.`
+          : `El agua saldría a ${fmt(TAout,2)} °C > la leche entra a ${v.TLin} °C ✗\nImposible: el calor solo pasa del fluido caliente al frío. Los datos del enunciado no son compatibles.`},
+        {t:'Calor máximo transferible (contracorriente, área infinita)', f:`(m·Cp) leche = ${v.mL}×${v.CL} = ${fmt(CLt,3)} kW/°C\n(m·Cp) agua = ${v.mA}×${v.CA} = ${fmt(CAt,3)} kW/°C  →  la menor es la ${quienMin}\nQmáx = (m·Cp)mín·(TLe − TAe) = ${fmt(Cmin,3)}×(${v.TLin} − ${v.TAin}) = ${fmt(Qmax,2)} kW\nCalor que exige el enunciado: ${fmt(Q,2)} kW ${Q>Qmax?'> Qmáx ✗':'≤ Qmáx ✓'}`},
+        {t:'c) Temperatura más baja que puede alcanzar la leche', f:`TLs,mín = TLe − Qmáx/(mL·CL) = ${v.TLin} − ${fmt(Qmax,2)}/${fmt(CLt,3)} = ${fmt(TLmin,2)} °C`},
+        {t:'d) Flujo mínimo de agua para llevar la leche a '+v.TLout+' °C', f:`En el límite el agua sale a ${v.TLin} °C (área infinita):\nmA,mín = Q/[CA·(TLe − TAe)] = ${fmt(Q,2)}/(${v.CA}×(${v.TLin} − ${v.TAin})) = ${fmt(mAmin,3)} kg/s\nEn la práctica se usa un flujo mayor, para que el intercambiador tenga un tamaño finito.`},
+        {t:'Confirmación con la entropía generada', f:`Sgen = mL·CL·ln(TLs/TLe) + mA·CA·ln(TAs/TAe)   (temperaturas en K)\nSgen = ${fmt(CLt,3)}·ln(${fmt(v.TLout+K,2)}/${fmt(v.TLin+K,2)}) + ${fmt(CAt,3)}·ln(${fmt(TAout+K,2)}/${fmt(v.TAin+K,2)}) = ${fmt(Sgen,2)} W/K\n${Sgen<0?'Sgen < 0 → viola la segunda ley.':'Sgen ≥ 0 → no viola la segunda ley.'}`}
+      ],
+      note:'El balance de energía siempre "cierra": da un número para cualquier combinación de datos. La segunda ley es la que dice si ese número es físicamente posible. Por ejemplo, con 0.1 kg/s de agua el mismo balance daría un agua a más de 500 °C calentada por leche a 42 °C.'
     };
   }
 },
@@ -2392,9 +2477,9 @@ const OPS = [
   story:'En el proceso de tueste de café, los gases de escape del sistema de quema (a 200°C) se usan para precalentar aire fresco en un intercambiador, antes de liberarlos a la atmósfera a 120°C. El aire fresco entra a 25°C y sale a 80°C. La mezcla de gases de combustión se compone de N₂ (75%), CO₂ (12%), H₂O (10%) y O₂ (3%) en masa. Determine el calor recuperado por kg de gases y la masa de aire precalentada por cada kg de gas.',
   inputs:[
     {key:'Tgin', label:'T gas entrada (al intercambiador)', unit:'°C', dtag:'d-in-1', def:'200'},
-    {key:'Tgout', label:'T gas salida', unit:'°C', def:'120'},
-    {key:'TAin', label:'T aire entrada', unit:'°C', def:'25'},
-    {key:'TAout', label:'T aire salida', unit:'°C', dtag:'d-in-2', def:'80'},
+    {key:'Tgout', label:'T gas salida', unit:'°C', dtag:'d-in-2', def:'120'},
+    {key:'TAin', label:'T aire entrada', unit:'°C', dtag:'d-in-3', def:'25'},
+    {key:'TAout', label:'T aire salida', unit:'°C', dtag:'d-out-1', def:'80'},
     {key:'yN2', label:'Fracción másica N₂ en el gas', unit:'0–1', def:'0.75'},
     {key:'yCO2', label:'Fracción másica CO₂ en el gas', unit:'0–1', def:'0.12'},
     {key:'yH2O', label:'Fracción másica H₂O en el gas', unit:'0–1', def:'0.10'},
@@ -2415,6 +2500,8 @@ const OPS = [
     if(Math.abs(suma-1)>0.02) return {error:'Las fracciones másicas del gas deben sumar 1 (100%).'};
     if(v.Tgout>=v.Tgin) return {error:'El gas debe enfriarse (T de salida menor que la de entrada).'};
     if(v.TAout<=v.TAin) return {error:'El aire debe calentarse (T de salida mayor que la de entrada).'};
+    const errFis = chequeoContracorriente(v.Tgin, v.Tgout, v.TAin, v.TAout, 'el gas', 'el aire');
+    if(errFis) return {error:errFis};
     const CN2=1.04,CCO2=0.88,CH2O=1.93,CO2c=1.04,CAire=1.0085;
     const Cgas = v.yN2*CN2+v.yCO2*CCO2+v.yH2O*CH2O+v.yO2*CO2c;
     const Qgas = Cgas*(v.Tgin-v.Tgout);           // calor cedido por el gas (magnitud positiva)
@@ -2425,7 +2512,7 @@ const OPS = [
         {key:'Qgas',label:'Calor recuperado por kg de gas',value:fmt(Qgas,2),unit:'kJ/kg',raw:Qgas},
         {key:'mA',label:'Aire precalentado por kg de gas',value:fmt(mA,3),unit:'kg aire/kg gas',raw:mA}
       ],
-      diagram:{'d-out-1':fmt(mA,2)+' kg aire/kg gas'}, flows:['fo1','fo2'],
+      flows:['fo1','fo2'],
       steps:[
         {t:'Calor específico efectivo del gas (promedio ponderado)', f:`Cgas = yN₂·Cp,N₂ + yCO₂·Cp,CO₂ + yH₂O·Cp,H₂O + yO₂·Cp,O₂\nCgas = ${v.yN2}×1,04 + ${v.yCO2}×0,88 + ${v.yH2O}×1,93 + ${v.yO2}×1,04 = ${fmt(Cgas,4)} kJ/kg·°C`},
         {t:'Calor recuperado por kg de gas (base de cálculo = 1 kg de gas)', f:`Q/kg gas = Cgas·(Tge − Tgs) = ${fmt(Cgas,4)}×(${v.Tgin} − ${v.Tgout}) = ${fmt(Qgas,2)} kJ/kg`},
@@ -4321,20 +4408,20 @@ const OPS = [
 { id:'tallerIntercambiador6A', num:'82', cat:'energia', chapter:6, sector:'Alimentaria', taller:true, diagramKey:'exchanger', name:'Taller — Intercambiador',
   title:'Intercambiador de calor — taller',
   context:'Taller de clase — capítulo 6',
-  story:'En un intercambiador se enfría leche desde 42°C hasta 4°C, con flujo de 1.5 kg/s y Cp=3.9 kJ/kg·°C. El calor lo recibe agua que entra a 2°C, con flujo de 1.2 kg/s y Cp=4.18 kJ/kg·°C. Determine la temperatura de salida del agua y la potencia térmica.',
+  story:'En un intercambiador a contracorriente se enfría leche desde 42°C hasta 4°C, con flujo de 1.5 kg/s y Cp=3.9 kJ/kg·°C. El calor lo recibe agua helada que entra a 2°C, con flujo de 2.0 kg/s y Cp=4.18 kJ/kg·°C. Determine la temperatura de salida del agua y la potencia térmica.',
   inputs:[
-    {key:'mL', label:'mL — flujo de leche', unit:'kg/s', dtag:'d-in-1', def:'1.5'},
+    {key:'mL', label:'mL — flujo de leche', unit:'kg/s', def:'1.5'},
     {key:'CL', label:'CL — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.9'},
-    {key:'TLin', label:'TL entrada', unit:'°C', def:'42'},
-    {key:'TLout', label:'TL salida', unit:'°C', def:'4'},
-    {key:'mA', label:'mA — flujo de agua', unit:'kg/s', dtag:'d-in-2', def:'1.2'},
+    {key:'TLin', label:'TL entrada', unit:'°C', dtag:'d-in-1', def:'42'},
+    {key:'TLout', label:'TL salida', unit:'°C', dtag:'d-in-2', def:'4'},
+    {key:'mA', label:'mA — flujo de agua', unit:'kg/s', def:'2.0'},
     {key:'CA', label:'CA — calor esp. del agua', unit:'kJ/kg·°C', def:'4.18'},
-    {key:'TAin', label:'TA entrada', unit:'°C', def:'2'},
+    {key:'TAin', label:'TA entrada', unit:'°C', dtag:'d-in-3', def:'2'},
   ],
   hints:[
     'El calor cedido por la leche es igual al calor ganado por el agua.',
     'Calcula primero Q con los datos completos de la leche.',
-    'Despeja la temperatura de salida del agua.'
+    'Despeja la temperatura de salida del agua y comprueba que no supere la temperatura de entrada de la leche.'
   ],
   answerFields:[
     {key:'TAout', label:'TA salida', unit:'°C'},
@@ -4345,6 +4432,8 @@ const OPS = [
     if(v.CL<=0||v.CA<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
     if(v.TLout>=v.TLin) return {error:'La leche debe enfriarse.'};
     const Q=v.mL*v.CL*(v.TLin-v.TLout), TAout=v.TAin+Q/(v.mA*v.CA);
+    const errFis = chequeoContracorriente(v.TLin, v.TLout, v.TAin, TAout, 'la leche', 'el agua');
+    if(errFis) return {error:errFis};
     return {
       outputs:[
         {key:'TAout',label:'TA salida',value:fmt(TAout,2),unit:'°C',raw:TAout},
@@ -4353,7 +4442,8 @@ const OPS = [
       diagram:{'d-out-1':fmt(TAout,2)+' °C'}, flows:['fo1','fo2'],
       steps:[
         {t:'Calor cedido por la leche', f:`Q = ${v.mL}×${v.CL}×(${v.TLin}−${v.TLout}) = ${fmt(Q,1)} kW`},
-        {t:'Temperatura de salida del agua', f:`TAs = ${v.TAin} + ${fmt(Q,1)}/(${v.mA}×${v.CA}) = ${fmt(TAout,2)} °C`}
+        {t:'Temperatura de salida del agua', f:`TAs = ${v.TAin} + ${fmt(Q,1)}/(${v.mA}×${v.CA}) = ${fmt(TAout,2)} °C`},
+        {t:'Verificación física (contracorriente)', f:`El agua sale a ${fmt(TAout,2)} °C < la leche entra a ${v.TLin} °C ✓\nEl agua entra a ${v.TAin} °C < la leche sale a ${v.TLout} °C ✓`}
       ]
     };
   }
@@ -5116,12 +5206,15 @@ function renderOp(){
   const ansGrid = document.getElementById('answerGrid');
   ansGrid.innerHTML = op.answerFields.map(af => `
     <div class="field">
-      <label>${af.label} <span class="unit-hint">(${af.unit})</span></label>
-      ${fieldInputHTML('ans-'+af.key, undefined, '—', af.unit)}
+      <label>${af.label}${af.unit ? ` <span class="unit-hint">(${af.unit})</span>` : ''}</label>
+      ${af.opciones ? opcionesHTML('ans-'+af.key, af.opciones) : fieldInputHTML('ans-'+af.key, undefined, '—', af.unit)}
     </div>`).join('');
   wireSignButtons(ansGrid);
   ansGrid.querySelectorAll('input').forEach(inp=>{
     inp.addEventListener('input', soundKey);
+  });
+  ansGrid.querySelectorAll('select').forEach(sel=>{
+    sel.addEventListener('change', soundKey);
   });
 
   renderHints(op);
@@ -5230,7 +5323,8 @@ function renderResults(res, studentAnswers){
       const sv = studentAnswers[o.key];
       const estado = evaluarRespuesta(sv, o.raw);
       const tagTxt = estado==='ok' ? '✓ Correcto' : estado==='no' ? '✗ Revisa' : 'Sin respuesta';
-      const tuTxt = (sv===null||sv===undefined) ? 'No ingresada' : `Tu respuesta: ${fmt(sv,3)} ${o.unit}`;
+      const tuTxt = (sv===null||sv===undefined) ? 'No ingresada'
+        : (o.opciones ? `Tu respuesta: ${o.opciones[sv]!==undefined ? o.opciones[sv] : sv}` : `Tu respuesta: ${fmt(sv,3)} ${o.unit}`);
       return `<div class="compare-item ${estado}"><span class="cl">${o.label}<br><span class="cv">${tuTxt}</span></span><span class="compare-tag ${estado}">${tagTxt}</span></div>`;
     }).join('');
     compareHtml = `<div class="compare-box"><p class="sec-label">Comparación con tu respuesta</p>${items}</div>`;
@@ -5254,7 +5348,7 @@ function renderResults(res, studentAnswers){
       ${chartHtml}
       <details><summary>Ver procedimiento paso a paso</summary><div class="steps">${steps}</div></details>
     </div>`;
-  if(res.diagram){ Object.keys(res.diagram).forEach(id=>{ const el=document.getElementById(id); if(el) el.textContent=res.diagram[id]; }); }
+  if(res.diagram){ Object.keys(res.diagram).forEach(id=>{ const el=document.getElementById(id); if(el){ el.textContent=res.diagram[id]; el.classList.add('computed'); } }); }
   const schem = document.querySelector('.schem');
   if(schem && res.flows) schem.classList.add('active');
 }
@@ -5717,7 +5811,72 @@ function construirSecciones(logs, reportes){
      sigueFiltro:true, tituloEje:'Verificaciones', anchor:{col:12,row:1}, size:{w:640, h:Math.max(320, 120+26*est.length)}}
   ] : []});
 
-  // 3. Uso por ficha (todas, incluidas las que no se han usado) + las 10 más usadas
+  // 3. Reporte de talleres por estudiante: matriz estudiante × ficha de taller con el resultado del PRIMER intento
+  //    (en el taller solo se puede verificar una vez; si alguien volvió a entrar y repitió, se indica cuántos intentos hubo).
+  const opsTaller = OPS.filter(o=>o.taller).map((o,i)=>({o,i})).sort((a,b)=>a.o.chapter-b.o.chapter || a.i-b.i).map(x=>x.o);
+  const logsTaller = logs.filter(l=>tipoDe(l.modulo)==='Taller').sort((a,b)=>new Date(a.fecha)-new Date(b.fecha));
+  const fichasT = opsTaller.filter(op=>logsTaller.some(l=>l.modulo===op.name));
+  const porEstT = {};
+  logsTaller.forEach(l=>{
+    const k = String(l.codigo)+'|'+String(l.nombre);
+    if(!porEstT[k]) porEstT[k] = {nombre:l.nombre, codigo:l.codigo, fichas:{}, fechaCap:{}};
+    const capL = capDe(l.modulo);
+    if(!porEstT[k].fechaCap[capL]) porEstT[k].fechaCap[capL] = l.fecha;   // primera verificación del estudiante en ese taller
+    const f = porEstT[k].fichas;
+    if(!f[l.modulo]) f[l.modulo] = {primero:l, n:0, fecha:l.fecha};
+    f[l.modulo].n++;
+  });
+  const estT = Object.values(porEstT).sort((a,b)=>String(a.nombre).localeCompare(String(b.nombre),'es'));
+  const cortoT = op => `Cap. ${op.chapter} · ${op.name.replace(/^Taller\s*[—–-]\s*/,'')}`;
+  const resT = r => veredictos.includes(r.primero.correcta) ? r.primero.correcta : 'Sin respuesta';
+  const NO_PRES = 'No presentó';
+  const SIN_FECHA = '—';
+  const nF = fichasT.length;
+  // Columnas de cada taller: sus fichas y, a continuación, la fecha en que el estudiante lo presentó
+  const capsT = [...new Set(fichasT.map(op=>op.chapter))];
+  const colsT = [];
+  capsT.forEach(c=>{
+    fichasT.filter(op=>op.chapter===c).forEach(op=>colsT.push({tipo:'ficha', op}));
+    colsT.push({tipo:'fecha', cap:c});
+  });
+  const cabT = ['Estudiante','Código', ...colsT.map(col=> col.tipo==='ficha' ? cortoT(col.op) : `Fecha de presentación · Cap. ${col.cap}`),
+    'Fichas presentadas','Correcta','Parcial','Incorrecta','Sin respuesta','% correctas (sobre evaluadas)'];
+  const filasT = estT.map(e=>{
+    const cnt = {Correcta:0, Parcial:0, Incorrecta:0, 'Sin respuesta':0}; let pres = 0;
+    const celdas = colsT.map(col=>{
+      if(col.tipo==='fecha') return e.fechaCap[col.cap] ? fechaLocal(e.fechaCap[col.cap]).slice(0,16) : SIN_FECHA;
+      const r = e.fichas[col.op.name]; if(!r) return NO_PRES;
+      pres++; const v = resT(r); cnt[v]++;
+      return r.n>1 ? `${v} (${r.n} intentos)` : v;
+    });
+    const evaluadas = cnt.Correcta+cnt.Parcial+cnt.Incorrecta;
+    return [String(e.nombre||''), String(e.codigo||''), ...celdas, pres, cnt.Correcta, cnt.Parcial, cnt.Incorrecta, cnt['Sin respuesta'],
+      n1(evaluadas ? cnt.Correcta/evaluadas*100 : null)];
+  });
+  const auxColT = cabT.length + 1;
+  const auxT = [['Ficha de taller', ...veredictos], ...fichasT.map(op=>{
+    const c = {Correcta:0, Parcial:0, Incorrecta:0, 'Sin respuesta':0};
+    estT.forEach(e=>{ const r = e.fichas[op.name]; if(r) c[resT(r)]++; });
+    return [cortoT(op), ...veredictos.map(v=>c[v])];
+  })];
+  const estiloRes = {'Correcta':3, 'Parcial':4, 'Incorrecta':5, 'Sin respuesta':6};
+  secciones.push({nombre:'Talleres', titulo:'REPORTE DE TALLERES POR ESTUDIANTE (resultado del primer intento)',
+    anchos:[30,13, ...colsT.map(col=> col.tipo==='ficha' ? 22 : 19), 11,10,10,11,13,16], congelarCols:2,
+    filas: estT.length ? [cabT, ...filasT] : [cabT, ['(Aún no hay registros del modo taller)']],
+    estiloCelda:(v,ri,ci)=>{
+      if(ci<2 || ci>=2+colsT.length || typeof v!=='string') return 0;
+      if(v===NO_PRES || v===SIN_FECHA) return 7;
+      const k = Object.keys(estiloRes).find(x=>v.startsWith(x)); return k ? estiloRes[k] : 0;
+    },
+    aux: nF ? [{col:auxColT, row:0, anchos:[30,10,10,11,13], filas:auxT}] : [],
+    graficas: nF ? [
+      {tipo:'bar', apilado:true, titulo:'Resultados del taller por ficha', subtitulo:`Primer intento de cada estudiante (${estT.length} estudiante(s) en talleres)`,
+       cat:{col:auxColT, r1:1, r2:nF},
+       series:veredictos.map((v,j)=>({nombreCelda:{col:auxColT+1+j,row:0}, col:auxColT+1+j, r1:1, r2:nF, color:COLORES_RESULTADO[v]})),
+       tituloEje:'Estudiantes', anchor:{col:auxColT+6,row:1}, size:{w:640, h:Math.max(300, 130+30*nF)}}
+    ] : []});
+
+  // 4. Uso por ficha (todas, incluidas las que no se han usado) + las 10 más usadas
   const usos = {}; logs.forEach(l=>{ usos[l.modulo]=(usos[l.modulo]||0)+1; });
   const top = OPS.filter(op=>usos[op.name]>0).sort((a,b)=>usos[b.name]-usos[a.name]).slice(0,10);
   secciones.push({nombre:'Uso por ficha', titulo:'USO POR FICHA', anchos:[10,32,58,15,8], filas:[
@@ -5731,7 +5890,7 @@ function construirSecciones(logs, reportes){
      etiquetas:true, tituloEje:'Registros', anchor:{col:9,row:1}, size:{w:600, h:Math.max(260, 120+28*top.length)}}
   ] : []});
 
-  // 4. Análisis de dificultad (todas las fichas con al menos un intento; las que no tienen respuestas evaluadas van al final)
+  // 5. Análisis de dificultad (todas las fichas con al menos un intento; las que no tienen respuestas evaluadas van al final)
   const porFicha = {}; logs.forEach(l=>{ if(!l.modulo) return; if(!porFicha[l.modulo]) porFicha[l.modulo]=nuevoConteo(); acumular(porFicha[l.modulo], l); });
   const dif = Object.keys(porFicha).map(nombre=>{
     const m = porFicha[nombre]; const evaluadas = m.Correcta+m.Parcial+m.Incorrecta;
@@ -5755,7 +5914,7 @@ function construirSecciones(logs, reportes){
      anchor:{col:14,row:1}, size:{w:640, h:Math.max(260, 120+28*kDif)}}
   ] : []});
 
-  // 5. Registro de actividad completo (+ tabla auxiliar: resultado según pistas consultadas)
+  // 6. Registro de actividad completo (+ tabla auxiliar: resultado según pistas consultadas)
   const porPistas = {};
   logs.forEach(l=>{ const p = pistasVistas(l); if(p===null||!veredictos.includes(l.correcta)) return;
     if(!porPistas[p]) porPistas[p] = {Correcta:0, Parcial:0, Incorrecta:0, 'Sin respuesta':0}; porPistas[p][l.correcta]++; });
@@ -5777,7 +5936,7 @@ function construirSecciones(logs, reportes){
      formatoEje:'0%', tituloEje:'% de las verificaciones', anchor:{col:15,row:1}, size:{w:600,h:340}}
   ] : []});
 
-  // 6. Reportes de error (+ tabla auxiliar: reportes por ficha)
+  // 7. Reportes de error (+ tabla auxiliar: reportes por ficha)
   const repFicha = {}; reportes.forEach(r=>{ const k = String(r.modulo||'(sin ficha)'); repFicha[k]=(repFicha[k]||0)+1; });
   const repOrden = Object.keys(repFicha).sort((a,b)=>repFicha[b]-repFicha[a]).slice(0,15);
   secciones.push({nombre:'Reportes', titulo:'REPORTES DE ERROR', anchos:[30,13,30,70,20], ajustarCol:3, filas:[
@@ -5912,7 +6071,7 @@ function construirXLSX(secciones){
     // Cuadrícula dispersa: tabla principal + tablas auxiliares (para las gráficas)
     const grid = new Map(); const anchos = {};
     const poner = (r,c,v,est) => { if(v===''||v===null||v===undefined) return; if(!grid.has(r)) grid.set(r,new Map()); grid.get(r).set(c,{v,est}); };
-    s.filas.forEach((fila,ri)=>fila.forEach((v,ci)=>poner(ri,ci,v, ri===0 ? 1 : (s.ajustarCol===ci ? 2 : 0))));
+    s.filas.forEach((fila,ri)=>fila.forEach((v,ci)=>poner(ri,ci,v, ri===0 ? 1 : ((s.estiloCelda && s.estiloCelda(v,ri,ci)) || (s.ajustarCol===ci ? 2 : 0)))));
     (s.anchos||[]).forEach((w,j)=>anchos[j]=w);
     (s.aux||[]).forEach(b=>{
       b.filas.forEach((fila,ri)=>fila.forEach((v,ci)=>poner(b.row+ri, b.col+ci, v, ri===0 ? 1 : 0)));
@@ -5959,7 +6118,11 @@ function construirXLSX(secciones){
     }
 
     const xml = HEAD + `<worksheet ${NS}>`
-      + `<sheetViews><sheetView workbookViewId="0"${i===0?' tabSelected="1"':''}><pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/></sheetView></sheetViews>`
+      + `<sheetViews><sheetView workbookViewId="0"${i===0?' tabSelected="1"':''}>`
+      + (s.congelarCols
+          ? `<pane xSplit="${s.congelarCols}" ySplit="1" topLeftCell="${_colName(s.congelarCols)}2" activePane="bottomRight" state="frozen"/><selection pane="topRight"/><selection pane="bottomLeft"/><selection pane="bottomRight" activeCell="${_colName(s.congelarCols)}2" sqref="${_colName(s.congelarCols)}2"/>`
+          : `<pane ySplit="1" topLeftCell="A2" activePane="bottomLeft" state="frozen"/>`)
+      + `</sheetView></sheetViews>`
       + `<sheetFormatPr defaultRowHeight="15"/><cols>${cols}</cols><sheetData>${filasXML}</sheetData>`
       + (conFiltro ? `<autoFilter ref="A1:${ultimaCol}${nFilas}"/>` : '')
       + drawingTag
@@ -5989,14 +6152,20 @@ function construirXLSX(secciones){
       + `<Relationship Id="rId${hojas.length+1}" Type="${RELS}/styles" Target="styles.xml"/>`
       + '</Relationships>')},
     {name:'xl/styles.xml', data:_utf8(HEAD + '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
-      + '<fonts count="2"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font></fonts>'
-      + '<fills count="3"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
-      + '<fill><patternFill patternType="solid"><fgColor rgb="FF6D1B2B"/><bgColor indexed="64"/></patternFill></fill></fills>'
+      + '<fonts count="3"><font><sz val="11"/><name val="Calibri"/></font><font><b/><sz val="11"/><color rgb="FFFFFFFF"/><name val="Calibri"/></font>'
+      + '<font><i/><sz val="10"/><color rgb="FF8A8378"/><name val="Calibri"/></font></fonts>'
+      + '<fills count="7"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill>'
+      + '<fill><patternFill patternType="solid"><fgColor rgb="FF6D1B2B"/><bgColor indexed="64"/></patternFill></fill>'
+      + ['FFD7ECDB','FFF6E7C1','FFF3D3CF','FFE4E1DC'].map(c=>`<fill><patternFill patternType="solid"><fgColor rgb="${c}"/><bgColor indexed="64"/></patternFill></fill>`).join('')
+      + '</fills>'
       + '<borders count="1"><border><left/><right/><top/><bottom/><diagonal/></border></borders>'
       + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>'
-      + '<cellXfs count="3"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
+      + '<cellXfs count="8"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'
       + '<xf numFmtId="0" fontId="1" fillId="2" borderId="0" xfId="0" applyFont="1" applyFill="1" applyAlignment="1"><alignment vertical="center" wrapText="1"/></xf>'
-      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf></cellXfs>'
+      + '<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0" applyAlignment="1"><alignment vertical="top" wrapText="1"/></xf>'
+      + [3,4,5,6].map(f=>`<xf numFmtId="0" fontId="0" fillId="${f}" borderId="0" xfId="0" applyFill="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>`).join('')
+      + '<xf numFmtId="0" fontId="2" fillId="0" borderId="0" xfId="0" applyFont="1" applyAlignment="1"><alignment horizontal="center" vertical="center"/></xf>'
+      + '</cellXfs>'
       + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>'
       + '</styleSheet>')}
   );
