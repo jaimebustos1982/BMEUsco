@@ -1,72 +1,154 @@
 # BMEUsco
 
-Simulador de balances de materia y energía — Programa de Ingeniería Agroindustrial, Universidad Surcolombiana.
-Curso *Balance de Materia y Energía* · Docente: D. Sc. Jaime Daniel Bustos Vanegas.
+**Simulador de balances de materia y energía para procesos agroindustriales**
+Programa de Ingeniería Agroindustrial · Universidad Surcolombiana (Neiva, Huila, Colombia)
 
-**App en vivo:** https://jaimebustos1982.github.io/BMEUsco/
+**Aplicación:** https://jaimebustos1982.github.io/BMEUsco/
+**Versión actual:** 2026-10-29-b
 
 ---
 
-## Qué es esto
+## Autoría y derechos
 
-Una PWA (aplicación web instalable) de un solo archivo con 93 fichas interactivas organizadas en 9 capítulos, alineadas al índice del libro de texto del curso. Cada ficha trae enunciado, pistas progresivas, verificación de la respuesta del estudiante y solución paso a paso. Incluye un "modo taller" para ejercicios cronometrados en clase y un panel docente con seguimiento de uso.
+| | |
+|---|---|
+| **Autor** | D. Sc. Jaime Daniel Bustos Vanegas, docente del Programa de Ingeniería Agroindustrial, Universidad Surcolombiana |
+| **Titular de los derechos patrimoniales** | Universidad Surcolombiana, conforme al Estatuto de Propiedad Intelectual (Acuerdo 014 de 2018 del Consejo Superior, art. 33) |
+| **Licencia** | Todos los derechos reservados. Ver [LICENSE](LICENSE) |
 
-No usa frameworks (sin React/Vue) ni build step: es HTML + CSS + JavaScript plano en un solo archivo, para que sea fácil de leer, editar y auditar.
+El autor conserva los derechos morales sobre la obra. Que el repositorio sea público en GitHub no concede ninguna licencia de uso, copia o modificación del código ni del contenido.
 
-## Estructura del repositorio
+**Cómo citar:**
+Bustos Vanegas, J. D. (2026). *BMEUsco: simulador de balances de materia y energía para procesos agroindustriales* (versión 2026-10-29-b) [Software]. Universidad Surcolombiana. https://jaimebustos1982.github.io/BMEUsco/
+
+---
+
+## Qué es
+
+BMEUsco es una aplicación web progresiva (PWA) de apoyo al curso *Balance de Materia y Energía*. El estudiante resuelve problemas contextualizados en procesos agroindustriales reales, compara su respuesta con la solución verificada y consulta el procedimiento paso a paso. Funciona en celular y computador, se puede instalar como aplicación y sigue funcionando sin conexión a internet.
+
+Su propósito es que el estudiante practique sin recurrir a herramientas de inteligencia artificial para resolver los problemas, y que el docente pueda hacer seguimiento del trabajo individual y en clase.
+
+### Contenido: 94 fichas en 9 capítulos
+
+| Capítulo | Tema | Práctica libre | Modo taller |
+|---|---|---:|---:|
+| 1 | Introducción al análisis de procesos agroindustriales (planteamiento de esquemas) | 12 | 2 |
+| 2 | Conceptos fundamentales: unidades SI y homogeneidad dimensional | 5 | 2 |
+| 3 | Balance de materia sin reacción química (estado estacionario) | 13 | 2 |
+| 4 | Balance de materia con reacción química | 9 | 2 |
+| 5 | Balance de materia en estado transitorio | 8 | 2 |
+| 6 | Balance de energía en estado estacionario | 11 | 2 |
+| 7 | Balance de energía con reacción química | 8 | 2 |
+| 8 | Balance de energía en estado transitorio | 5 | 2 |
+| 9 | Balances simultáneos de materia y energía | 5 | 2 |
+| | **Total** | **76** | **18** |
+
+Las fichas siguen el índice del libro de texto del curso, *Balance de materia y energía en procesos agroindustriales* (en preparación), e incluyen problemas propuestos para la aplicación.
+
+### Cada ficha incluye
+
+- Enunciado contextualizado en un proceso agroindustrial (lácteos, café, caña, frutas, biocombustibles, entre otros).
+- Diagrama del proceso con el volumen de control (V.C.) marcado y corrientes animadas.
+- Datos conocidos precargados y campos para la respuesta del estudiante. Acepta coma o punto decimal, y tiene un botón ± para temperaturas negativas.
+- Tres pistas progresivas, que el estudiante consulta solo si las necesita.
+- Verificación de la respuesta con tolerancia de ±3 %, y el procedimiento completo paso a paso.
+- Comprobaciones físicas: por ejemplo, la app rechaza datos que harían que el fluido frío de un intercambiador salga más caliente que la entrada del fluido caliente.
+
+El capítulo 1 trabaja la comprensión de lectura. El estudiante debe identificar el esquema correcto del proceso (operaciones unitarias, volumen de control, corrientes de entrada y salida, variables conocidas y por calcular, base de cálculo) mediante preguntas de diagnóstico, antes de hacer cualquier cálculo.
+
+### Modo taller (actividades en clase)
+
+- El docente genera un código con tiempo límite (máximo 240 minutos) que habilita las 2 fichas reservadas de un capítulo.
+- Las fichas de taller no aparecen en la práctica libre.
+- Si el estudiante cambia de ventana o sale de la aplicación, pierde el acceso al taller.
+- Cada ficha de taller solo se puede verificar una vez.
+- El docente ve las fichas asignadas completas, con sus respuestas.
+
+### Panel docente
+
+- Uso del simulador en práctica libre y en modo taller.
+- Análisis de dificultad: fichas con mayor proporción de respuestas incorrectas y pistas usadas.
+- Registro de actividad y reportes de error enviados por los estudiantes.
+- Exportación a Excel (.xlsx) con siete hojas y gráficas nativas de Excel: Resumen, Por estudiante, Talleres (resultado de cada estudiante en cada ficha de taller y fecha de presentación), Uso por ficha, Dificultad, Actividad y Reportes. También permite copiar los datos como CSV.
+- Botón para borrar los registros al terminar cada actividad.
+
+---
+
+## Arquitectura técnica
+
+- **Lenguajes:** HTML5, CSS3 y JavaScript (ES6+), sin frameworks ni librerías externas para la lógica. Toda la aplicación vive en un solo archivo (`index.html`), lo que la hace liviana, fácil de auditar y utilizable sin conexión.
+- **Diagramas:** SVG escrito directamente, con animaciones CSS y SVG (partículas en las corrientes, agitadores, burbujas).
+- **Sonido:** Web Audio API (tonos generados en el navegador, sin archivos de audio), con opción de silenciar.
+- **Funcionamiento sin conexión:** *service worker* con estrategia "red primero, caché como respaldo".
+- **Exportación a Excel:** el archivo .xlsx (Office Open XML) se genera en el propio navegador, incluidas las gráficas, sin librerías externas.
+- **Registro de uso:** Google Apps Script expuesto como aplicación web, que escribe en una hoja de cálculo de Google del docente. Este componente no está en el repositorio.
+- **Publicación:** GitHub Pages.
+
+### Estructura del repositorio
 
 ```
-index.html       — la app completa (todo el código vive aquí)
-manifest.json    — metadatos de instalación PWA (nombre, íconos)
-sw.js            — service worker (funcionamiento offline + actualización automática)
-icon-192.png     — ícono de la app (192×192)
-icon-512.png     — ícono de la app (512×512)
+index.html     — la aplicación completa (interfaz, fichas, cálculos, diagramas, panel docente)
+manifest.json  — metadatos de instalación (nombre, íconos, colores)
+sw.js          — service worker (funcionamiento sin conexión y actualización)
+icon-192.png   — ícono 192×192
+icon-512.png   — ícono 512×512
+README.md      — este documento
+LICENSE        — términos de uso
 ```
 
-El registro de uso NO vive en este repositorio: usa una Google Sheet aparte + un script de Google Apps Script como backend (ver más abajo).
+### Datos que registra
 
-## Cómo actualizar la app
+Cuando el estudiante verifica una respuesta, la aplicación envía al registro del docente su nombre y código, la ficha, el número de pistas consultadas, el resultado (correcta, parcial, incorrecta o sin respuesta) y la fecha. Los reportes de error guardan además el mensaje escrito por el estudiante. Estos datos se almacenan solo en la hoja de cálculo del docente y se usan con fines académicos. El progreso personal del estudiante se guarda únicamente en su propio dispositivo.
 
-1. Edita `index.html` localmente.
-2. Sube los archivos que cambiaron a este repositorio (botón **Add file → Upload files** en GitHub, o `git push` si usas la terminal).
-3. Si cambiaste `index.html`, abre `sw.js` y sube en uno el número de versión de `CACHE_NAME` (por ejemplo, de `-h` a `-i`). Esto obliga a los teléfonos que ya tienen la app instalada a descargar la versión nueva la próxima vez que la abran con internet, en vez de quedarse con una copia vieja en caché.
-4. GitHub Pages publica el cambio solo, en la misma URL — no hay que hacer nada más.
+---
 
-**Para verificar que un cambio sí llegó:** el pie de página de la app muestra un código de versión (ej. `2026-08-08-h`). Si un estudiante reporta algo raro, pídele ese código antes de diagnosticar nada — la causa más común de "esto no funciona" a lo largo de este proyecto fue alguien viendo una copia vieja guardada en su teléfono.
+## Metodología de desarrollo y verificación
 
-## Cómo agregar una ficha nueva
+La aplicación se desarrolló de forma iterativa, con asistencia de Claude (Anthropic) como herramienta de programación. El autor definió el alcance, el enfoque pedagógico, los problemas y los criterios de validación, y revisó cada versión. Cada fórmula se verificó numéricamente de forma independiente antes de programarse, y cada versión pasa una prueba automática que resuelve todas las fichas con sus datos por defecto. Este proceso de verificación detectó y corrigió errores físicos en algunos problemas de referencia, por ejemplo la referencia de entalpías en los balances de evaporadores y la consistencia con la segunda ley en los intercambiadores de calor.
 
-Todo el contenido vive en el arreglo `OPS` dentro de `index.html`. Cada ficha es un objeto con esta forma mínima:
+---
+
+## Mantenimiento
+
+### Publicar una actualización
+
+1. Reemplace `index.html` (y `sw.js` si cambió) en el repositorio: **Add file → Upload files**.
+2. En cada versión nueva, el valor `CACHE_NAME` de `sw.js` cambia (por ejemplo, de `bmeusco-2026-10-29-a` a `bmeusco-2026-10-29-b`). Así, los celulares que tienen la aplicación instalada descargan la versión nueva.
+3. GitHub Pages publica el cambio en la misma dirección en uno o dos minutos.
+4. El pie de la aplicación muestra el código de versión. Si un estudiante reporta un problema, lo primero es pedirle ese código: la causa más frecuente es una copia vieja guardada en el teléfono.
+
+### Agregar una ficha
+
+Todo el contenido está en el arreglo `OPS` dentro de `index.html`. Cada ficha es un objeto con esta forma:
 
 ```js
-{ id:'idUnico', num:'94', cat:'materia', chapter:3, sector:'Alimentaria', diagramKey:'mixer', name:'Nombre corto',
+{ id:'idUnico', num:'95', cat:'materia', chapter:3, sector:'Alimentaria', diagramKey:'mixer', name:'Nombre corto',
   title:'Título de la ficha',
-  context:'Dónde aparece (para el encabezado)',
+  context:'Proceso o planta donde ocurre',
   story:'Enunciado completo del problema.',
-  inputs:[ {key:'F', label:'F — descripción', unit:'kg/h', def:'100'} ],
+  inputs:[ {key:'F', label:'F — descripción', unit:'kg/h', def:'100', dtag:'d-in-1'} ],
   hints:[ 'Pista 1', 'Pista 2', 'Pista 3' ],
   answerFields:[ {key:'resultado', label:'Resultado', unit:'kg/h'} ],
   calc(v){
-    // v.F, v.x1, etc. — los valores ingresados
-    // devuelve {error} o {outputs, diagram, flows, steps, note?}
+    // v.F, ... son los valores ingresados
+    // devuelve {error} o {outputs, diagram, flows, steps, note}
   }
 }
 ```
 
-- `diagramKey` reutiliza un diagrama ya existente del objeto `DIAGRAMS` (mezclador, reactor, evaporador, etc.) — casi nunca hace falta dibujar uno nuevo.
-- `chapter` determina en qué pestaña aparece. `taller:true` la reserva para el modo taller (no aparece en la práctica libre).
-- Para fichas de "esquema" (tipo capítulo 1, sin cálculo), usa `kind:'esquema'` con `quiz:[...]` y `schemaExplain` en vez de `calc`.
+- `diagramKey` reutiliza un diagrama del objeto `DIAGRAMS`. `dtag` indica en qué lugar del diagrama se muestra cada dato.
+- `taller:true` reserva la ficha para el modo taller.
+- Para una respuesta de opción (por ejemplo, Sí/No), use `opciones:['No','Sí']` en el campo de respuesta. En la salida, `raw` es el índice de la opción correcta.
+- Para fichas de planteamiento de esquema (capítulo 1), use `kind:'esquema'` con `quiz` y `schemaExplain` en lugar de `calc`.
+- Antes de programar una ficha, verifique la solución numéricamente por aparte y compruebe que los datos sean físicamente consistentes.
 
-**Antes de programar una ficha, verifica la fórmula aparte** (en Node.js o una calculadora) — así se detectaron los errores reales que encontramos en el libro. No confíes en que "se ve bien" sin correr números.
+### Registro de uso (Google Apps Script)
 
-## Backend (Google Apps Script + Google Sheets)
+- La dirección del script va en la constante `SHEET_WEBAPP_URL` de `index.html`.
+- El código del panel docente (`DOCENTE_CODE`) debe coincidir con `RESET_SECRET` en el script.
+- Cada vez que se modifica el script hay que publicarlo de nuevo: **Implementar → Gestionar implementaciones → Editar → Nueva versión**. La dirección no cambia.
 
-El seguimiento de uso, el modo taller y los reportes de error usan una Google Sheet llamada **"Registro BME"** con un script de Apps Script (`registro_apps_script.gs`, guardado aparte de este repo) expuesto como aplicación web.
+---
 
-- La URL de ese script va pegada en la constante `SHEET_WEBAPP_URL` dentro de `index.html`.
-- El código de acceso al panel docente (`DOCENTE_CODE`) debe coincidir exactamente con `RESET_SECRET` en el script de Apps Script — si cambias uno, cambia el otro.
-- Cada vez que edites el script de Apps Script, hay que volver a **Implementar → Gestionar implementaciones → editar → Nueva versión** para que el cambio quede activo (la URL no cambia).
-
-## Créditos
-
-Desarrollado de forma conversacional con Claude (Anthropic), verificando cada fórmula contra el libro de texto del curso antes de programarla.
+© 2026 Universidad Surcolombiana. Todos los derechos reservados.
