@@ -4,7 +4,7 @@
 Programa de Ingeniería Agroindustrial · Universidad Surcolombiana (Neiva, Huila, Colombia)
 
 **Aplicación:** https://jaimebustos1982.github.io/BMEUsco/
-**Versión actual:** 2026-10-29-b
+**Versión actual:** 2026-10-29-c
 
 ---
 
@@ -19,7 +19,7 @@ Programa de Ingeniería Agroindustrial · Universidad Surcolombiana (Neiva, Huil
 El autor conserva los derechos morales sobre la obra. Que el repositorio sea público en GitHub no concede ninguna licencia de uso, copia o modificación del código ni del contenido.
 
 **Cómo citar:**
-Bustos Vanegas, J. D. (2026). *BMEUsco: simulador de balances de materia y energía para procesos agroindustriales* (versión 2026-10-29-b) [Software]. Universidad Surcolombiana. https://jaimebustos1982.github.io/BMEUsco/
+Bustos Vanegas, J. D. (2026). *BMEUsco: simulador de balances de materia y energía para procesos agroindustriales* (versión 2026-10-29-c) [Software]. Universidad Surcolombiana. https://jaimebustos1982.github.io/BMEUsco/
 
 ---
 
@@ -59,10 +59,10 @@ El capítulo 1 trabaja la comprensión de lectura. El estudiante debe identifica
 
 ### Modo taller (actividades en clase)
 
-- El docente genera un código con tiempo límite (máximo 240 minutos) que habilita las 2 fichas reservadas de un capítulo.
+- El docente genera un código con tiempo límite (máximo 240 minutos) que habilita las 2 fichas reservadas de un capítulo. El código lo crea y lo valida el servicio de registro, así que no se puede fabricar ni alterar desde la app; para entrar al taller se necesita conexión a internet.
 - Las fichas de taller no aparecen en la práctica libre.
 - Si el estudiante cambia de ventana o sale de la aplicación, pierde el acceso al taller.
-- Cada ficha de taller solo se puede verificar una vez.
+- Cada ficha de taller solo se puede verificar una vez con el mismo código, aunque el estudiante salga y vuelva a entrar.
 - El docente ve las fichas asignadas completas, con sus respuestas.
 
 ### Panel docente
@@ -82,7 +82,8 @@ El capítulo 1 trabaja la comprensión de lectura. El estudiante debe identifica
 - **Sonido:** Web Audio API (tonos generados en el navegador, sin archivos de audio), con opción de silenciar.
 - **Funcionamiento sin conexión:** *service worker* con estrategia "red primero, caché como respaldo".
 - **Exportación a Excel:** el archivo .xlsx (Office Open XML) se genera en el propio navegador, incluidas las gráficas, sin librerías externas.
-- **Registro de uso:** Google Apps Script expuesto como aplicación web, que escribe en una hoja de cálculo de Google del docente. Este componente no está en el repositorio.
+- **Registro de uso:** Google Apps Script expuesto como aplicación web, que escribe en una hoja de cálculo de Google del docente, entrega los registros solo con la clave docente y crea y valida los códigos de taller. Este componente no está en el repositorio.
+- **Seguridad:** la clave del panel docente no está en el código de la app; solo la conoce el servicio de registro. El service worker no guarda en caché las consultas al servicio.
 - **Publicación:** GitHub Pages.
 
 ### Estructura del repositorio
@@ -146,8 +147,10 @@ Todo el contenido está en el arreglo `OPS` dentro de `index.html`. Cada ficha e
 ### Registro de uso (Google Apps Script)
 
 - La dirección del script va en la constante `SHEET_WEBAPP_URL` de `index.html`.
-- El código del panel docente (`DOCENTE_CODE`) debe coincidir con `RESET_SECRET` en el script.
+- La clave del panel docente es la constante `CLAVE_DOCENTE` del script. Para cambiarla basta con editar el script; la app no se toca.
+- El script guarda los códigos de taller en la hoja `CodigosTaller` de la misma hoja de cálculo.
 - Cada vez que se modifica el script hay que publicarlo de nuevo: **Implementar → Gestionar implementaciones → Editar → Nueva versión**. La dirección no cambia.
+- Desde la versión 2026-10-29-c la app necesita la versión 2 del script (la que valida la clave y los códigos de taller).
 
 ---
 

@@ -408,7 +408,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-29-b</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-29-c</p>
     </footer>
   </main>
 </div>
@@ -418,7 +418,9 @@
 
 <script>
 /* ============================= CONFIGURACIÓN ============================= */
-const DOCENTE_CODE = 'BUSTOS-2026'; // el docente puede cambiar este código antes de compartir el archivo con los estudiantes
+// La clave del panel docente NO vive en la app: la valida el servicio de registro (Apps Script).
+// Se guarda en memoria solo mientras el panel está abierto.
+let claveDocente = null;
 const SHEET_WEBAPP_URL = 'https://script.google.com/macros/s/AKfycbwOUTpf095cEqXVQZnzVO_5b6HCw-GGag5gkKQ1asJBQrzKaLjVCYmvvv8qBtsnNRBj/exec'; // pega aquí la URL /exec de tu Google Apps Script Web App (ver instrucciones del docente)
 
 /* ============================= UTILIDADES ============================= */
@@ -456,6 +458,11 @@ function wireSignButtons(container){
       inp.focus();
     });
   });
+}
+async function consultarServicio(params){
+  const url = SHEET_WEBAPP_URL + '?' + new URLSearchParams(params).toString();
+  const r = await fetch(url, {cache:'no-store'});
+  return await r.json();
 }
 function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
@@ -943,7 +950,7 @@ evapCalderaDiag: `<svg viewBox="0 0 360 220" class="schem">${ARROW_DEFS}
   <text x="4" y="86" class="d-label">Agua, Tagua</text>
   <text x="10" y="215" class="d-label">Diésel (energía)</text>
   <text x="130" y="86" class="d-label">Vapor a caldera → evap.</text>
-  <text x="140" y="215" class="d-label">F, xF, TF</text>
+  <text x="140" y="215" class="d-label">F, xF, TF</text><text x="122" y="203" class="d-val" id="d-in-1">—</text>
   <text x="290" y="14" class="d-label">V (vapor evap.)</text><text x="290" y="35" class="d-val computed" id="d-out-1">—</text>
   <text x="260" y="189" class="d-label">L (concentrado)</text>
   <text x="200" y="139" class="d-label">Condensado sale (mv)</text>
@@ -1146,11 +1153,11 @@ serieTresOperacionesDiag: `<svg viewBox="0 0 320 150" class="schem">${ARROW_DEFS
 /* ============================= OPERACIONES ============================= */
 // Intercambiador a contracorriente: la corriente fría nunca puede salir más caliente que la entrada
 // de la corriente caliente, ni entrar más caliente que la salida de la caliente (el calor solo fluye de caliente a frío).
-function chequeoContracorriente(TcalE, TcalS, TfriE, TfriS, cal, fri){
+function chequeoContracorriente(TcalE, TcalS, TfriE, TfriS, cal, fri, sugerencia){
   const Fri = fri.charAt(0).toUpperCase()+fri.slice(1);
   const delFri = fri.replace(/^el /,'del ').replace(/^la /,'de la ');
   if(TfriE >= TcalS) return `${Fri} debe entrar más fría (${TfriE} °C) que la temperatura a la que sale ${cal} (${TcalS} °C); de lo contrario no puede retirarle calor en ese extremo del equipo.`;
-  if(TfriS >= TcalE) return `Con estos datos ${fri} saldría a ${fmt(TfriS,2)} °C, más caliente que ${cal} que entra a ${TcalE} °C. Eso es imposible: el calor solo pasa del fluido caliente al frío. Aumenta el flujo ${delFri} o revisa las temperaturas.`;
+  if(TfriS >= TcalE) return `Con estos datos ${fri} saldría a ${fmt(TfriS,2)} °C, más caliente que ${cal} que entra a ${TcalE} °C. Eso es imposible: el calor solo pasa del fluido caliente al frío. ${sugerencia || `Aumenta el flujo ${delFri} o revisa las temperaturas.`}`;
   return null;
 }
 
@@ -1591,7 +1598,7 @@ const OPS = [
 { id:'intercambiadorFlujo', num:'12', cat:'energia', chapter:6, sector:'Alimentaria', name:'Intercambiador (flujo)',
   title:'Intercambiador de calor — flujo de agua para pasteurizar',
   context:'Planta láctea — balance de energía del libro del curso',
-  story:'En una planta láctea, la leche fría a 4 °C debe calentarse hasta 75 °C para su pasteurización, usando agua caliente que entra a 90 °C y sale a 65 °C en un intercambiador de calor. Se procesan 500 kg/h de leche. Determine el flujo de agua caliente requerido y la potencia térmica del intercambiador.',
+  story:'En una planta láctea, la leche fría a 4 °C debe calentarse hasta 75 °C para su pasteurización, usando agua caliente que entra a 90 °C y sale a 65 °C en un intercambiador de calor a contracorriente. Se procesan 500 kg/h de leche. Determine el flujo de agua caliente requerido y la potencia térmica del intercambiador.',
   inputs:[
     {key:'mL', label:'mL — flujo de leche', unit:'kg/h', dtag:'d-in-1', def:'500'},
     {key:'CL', label:'CL — calor esp. de la leche', unit:'kJ/kg·°C', def:'3.9'},
@@ -1615,6 +1622,9 @@ const OPS = [
     if(v.CL<=0||v.CA<=0) return {error:'Los calores específicos deben ser mayores que cero.'};
     if(v.TLout<=v.TLin) return {error:'La leche debe calentarse (T de salida mayor que la de entrada).'};
     if(v.TAin<=v.TAout) return {error:'El agua debe enfriarse (entra más caliente de lo que sale) para ceder calor a la leche.'};
+    const errFis = chequeoContracorriente(v.TAin, v.TAout, v.TLin, v.TLout, 'el agua', 'la leche',
+      'Revisa las temperaturas: la leche no puede calentarse por encima de la temperatura con que entra el agua.');
+    if(errFis) return {error:errFis};
     const Qleche=v.mL*v.CL*(v.TLout-v.TLin), mA=Qleche/(v.CA*(v.TAin-v.TAout)), Q=Qleche/3600;
     return {
       outputs:[
@@ -3582,7 +3592,7 @@ const OPS = [
         {key:'mv',label:'Vapor de calentamiento',value:fmt(mv,2),unit:'kg/h',raw:mv},
         {key:'mdiesel',label:'Consumo de diésel',value:fmt(mdiesel,2),unit:'kg/h',raw:mdiesel}
       ],
-      diagram:{'d-out-1':fmt(mdiesel,1)+' kg/h diésel'}, flows:['fo1','fo2','fo3','fo4','fo5'],
+      diagram:{'d-out-1':fmt(v.F-L2,1)+' kg/h', 'd-out-2':fmt(mdiesel,1)+' kg/h'}, flows:['fo1','fo2','fo3','fo4','fo5'],
       steps:[
         {t:'Balance de sólidos en todo el sistema (dos efectos)', f:`F·xF = L2·xL2\nL2 = ${v.F}×${v.xF}/${v.xL2} = ${fmt(L2)} kg/h`},
         {t:'Balance global de masa, con V1=V2', f:`F = L2 + V1 + V2 = L2 + 2V1\nV1 = (F−L2)/2 = ${fmt(V1)} kg/h = V2`},
@@ -4802,27 +4812,26 @@ let perfil = null;
 /* ============================= MODO TALLER ============================= */
 let tallerMode = null; // {chapterNum, expiryEpoch} o null
 let tallerInterval = null;
-let tallerVerificadas = {}; // {opId: true} — fichas ya verificadas en la sesión de taller actual
+let tallerVerificadas = {}; // {opId: true} — fichas ya verificadas con el código de taller actual
 
 const TALLER_MAX_MINUTOS = 240; // límite razonable para un taller de clase (4 h)
 
-function encodeTallerCode(chapterNum, minutos){
-  const expiry = Math.floor(Date.now()/1000) + Math.round(minutos*60);
-  return expiry.toString(36).toUpperCase() + '-' + chapterNum;
+// Los códigos de taller los crea y valida el servicio de registro: no se pueden fabricar ni alterar desde la app.
+// Las fichas ya verificadas se guardan por código, para que volver a entrar con el mismo código no permita verificar de nuevo.
+function cargarVerificadasTaller(codigo){
+  try{ const t = JSON.parse(localStorage.getItem('taller-verificadas')||'{}'); return (t[codigo] && t[codigo].fichas) || {}; }
+  catch(e){ return {}; }
 }
-function decodeTallerCode(code){
-  const parts = String(code||'').trim().toUpperCase().split('-');
-  if(parts.length!==2) return null;
-  const expiry = parseInt(parts[0], 36);
-  const chapterNum = parseInt(parts[1], 10);
-  if(isNaN(expiry)||isNaN(chapterNum)) return null;
-  if(!CHAPTERS.some(c=>c.num===chapterNum)) return null;
-  // Sanidad: un solo caracter mal tipeado en el codigo puede decodificar una fecha de vencimiento
-  // válida pero absurdamente lejana. Si supera el máximo razonable para un taller, se rechaza
-  // en vez de aceptar silenciosamente un tiempo corrupto.
-  const segundosRestantes = expiry - Math.floor(Date.now()/1000);
-  if(segundosRestantes > TALLER_MAX_MINUTOS*60) return null;
-  return {expiryEpoch:expiry, chapterNum};
+function marcarTallerVerificada(opId){
+  tallerVerificadas[opId] = true;
+  if(!tallerMode) return;
+  try{
+    const t = JSON.parse(localStorage.getItem('taller-verificadas')||'{}');
+    const ahora = Date.now()/1000;
+    Object.keys(t).forEach(k=>{ if(!(t[k] && t[k].vence > ahora)) delete t[k]; });   // descarta talleres vencidos
+    t[tallerMode.codigo] = {vence:tallerMode.expiryEpoch, fichas:tallerVerificadas};
+    localStorage.setItem('taller-verificadas', JSON.stringify(t));
+  }catch(e){}
 }
 
 function fmtCountdown(segRestantes){
@@ -4837,7 +4846,7 @@ function abrirModalCodigoTaller(){
   <div class="overlay">
     <div class="modal">
       <h3>Modo taller</h3>
-      <p>Ingresa el código que tu docente escribió en el tablero o dictó en clase. Al activarlo, no podrás salir de la app hasta terminar o se perderá el acceso y deberás ingresarlo de nuevo.</p>
+      <p>Ingresa el código que tu docente escribió en el tablero o dictó en clase (se necesita conexión a internet). Al activarlo, no podrás salir de la app hasta terminar o se perderá el acceso y deberás ingresarlo de nuevo.</p>
       <div class="field"><input id="taller-code" type="text" placeholder="Código del taller" style="text-transform:uppercase;"></div>
       <div id="taller-err"></div>
       <div class="modal-actions">
@@ -4847,18 +4856,28 @@ function abrirModalCodigoTaller(){
     </div>
   </div>`;
   document.getElementById('taller-cancel').addEventListener('click', ()=>{ root.innerHTML=''; });
-  document.getElementById('taller-entrar').addEventListener('click', ()=>{
-    const decoded = decodeTallerCode(document.getElementById('taller-code').value);
-    if(!decoded){ document.getElementById('taller-err').innerHTML = '<div class="err-box">Código inválido. Revisa que lo hayas escrito exactamente igual — un solo carácter distinto lo invalida.</div>'; return; }
-    if(decoded.expiryEpoch*1000 <= Date.now()){ document.getElementById('taller-err').innerHTML = '<div class="err-box">Este código ya expiró.</div>'; return; }
+  document.getElementById('taller-entrar').addEventListener('click', async ()=>{
+    const codigo = document.getElementById('taller-code').value.toUpperCase().replace(/[\s-]+/g,'');
+    const err = document.getElementById('taller-err'), btn = document.getElementById('taller-entrar');
+    const fallo = msg => { err.innerHTML = `<div class="err-box">${msg}</div>`; btn.disabled = false; btn.textContent = 'Entrar'; };
+    if(!codigo) return fallo('Escribe el código del taller.');
+    if(!SHEET_WEBAPP_URL) return fallo('El registro del curso aún no está configurado.');
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    let r;
+    try{ r = await consultarServicio({accion:'taller', codigo}); }
+    catch(e){ return fallo('Para entrar al taller se necesita conexión a internet. Revisa la conexión e inténtalo de nuevo.'); }
+    if(!r || r.ok!==true){
+      return fallo(r && r.error==='VENCIDO' ? 'Este código ya expiró.' : 'Código no válido. Revisa que lo hayas escrito exactamente como lo dio tu docente.');
+    }
+    if(tallerOpsInChapter(r.capitulo).length===0) return fallo('Este taller no está en tu versión de la app. Cierra la app y vuelve a abrirla con internet para actualizarla.');
     root.innerHTML='';
-    iniciarTaller(decoded.chapterNum, decoded.expiryEpoch);
+    iniciarTaller(r.capitulo, Math.floor(Date.now()/1000) + Math.min(r.restante, TALLER_MAX_MINUTOS*60), codigo);
   });
 }
 
-function iniciarTaller(chapterNum, expiryEpoch){
-  tallerMode = {chapterNum, expiryEpoch};
-  tallerVerificadas = {};
+function iniciarTaller(chapterNum, expiryEpoch, codigo){
+  tallerMode = {chapterNum, expiryEpoch, codigo};
+  tallerVerificadas = cargarVerificadasTaller(codigo);
   currentChapter = chapterNum;
   const ops = tallerOpsInChapter(chapterNum);
   currentOp = ops.length ? ops[0].id : null;
@@ -5248,6 +5267,21 @@ function renderEsquemaQuiz(op){
     <div id="revealBox"></div>`;
   box.innerHTML = html;
 
+  // En modo taller, cada ficha se verifica una sola vez (igual que las fichas de cálculo)
+  function bloquearQuizTaller(){
+    const b = document.getElementById('quizCheckBtn');
+    b.disabled = true; b.textContent = 'Ya verificaste esta ficha ✓';
+    box.querySelectorAll('.quiz-opt').forEach(o=>{ o.style.pointerEvents='none'; o.querySelector('input').disabled = true; });
+    if(!document.getElementById('quizYaVerificado')){
+      const n = document.createElement('p'); n.id = 'quizYaVerificado';
+      n.style.cssText = 'text-align:center;font-size:11.5px;color:var(--ink-faint);margin-top:8px;';
+      n.textContent = 'Tu respuesta para esta ficha ya quedó registrada. No puedes volver a verificar.';
+      b.insertAdjacentElement('afterend', n);
+    }
+  }
+
+  if(tallerMode && tallerVerificadas[op.id]) bloquearQuizTaller();
+
   box.querySelectorAll('.quiz-opt').forEach(el=>{
     el.addEventListener('click', ()=>{
       const qBlock = el.closest('.quiz-q');
@@ -5258,7 +5292,8 @@ function renderEsquemaQuiz(op){
   });
 
   document.getElementById('quizCheckBtn').addEventListener('click', ()=>{
-    let correctCount = 0;
+    if(tallerMode && tallerVerificadas[op.id]) return;
+    let correctCount = 0, respondidas = 0;
     op.quiz.forEach((q, qi)=>{
       const qBlock = box.querySelector(`.quiz-q[data-qi="${qi}"]`);
       const selected = qBlock.querySelector('input:checked');
@@ -5269,8 +5304,17 @@ function renderEsquemaQuiz(op){
         else if(oi===selIdx) optEl.classList.add('incorrect');
       });
       document.getElementById('explain-'+qi).classList.add('show');
+      if(selIdx!==null) respondidas++;
       if(selIdx===q.correct) correctCount++;
     });
+    // Mismo criterio que las fichas de cálculo: alguna mala → Incorrecta; todas bien → Correcta;
+    // bien pero con preguntas sin responder → Parcial; ninguna respondida → Sin respuesta.
+    const verdicto = respondidas===0 ? 'Sin respuesta'
+      : (correctCount < respondidas ? 'Incorrecta' : (respondidas===op.quiz.length ? 'Correcta' : 'Parcial'));
+    registrarUso(op, 0, verdicto);
+    if(verdicto==='Correcta' || verdicto==='Parcial'){ guardarProgreso(op.id, verdicto); renderChapters(); renderChips(); }
+    if(verdicto==='Correcta') soundCorrect(); else if(verdicto==='Parcial') soundPartial(); else if(verdicto==='Incorrecta') soundError();
+    if(tallerMode){ marcarTallerVerificada(op.id); bloquearQuizTaller(); }
     document.getElementById('quizScoreBox').innerHTML =
       `<div class="quiz-score">Respondiste correctamente ${correctCount} de ${op.quiz.length} preguntas de diagnóstico.</div>`;
     if(!document.getElementById('revealSchemaBtn')){
@@ -5403,7 +5447,7 @@ async function runCalc(){
       if(resultsPanel) resultsPanel.classList.add('flash-error');
     }
     if(tallerMode){
-      tallerVerificadas[op.id] = true;
+      marcarTallerVerificada(op.id);
       bloquearCalcBtnTaller();
     }
   }
@@ -5443,14 +5487,23 @@ document.getElementById('openDocente').addEventListener('click', ()=>{
     </div>
   </div>`;
   document.getElementById('doc-cancel').addEventListener('click', ()=>root.innerHTML='');
-  document.getElementById('doc-entrar').addEventListener('click', ()=>{
+  document.getElementById('doc-entrar').addEventListener('click', async ()=>{
     const code = document.getElementById('doc-code').value.trim();
-    if(code === DOCENTE_CODE){ root.innerHTML=''; abrirPanelDocente(); }
-    else{ document.getElementById('doc-err').innerHTML = '<div class="err-box">Código incorrecto.</div>'; }
+    const err = document.getElementById('doc-err'), btn = document.getElementById('doc-entrar');
+    const fallo = msg => { err.innerHTML = `<div class="err-box">${msg}</div>`; btn.disabled = false; btn.textContent = 'Entrar'; };
+    if(!code) return fallo('Escribe el código de acceso.');
+    if(!SHEET_WEBAPP_URL) return fallo('Aún no está configurado el servicio de registro.');
+    btn.disabled = true; btn.textContent = 'Verificando…';
+    let r;
+    try{ r = await consultarServicio({accion:'registros', clave:code}); }
+    catch(e){ return fallo('No se pudo conectar con el servicio de registro. Revisa la conexión a internet.'); }
+    if(Array.isArray(r)) return fallo('El servicio de registro (Apps Script) no está actualizado. Publica la versión nueva del script para usar el panel.');
+    if(!r || r.ok!==true) return fallo('Código incorrecto.');
+    claveDocente = code; root.innerHTML=''; abrirPanelDocente(r);
   });
 });
 
-async function abrirPanelDocente(){
+async function abrirPanelDocente(datosIniciales){
   const root = document.getElementById('panelRoot');
   root.innerHTML = `
   <div class="panel-full">
@@ -5486,7 +5539,7 @@ async function abrirPanelDocente(){
       </div>
     </div>
   </div>`;
-  document.getElementById('doc-cerrar').addEventListener('click', ()=>{ root.innerHTML=''; });
+  document.getElementById('doc-cerrar').addEventListener('click', ()=>{ root.innerHTML=''; claveDocente = null; });
   function fichaCompletaHTML(op){
     let body = `<div style="margin-top:8px;">
       <p style="font-size:11px;color:var(--ink-faint);margin:0 0 4px;">${esc(op.context)}</p>
@@ -5544,14 +5597,23 @@ async function abrirPanelDocente(){
   }
   document.getElementById('taller-gen-cap').addEventListener('change', renderTallerPreview);
   renderTallerPreview();
-  document.getElementById('taller-gen-btn').addEventListener('click', ()=>{
+  document.getElementById('taller-gen-btn').addEventListener('click', async ()=>{
     const cap = parseInt(document.getElementById('taller-gen-cap').value,10);
     const min = Math.min(TALLER_MAX_MINUTOS, Math.max(1, parseFloat(document.getElementById('taller-gen-min').value)||20));
-    const code = encodeTallerCode(cap, min);
-    document.getElementById('taller-gen-result').innerHTML = `
+    const out = document.getElementById('taller-gen-result'), btn = document.getElementById('taller-gen-btn');
+    btn.disabled = true; btn.textContent = 'Generando…'; out.innerHTML = '';
+    let r = null;
+    try{ r = await consultarServicio({accion:'crearTaller', clave:claveDocente, capitulo:cap, minutos:min}); }catch(e){ r = null; }
+    btn.disabled = false; btn.textContent = 'Generar código';
+    if(!r || r.ok!==true){
+      out.innerHTML = '<div class="err-box" style="margin-top:12px;">No se pudo generar el código. Revisa la conexión a internet e inténtalo de nuevo.</div>';
+      return;
+    }
+    const minutos = Math.round(r.restante/60);
+    out.innerHTML = `
       <div class="note" style="margin-top:12px;text-align:center;">
-        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--vino);letter-spacing:.05em;">${code}</div>
-        <div style="margin-top:4px;">Válido por ${min} minuto(s) desde ahora. Compártelo con los estudiantes ahora mismo — el reloj ya empezó a correr.</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;color:var(--vino);letter-spacing:.08em;">${esc(r.codigo)}</div>
+        <div style="margin-top:4px;">Válido por ${minutos} minuto(s) desde ahora. Compártelo con los estudiantes ahora mismo — el reloj ya empezó a correr. Para entrar, los estudiantes necesitan conexión a internet.</div>
       </div>`;
   });
 
@@ -5565,15 +5627,12 @@ async function abrirPanelDocente(){
   let logs = [];
   let reportes = [];
   try{
-    const [r, rRep] = await Promise.all([
-      fetch(SHEET_WEBAPP_URL),
-      fetch(SHEET_WEBAPP_URL + '?tipo=reportes')
-    ]);
-    logs = await r.json();
-    if(!Array.isArray(logs)) logs = [];
-    try{ reportes = await rRep.json(); if(!Array.isArray(reportes)) reportes = []; }catch(e2){ reportes = []; }
+    const r = datosIniciales || await consultarServicio({accion:'registros', clave:claveDocente});
+    if(!r || r.ok!==true) throw new Error('respuesta no autorizada');
+    logs = Array.isArray(r.registros) ? r.registros : [];
+    reportes = Array.isArray(r.reportes) ? r.reportes : [];
   }catch(e){
-    content.innerHTML = '<div class="err-box">No se pudo cargar el registro. Verifica tu conexión y que la hoja de Google esté publicada como "Cualquier usuario con el enlace".</div>';
+    content.innerHTML = '<div class="err-box">No se pudo cargar el registro. Verifica tu conexión a internet y vuelve a abrir el panel.</div>';
     return;
   }
 
@@ -5707,12 +5766,11 @@ function mostrarConfirmarBorrado(totalRegistros){
       await fetch(SHEET_WEBAPP_URL, {
         method:'POST', mode:'no-cors',
         headers:{'Content-Type':'text/plain;charset=utf-8'},
-        body: JSON.stringify({reset:true, secret:DOCENTE_CODE})
+        body: JSON.stringify({reset:true, secret:claveDocente})
       });
       await new Promise(r=>setTimeout(r,1200));
-      const check = await fetch(SHEET_WEBAPP_URL);
-      const nuevos = await check.json();
-      if(Array.isArray(nuevos) && nuevos.length===0){
+      const check = await consultarServicio({accion:'registros', clave:claveDocente});
+      if(check && check.ok===true && Array.isArray(check.registros) && check.registros.length===0){
         root.innerHTML='';
         abrirPanelDocente();
       } else {

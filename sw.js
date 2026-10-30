@@ -13,7 +13,7 @@
  * Si no cambias este valor, la actualización igual llega (por la estrategia
  * de red primero), pero cambiarlo garantiza una limpieza total del caché viejo.
  */
-const CACHE_NAME = 'bmeusco-2026-10-29-b';
+const CACHE_NAME = 'bmeusco-2026-10-29-c';
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -34,6 +34,10 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // Las consultas al servicio de registro (Apps Script) nunca se guardan en caché:
+  // siempre deben reflejar el estado real (registros, validación de códigos de taller).
+  const host = new URL(event.request.url).hostname;
+  if (host.endsWith('script.google.com') || host.endsWith('script.googleusercontent.com')) return;
   event.respondWith(
     fetch(event.request, { cache: 'no-store' })
       .then((response) => {
