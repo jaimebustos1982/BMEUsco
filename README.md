@@ -4,7 +4,7 @@
 Programa de Ingeniería Agroindustrial · Universidad Surcolombiana (Neiva, Huila, Colombia)
 
 **Aplicación:** https://jaimebustos1982.github.io/BMEUsco/
-**Versión actual:** 2026-10-29-c
+**Versión actual:** 2026-10-30-a
 
 ---
 
@@ -56,6 +56,10 @@ Las fichas siguen el índice del libro de texto del curso, *Balance de materia y
 - Comprobaciones físicas: por ejemplo, la app rechaza datos que harían que el fluido frío de un intercambiador salga más caliente que la entrada del fluido caliente.
 
 El capítulo 1 trabaja la comprensión de lectura. El estudiante debe identificar el esquema correcto del proceso (operaciones unitarias, volumen de control, corrientes de entrada y salida, variables conocidas y por calcular, base de cálculo) mediante preguntas de diagnóstico, antes de hacer cualquier cálculo.
+
+### Vista para celular o computador
+
+En pantallas anchas la aplicación usa una vista de computador: los capítulos van en una barra lateral y cada ficha se presenta en dos columnas (enunciado y diagrama a la izquierda; datos, pistas, respuesta y resultados a la derecha). En ventanas desde 900 px de ancho aparece un selector **📱 Celular / 🖥️ Computador** en el encabezado; la elección queda guardada en el dispositivo. En celulares se usa siempre la vista de una columna.
 
 ### Modo taller (actividades en clase)
 

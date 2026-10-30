@@ -316,6 +316,49 @@
   .panel-actions{display:flex;gap:8px;margin:16px 0;}
   .loading{font-size:12.5px;color:var(--ink-dim);padding:20px 0;text-align:center;}
 
+
+  /* ---------- VISTA: CELULAR / COMPUTADOR ---------- */
+  .vista-toggle{ display:none; margin-left:8px; vertical-align:middle; border:1px solid var(--line); border-radius:20px; overflow:hidden; background:var(--card); }
+  .vista-toggle button{ border:none; background:transparent; font-family:var(--font-body); font-size:11.5px; color:var(--ink-dim); padding:6px 11px; cursor:pointer; }
+  .vista-toggle button.activa{ background:var(--vino); color:#fff; font-weight:600; }
+  @media (min-width:900px){ .vista-toggle{ display:inline-flex; } }
+
+  /* Celular: las dos columnas de la ficha no existen visualmente; se conserva el orden original */
+  .ficha-cols{ display:flex; flex-direction:column; }
+  .ficha-col{ display:contents; }
+  .ficha-col > *{ order:81; }
+  #opTitle{order:10;} .ficha-col > .case-block{order:20;} #esquemaContainer{order:30;} #schemWrap{order:40;}
+  #datosWrap{order:50;} #hintWrap{order:60;} #answerWrap{order:70;} #calcBtn{order:80;}
+  #errBox{order:90;} #resultsBox{order:100;} #openReporte{order:110;}
+
+  /* Computador (desde 900 px de ancho): ficha en dos columnas */
+  @media (min-width:900px){
+    body.vista-pc .wrap{ max-width:1240px; }
+    body.vista-pc .ficha-cols{ display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,1fr); gap:28px; align-items:start; }
+    body.vista-pc .ficha-col{ display:block; }
+    body.vista-pc .ficha-col-izq{ position:sticky; top:12px; max-height:calc(100vh - 24px); overflow-y:auto; scrollbar-width:thin; }
+    body.vista-pc .card-body{ padding:22px 26px; }
+    body.vista-pc .op-title{ font-size:21px; }
+    body.vista-pc .case-text{ font-size:14px; line-height:1.6; }
+    body.vista-pc .inputs-grid{ grid-template-columns:1fr 1fr; }
+    body.vista-pc .chip{ min-width:170px; }
+    body.vista-pc .panel-full .wrap{ max-width:1240px; }
+    body.vista-pc .stats-grid{ grid-template-columns:repeat(auto-fill, minmax(170px, 1fr)) !important; }
+    body.vista-pc .table-wrap{ max-height:560px; }
+    body.vista-pc table.logtable{ font-size:12.5px; }
+  }
+  /* Computador ancho (desde 1100 px): capítulos en una barra lateral */
+  @media (min-width:1100px){
+    body.vista-pc .app-wrap{ display:grid; grid-template-columns:240px minmax(0,1fr); column-gap:30px; align-items:start; }
+    body.vista-pc .app-wrap > *{ grid-column:2; }
+    body.vista-pc #tallerBanner{ grid-column:1 / -1; }
+    body.vista-pc #chapterScroll{ grid-column:1; grid-row:2 / span 6; flex-direction:column; overflow:visible; margin:14px 0 0; padding:0; gap:6px; position:sticky; top:12px; }
+    body.vista-pc .chapter-chip{ border-radius:10px; padding:9px 14px; }
+    body.vista-pc #chapterTitleBar{ margin-top:14px; font-size:17px; }
+    body.vista-pc.en-taller .app-wrap{ grid-template-columns:minmax(0,1fr); }
+    body.vista-pc.en-taller .app-wrap > *{ grid-column:1; }
+  }
+
   footer{margin-top:6px;padding:14px 4px 0;border-top:1px solid var(--line);}
   footer p{font-size:10.5px;color:var(--ink-faint);line-height:1.7;margin:3px 0;text-align:center;}
 
@@ -340,12 +383,16 @@
       <div class="docente-line">Docente: <b>D. Sc. Jaime Daniel Bustos Vanegas</b></div>
       <div class="app-badge"><b>BMEUsco</b> · Operaciones unitarias en procesos agroindustriales</div>
       <button class="sound-toggle" id="soundToggle" title="Sonido">🔊</button>
+      <div class="vista-toggle" id="vistaToggle" role="group" aria-label="Tipo de pantalla">
+        <button type="button" data-vista="movil" title="Diseño para celular">📱 Celular</button>
+        <button type="button" data-vista="pc" title="Diseño para computador">🖥️ Computador</button>
+      </div>
     </div>
     <div class="userbar" id="userbar"></div>
   </div>
 </div>
 
-<div class="wrap">
+<div class="wrap app-wrap" id="appWrap">
   <div id="tallerBanner"></div>
   <nav class="chapter-scroll" id="chapterScroll"></nav>
   <div class="chapter-title-bar" id="chapterTitleBar"></div>
@@ -364,7 +411,10 @@
           <span class="pill sector" id="fichaSector">Alimentaria</span>
         </div>
       </div>
-      <div class="card-body">
+      <div class="card-body ficha-cols">
+        <!-- En computador: enunciado y diagrama a la izquierda; datos, pistas, respuesta y resultados a la derecha.
+             En celular las columnas desaparecen (display:contents) y el orden lo fija la propiedad CSS "order". -->
+        <div class="ficha-col ficha-col-izq">
         <h2 class="op-title" id="opTitle"></h2>
 
         <div class="case-block">
@@ -372,9 +422,11 @@
           <div class="case-text" id="caseText"></div>
         </div>
 
-        <div id="esquemaContainer"></div>
-
         <div id="schemWrap" class="schem-box"><div id="schemContainer"></div></div>
+        </div>
+
+        <div class="ficha-col ficha-col-der">
+        <div id="esquemaContainer"></div>
 
         <div id="datosWrap">
           <p class="sec-label">Datos conocidos del problema</p>
@@ -399,6 +451,7 @@
         <div id="errBox"></div>
         <div id="resultsBox"></div>
         <div class="report-link" id="openReporte">⚠️ Reportar un error en esta ficha</div>
+        </div>
       </div>
     </div>
 
@@ -408,7 +461,7 @@
     <footer>
       <p>Universidad Surcolombiana · Facultad de Ingeniería · Programa de Ingeniería Agroindustrial</p>
       <p>Curso Balance de Materia y Energía · Docente D. Sc. Jaime Daniel Bustos Vanegas</p>
-      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-29-c</p>
+      <p style="font-family:'JetBrains Mono',monospace;">Versión 2026-10-30-a</p>
     </footer>
   </main>
 </div>
@@ -527,6 +580,23 @@ document.getElementById('soundToggle').addEventListener('click', ()=>{
   if(soundEnabled) soundHint();
 });
 renderSoundToggle();
+
+/* ============================= VISTA CELULAR / COMPUTADOR ============================= */
+// Sin preferencia guardada, la vista se elige por el ancho de la ventana; el estudiante puede fijarla con el selector.
+const VISTA_PC_MIN = 1024;
+function vistaPreferida(){ try{ return localStorage.getItem('vista-preferida'); }catch(e){ return null; } }
+function aplicarVista(){
+  const pref = vistaPreferida();
+  const pc = pref ? pref==='pc' : window.innerWidth >= VISTA_PC_MIN;
+  document.body.classList.toggle('vista-pc', pc);
+  document.querySelectorAll('#vistaToggle button').forEach(b=>b.classList.toggle('activa', (b.dataset.vista==='pc')===pc));
+}
+document.querySelectorAll('#vistaToggle button').forEach(b=>b.addEventListener('click', ()=>{
+  try{ localStorage.setItem('vista-preferida', b.dataset.vista); }catch(e){}
+  aplicarVista();
+}));
+window.addEventListener('resize', ()=>{ if(!vistaPreferida()) aplicarVista(); });
+aplicarVista();
 
 let startupPlayed = false;
 function tryStartupSound(){
@@ -4877,6 +4947,7 @@ function abrirModalCodigoTaller(){
 
 function iniciarTaller(chapterNum, expiryEpoch, codigo){
   tallerMode = {chapterNum, expiryEpoch, codigo};
+  document.body.classList.add('en-taller');
   tallerVerificadas = cargarVerificadasTaller(codigo);
   currentChapter = chapterNum;
   const ops = tallerOpsInChapter(chapterNum);
@@ -4894,6 +4965,7 @@ function iniciarTaller(chapterNum, expiryEpoch, codigo){
 
 function salirDelTaller(){
   tallerMode = null;
+  document.body.classList.remove('en-taller');
   if(tallerInterval){ clearInterval(tallerInterval); tallerInterval=null; }
   document.getElementById('tallerBanner').innerHTML='';
   document.getElementById('chapterScroll').style.display='';
